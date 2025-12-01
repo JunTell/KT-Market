@@ -2,12 +2,14 @@
 import { ReactNode } from 'react'
 import Link from 'next/link'
 import { createSupabaseServerClient } from '@/src/lib/supabase/server'
+import { LogoutButton } from '@/src/components/LogoutButton'
 
 export default async function AdminLayout({
   children,
 }: {
   children: ReactNode
 }) {
+  // Server Component에서 쿠키 기반 세션 읽기
   const supabase = await createSupabaseServerClient()
   const {
     data: { user },
@@ -26,8 +28,11 @@ export default async function AdminLayout({
               {/* 다른 메뉴들 추가 예정 */}
             </nav>
           </div>
-          <div className="text-xs text-white/60">
-            {user ? user.email : '로그인 정보 없음'}
+          <div className="flex items-center gap-3">
+            <div className="text-xs text-white/60">
+              {user ? user.email : '로그인 정보 없음'}
+            </div>
+            <LogoutButton />
           </div>
         </header>
         <main className="p-6">{children}</main>

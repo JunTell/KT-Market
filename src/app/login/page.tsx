@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabaseClient } from '@/src/lib/supabase/client'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') || '/admin'
@@ -105,14 +105,16 @@ export default function LoginPage() {
           </div>
 
           <div className="flex justify-center gap-5">
-
             {/* Kakao */}
             <button
               type="button"
               onClick={() =>
                 supabaseClient.auth.signInWithOAuth({
                   provider: 'kakao',
-                  options: { redirectTo },
+                  options: {
+                    redirectTo,
+                    scopes: 'account_email',
+                  },
                 })
               }
             >
@@ -125,16 +127,23 @@ export default function LoginPage() {
               onClick={() =>
                 supabaseClient.auth.signInWithOAuth({
                   provider: 'google',
-                  options: { redirectTo },
                 })
               }
             >
               <img src="/icons/google.svg" className="w-12 h-12" />
             </button>
-
           </div>
         </div>
+
       </div>
     </main>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">로딩 중...</div>}>
+      <LoginForm />
+    </Suspense>
   )
 }
