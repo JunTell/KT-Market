@@ -1,0 +1,18 @@
+# .claudeignore 예시
+
+# 패키지 잠금 파일 (가장 중요! 여기서 토큰 엄청 아낌)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# 빌드 결과물
+dist
+build
+.next
+out
+
+# 기타 불필요한 파일
+*.log
+*.csv
+*.svg
+coverage/

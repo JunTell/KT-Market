@@ -31,7 +31,27 @@ function LoginForm() {
       return
     }
 
-    router.push(redirectTo)
+    // 로그인 성공 → role 확인
+    const {
+      data: { user },
+    } = await supabaseClient.auth.getUser()
+
+    if (user) {
+      const { data: profile } = await supabaseClient
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      // 관리자라면 /admin 이동
+      if (profile?.role === 'admin') {
+        router.push('/admin')
+        return
+      }
+    }
+
+    // 일반 회원은 기본 페이지로 이동
+    router.push('/')
   }
 
   return (
