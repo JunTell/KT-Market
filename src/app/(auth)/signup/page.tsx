@@ -103,8 +103,6 @@ export default function SignupPage() {
             onChange={(e) => setPasswordConfirm(e.target.value)}
           />
 
-          {/* 추후 회사명/담당자명/전화번호 등 필드가 필요하면 여기에 추가 */}
-
           <button
             type="submit"
             disabled={loading}
