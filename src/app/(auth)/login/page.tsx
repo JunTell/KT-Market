@@ -1,8 +1,14 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabaseClient } from '@/src/lib/supabase/client'
+import {
+  getSavedEmail,
+  setSavedEmail,
+  clearSavedEmail,
+  setRememberMe,
+} from '@/src/lib/auth'
 
 function LoginForm() {
   const router = useRouter()
@@ -13,45 +19,89 @@ function LoginForm() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [rememberMeChecked, setRememberMeChecked] = useState(false)
+  const [saveIdChecked, setSaveIdChecked] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
+
+  // 컴포넌트 마운트 시 저장된 이메일 불러오기
+  useEffect(() => {
+    const savedEmail = getSavedEmail()
+    if (savedEmail) {
+      setEmail(savedEmail)
+      setSaveIdChecked(true)
+    }
+  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
-    const { error } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      // 아이디 저장 처리
+      if (saveIdChecked) {
+        setSavedEmail(email)
+      } else {
+        clearSavedEmail()
+      }
 
-    setLoading(false)
+      // 로그인 유지 설정 저장
+      setRememberMe(rememberMeChecked)
 
-    if (error) {
-      setError(error.message)
-      return
-    }
+      const { error: signInError } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    // 로그인 성공 → role 확인
-    const {
-      data: { user },
-    } = await supabaseClient.auth.getUser()
-
-    if (user) {
-      const { data: profile } = await supabaseClient
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-
-      // 관리자라면 /admin 이동
-      if (profile?.role === 'admin') {
-        router.push('/admin')
+      if (signInError) {
+        setLoading(false)
+        setError(signInError.message)
         return
       }
-    }
 
-    // 일반 회원은 기본 페이지로 이동
-    router.push('/')
+      // 로그인 성공 → 세션이 완전히 설정될 때까지 대기
+      console.log('[Login] 로그인 성공, 세션 확인 중...')
+
+      // onAuthStateChange 이벤트가 처리될 시간 제공 (500ms)
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      // 최종 사용자 정보 및 프로필 확인
+      const {
+        data: { user },
+      } = await supabaseClient.auth.getUser()
+
+      setLoading(false)
+      setRedirecting(true)
+
+      if (user) {
+        const { data: profile } = await supabaseClient
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', user.id)
+          .single()
+
+        console.log('[Login] 프로필 확인:', profile)
+
+        // 짧은 지연 후 리다이렉트 (사용자에게 피드백 제공)
+        await new Promise(resolve => setTimeout(resolve, 300))
+
+        // 관리자라면 /admin 이동
+        if (profile?.is_admin === true) {
+          console.log('[Login] 관리자 계정, /admin으로 이동')
+          window.location.href = '/admin'
+          return
+        }
+      }
+
+      // 일반 회원은 기본 페이지로 이동
+      console.log('[Login] 일반 사용자, 홈으로 이동')
+      window.location.href = '/'
+    } catch (err) {
+      console.error('[Login] 로그인 처리 중 오류:', err)
+      setLoading(false)
+      setRedirecting(false)
+      setError('로그인 처리 중 오류가 발생했습니다.')
+    }
   }
 
   return (
@@ -87,11 +137,21 @@ function LoginForm() {
           {/* 체크박스 */}
           <div className="flex items-center gap-6 text-sm mt-1">
             <label className="flex items-center gap-2">
-              <input type="checkbox" className="w-4 h-4" />
+              <input
+                type="checkbox"
+                className="w-4 h-4"
+                checked={rememberMeChecked}
+                onChange={(e) => setRememberMeChecked(e.target.checked)}
+              />
               로그인 유지
             </label>
             <label className="flex items-center gap-2">
-              <input type="checkbox" className="w-4 h-4" />
+              <input
+                type="checkbox"
+                className="w-4 h-4"
+                checked={saveIdChecked}
+                onChange={(e) => setSaveIdChecked(e.target.checked)}
+              />
               아이디 저장
             </label>
           </div>
@@ -99,11 +159,26 @@ function LoginForm() {
           {/* 로그인 버튼 */}
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white rounded py-3 font-semibold mt-2"
+            disabled={loading || redirecting}
+            className={`w-full text-white rounded py-3 font-semibold mt-2 transition-colors ${
+              loading || redirecting
+                ? 'bg-blue-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
           >
-            {loading ? '로그인 중...' : '로그인'}
+            {redirecting
+              ? '페이지 이동 중...'
+              : loading
+              ? '로그인 중...'
+              : '로그인'}
           </button>
+
+          {/* 리다이렉트 메시지 */}
+          {redirecting && (
+            <p className="text-blue-600 text-sm text-center">
+              로그인 성공! 잠시만 기다려주세요...
+            </p>
+          )}
 
           {/* 에러 */}
           {error && <p className="text-red-500 text-sm">{error}</p>}
