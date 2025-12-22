@@ -21,6 +21,21 @@ export default function NewEventPage() {
         </div>
 
         <div>
+          <label className="block mb-1 font-medium">카테고리</label>
+          <select
+            name="category"
+            className="w-full p-2 border rounded"
+          >
+            <option value="">선택 안함</option>
+            <option value="프로모션">프로모션</option>
+            <option value="신제품">신제품</option>
+            <option value="할인">할인</option>
+            <option value="이벤트">이벤트</option>
+            <option value="공지">공지</option>
+          </select>
+        </div>
+
+        <div>
           <label className="block mb-1 font-medium">이벤트 제목 *</label>
           <input
             type="text"
@@ -37,6 +52,17 @@ export default function NewEventPage() {
             rows={5}
             className="w-full p-2 border rounded"
           />
+        </div>
+
+        <div>
+          <label className="block mb-1 font-medium">썸네일 이미지 URL</label>
+          <input
+            type="url"
+            name="thumbnail_url"
+            placeholder="https://example.com/image.jpg"
+            className="w-full p-2 border rounded"
+          />
+          <p className="text-xs text-gray-500">이미지 URL을 입력하세요</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -57,7 +83,7 @@ export default function NewEventPage() {
             />
           </div>
         </div>
-        
+
         <div>
           <label className="block mb-1 font-medium">외부 링크 (선택)</label>
           <input

@@ -16,8 +16,7 @@ export default async function AdminLayout({
   } = await supabase.auth.getUser()
 
   return (
-    <html lang="ko">
-      <body className="bg-[#050505] text-white">
+    <>
         <header className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <div className="flex items-center gap-4">
             <Link href="/admin">
@@ -36,7 +35,6 @@ export default async function AdminLayout({
           </div>
         </header>
         <main className="p-6">{children}</main>
-      </body>
-    </html>
+    </>
   )
 }
