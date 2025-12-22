@@ -1,26 +1,103 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ✅ 1. 핵심 컬러 (User Defined 3 Colors) */
+  --primary: #0066FF;
+  --secondary: #3C83EC;
+  --tertiary: #BBEBFF;
+
+  /* ✅ 2. Label Colors */
+  --label-900: #191F28;
+  --label-800: #333D4B;
+  --label-700: #4E5968;
+  --label-500: #8B95A1;
+  --label-100: #FFFFFF;
+
+  /* ✅ 3. Background Colors */
+  --bg-default: #FFFFFF;
+  --bg-alternative: #F2F4F6;
+
+  /* ✅ 4. Line Colors */
+  --line-800: #191F28;
+  --line-400: #D1D6DB;
+  --line-200: #E5E8EB;
+
+  /* ✅ 5. Status Colors */
+  --status-correct: #34C759;
+  --status-error: #FF3B30;
+  --status-caution: #FFCC00;
+  --status-disable: #D1D6DB;
+
+  /* ✅ 6. Radius */
+  --radius-2xs: 2px;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 14px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* 폰트 설정 */
+  --font-sans: var(--font-pretendard), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Hiragino Kaku Gothic ProN", "Meiryo", system-ui, sans-serif;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* 🎨 Color Palette 확장 */
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-tertiary: var(--tertiary);
+
+  --color-label-900: var(--label-900);
+  --color-label-800: var(--label-800);
+  --color-label-700: var(--label-700);
+  --color-label-500: var(--label-500);
+  --color-label-100: var(--label-100);
+
+  --color-background: var(--bg-default);
+  --color-background-alt: var(--bg-alternative);
+
+  --color-line-800: var(--line-800);
+  --color-line-400: var(--line-400);
+  --color-line-200: var(--line-200);
+
+  --color-status-correct: var(--status-correct);
+  --color-status-error: var(--status-error);
+  --color-status-caution: var(--status-caution);
+  --color-status-disable: var(--status-disable);
+
+  /* 📐 Radius 확장 */
+  --radius-2xs: var(--radius-2xs);
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+}
+html {
+  background-color: #F2F4F6;
+  height: 100%;
+  width: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #F2F4F6;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* top 정렬 (중요) */
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none; 
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
