@@ -1,116 +1,74 @@
 'use server'
 
+import { createSupabaseServerClient } from '@/src/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { createSupabaseServerClient } from '@/src/lib/supabase/server'
 
-export async function createEventAction(formData: FormData) {
+// 이벤트 생성/수정 로직
+export async function upsertEvent(formData: FormData) {
   const supabase = await createSupabaseServerClient()
-
+  
+  const id = formData.get('id') as string | null
   const title = formData.get('title') as string
-  const slug = formData.get('slug') as string
-  const category = formData.get('category') as string
+  // slug가 비어있으면 제목을 기반으로 생성하거나, 필수값으로 입력받음
+  const slug = (formData.get('slug') as string) || title.replace(/\s+/g, '-').toLowerCase()
   const content = formData.get('content') as string
-  const thumbnail_url = formData.get('thumbnail_url') as string
-  const start_date = formData.get('start_date') as string
-  const end_date = formData.get('end_date') as string
-  const link = formData.get('link') as string
+  const startDate = formData.get('start_date') as string
+  const endDate = formData.get('end_date') as string
+  const isFinish = formData.get('is_finish') === 'on'
+  
+  // TODO: 이미지 업로드 로직은 별도로 처리하여 URL만 넘겨받았다고 가정
+  const thumbnailUrl = formData.get('thumbnail_url') as string 
 
-  // 필수값 체크
-  if (!title || !slug) {
-    throw new Error('제목과 슬러그는 필수입니다.')
-  }
-
-  const { error } = await supabase.from('events').insert({
+  const eventData = {
     title,
     slug,
-    category: category || null,
     content,
-    thumbnail_url: thumbnail_url || null,
-    link,
-    start_date: start_date ? new Date(start_date).toISOString() : null,
-    end_date: end_date ? new Date(end_date).toISOString() : null,
-    is_finish: false,
-  })
-
-  if (error) {
-    console.error('이벤트 생성 실패:', error)
-    throw new Error('이벤트 생성에 실패했습니다.')
+    start_date: startDate || null,
+    end_date: endDate || null,
+    thumbnail_url: thumbnailUrl,
+    is_finish: isFinish,
+    updated_at: new Date().toISOString(),
   }
 
-  // 캐시 갱신 (새로 생성된 글이 리스트에 바로 보이게 함)
-  revalidatePath('/events')
-  revalidatePath('/admin/events')
+  let error;
 
-  // 생성 후 리스트 페이지나 상세 페이지로 이동
+  if (id) {
+    // 수정
+    const { error: updateError } = await supabase
+      .from('events')
+      .update(eventData)
+      .eq('id', id)
+    error = updateError
+  } else {
+    // 생성
+    const { error: insertError } = await supabase
+      .from('events')
+      .insert(eventData)
+    error = insertError
+  }
+
+  if (error) {
+    console.error(error)
+    throw new Error('이벤트 저장 실패')
+  }
+
+  revalidatePath('/admin/events')
+  revalidatePath(`/event/${slug}`) // 캐시 갱신
   redirect('/admin/events')
 }
 
-export async function updateEventAction(id: string, formData: FormData) {
+export async function deleteEvent(id: string) {
   const supabase = await createSupabaseServerClient()
+  
+  // 1. Storage 이미지 삭제 (선택사항: 찌꺼기 파일 방지)
+  // (이미지 경로를 DB에서 조회해서 storage.remove 하는 로직이 필요할 수 있음)
 
-  const title = formData.get('title') as string
-  const slug = formData.get('slug') as string
-  const category = formData.get('category') as string
-  const content = formData.get('content') as string
-  const thumbnail_url = formData.get('thumbnail_url') as string
-  const start_date = formData.get('start_date') as string
-  const end_date = formData.get('end_date') as string
-  const link = formData.get('link') as string
-  const is_finish = formData.get('is_finish') === 'true'
-
-  // 필수값 체크
-  if (!title || !slug) {
-    throw new Error('제목과 슬러그는 필수입니다.')
-  }
-
-  const { error } = await supabase
-    .from('events')
-    .update({
-      title,
-      slug,
-      category: category || null,
-      content,
-      thumbnail_url: thumbnail_url || null,
-      link,
-      start_date: start_date ? new Date(start_date).toISOString() : null,
-      end_date: end_date ? new Date(end_date).toISOString() : null,
-      is_finish,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', id)
-
-  if (error) {
-    console.error('이벤트 수정 실패:', error)
-    throw new Error('이벤트 수정에 실패했습니다.')
-  }
-
-  // 캐시 갱신
-  revalidatePath('/events')
+  // 2. DB 데이터 삭제
+  const { error } = await supabase.from('events').delete().eq('id', id)
+  
+  if (error) throw new Error('삭제 실패')
+  
   revalidatePath('/admin/events')
-  revalidatePath(`/admin/events/${id}`)
-
-  // 수정 후 리스트 페이지로 이동
-  redirect('/admin/events')
-}
-
-export async function deleteEventAction(id: string) {
-  const supabase = await createSupabaseServerClient()
-
-  const { error } = await supabase
-    .from('events')
-    .delete()
-    .eq('id', id)
-
-  if (error) {
-    console.error('이벤트 삭제 실패:', error)
-    throw new Error('이벤트 삭제에 실패했습니다.')
-  }
-
-  // 캐시 갱신
-  revalidatePath('/events')
-  revalidatePath('/admin/events')
-
-  // 삭제 후 리스트 페이지로 이동
-  redirect('/admin/events')
+  revalidatePath('/event') // 관련 캐시 초기화
 }
