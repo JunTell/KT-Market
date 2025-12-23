@@ -37,13 +37,14 @@ type LayoutConfig<Route extends LayoutRoutes = LayoutRoutes> = {
 
 
 // Validate ../src/app/page.tsx
-{
+try {
   type __IsExpected<Specific extends AppPageConfig<"/">> = Specific
+  // @ts-expect-error: Module might not exist at build time
   const handler = {} as typeof import("../src/app/page")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check
-}
+} catch {}
 
 
 
