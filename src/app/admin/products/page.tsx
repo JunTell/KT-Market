@@ -10,25 +10,26 @@ export default function ProductListPage() {
   const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 기기 목록 불러오기
   useEffect(() => {
     fetchDevices();
   }, []);
 
   const fetchDevices = async () => {
     try {
-      // [중요] 데이터 요청 전 세션 로드 대기 (RLS 통과 보장)
+      // [1] 세션 동기화 대기
       await supabaseClient.auth.getSession();
 
+      // [2] 데이터 조회
       const { data, error } = await supabaseClient
         .from('devices')
         .select('model, pet_name, category, company, price, is_available, thumbnail')
-        .order('release_date', { ascending: false }); // 최신순
+        .order('release_date', { ascending: false });
 
       if (error) {
-        console.error(error);
-        setDevices([]);
-      } else if (data) {
+        throw error;
+      }
+
+      if (data) {
         setDevices(
           data.map(d => ({
             colors_kr: [],
@@ -42,9 +43,10 @@ export default function ProductListPage() {
         setDevices([]);
       }
     } catch (error) {
-      console.error('데이터 로드 실패:', error);
+      console.error('상품 목록 로드 실패:', error);
       setDevices([]);
     } finally {
+      // [3] 로딩 종료 (성공이든 실패든 무조건 실행)
       setLoading(false);
     }
   };
@@ -67,11 +69,11 @@ export default function ProductListPage() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">기기명 (펫네임)</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">기기명</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">모델명</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">제조사</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">출고가</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">판매 상태</th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">상태</th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">관리</th>
             </tr>
           </thead>
@@ -79,35 +81,27 @@ export default function ProductListPage() {
             {devices.map((device) => (
               <tr key={device.model} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap flex items-center gap-3">
-
                   <div className="relative w-10 h-10 rounded bg-gray-100 overflow-hidden border border-gray-200 shrink-0">
                     <Image
                       src={`${process.env.NEXT_PUBLIC_CDN_URL}/phone/${device.category}/${device.thumbnail}/01.png`}
-                      alt={`${device.pet_name} 썸네일`}
+                      alt={device.pet_name || 'thumbnail'}
                       fill
                       sizes="40px"
                       className="object-cover"
-                      unoptimized
-                      onError={() => console.error(`이미지 로드 실패: ${device.category}/${device.thumbnail}`)}
+                      unoptimized // 외부 CDN 사용 시 최적화 건너뛰기 권장
+                      onError={(e) => console.error(`이미지 로드 실패: ${device.thumbnail}`)}
                     />
                   </div>
-
                   <span className="font-medium text-gray-900">{device.pet_name || device.model}</span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {device.model}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {device.company}
-                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{device.model}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{device.company}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {device.price?.toLocaleString()}원
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center">
                   <span className={`px-2 py-1 text-xs rounded-full ${
-                    device.is_available
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
+                    device.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                   }`}>
                     {device.is_available ? '판매중' : '품절'}
                   </span>
