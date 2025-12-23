@@ -16,28 +16,37 @@ export default function ProductListPage() {
   }, []);
 
   const fetchDevices = async () => {
-    const { data, error } = await supabaseClient
-      .from('devices')
-      .select('model, pet_name, category, company, price, is_available, thumbnail')
-      .order('release_date', { ascending: false }); // 최신순
+    try {
+      // [중요] 데이터 요청 전 세션 로드 대기 (RLS 통과 보장)
+      await supabaseClient.auth.getSession();
 
-    if (error) {
-      console.error(error);
+      const { data, error } = await supabaseClient
+        .from('devices')
+        .select('model, pet_name, category, company, price, is_available, thumbnail')
+        .order('release_date', { ascending: false }); // 최신순
+
+      if (error) {
+        console.error(error);
+        setDevices([]);
+      } else if (data) {
+        setDevices(
+          data.map(d => ({
+            colors_kr: [],
+            capacities: [],
+            images: [],
+            release_date: null,
+            ...d,
+          })) as Device[]
+        );
+      } else {
+        setDevices([]);
+      }
+    } catch (error) {
+      console.error('데이터 로드 실패:', error);
       setDevices([]);
-    } else if (data) {
-      setDevices(
-        data.map(d => ({
-          colors_kr: [],
-          capacities: [],
-          images: [],
-          release_date: null,
-          ...d,
-        })) as Device[]
-      );
-    } else {
-      setDevices([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   if (loading) return <div className="p-8">로딩 중...</div>;
@@ -46,8 +55,8 @@ export default function ProductListPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">상품(휴대폰) 재고 관리</h1>
-        <Link 
-          href="/admin/products/new" 
+        <Link
+          href="/admin/products/new"
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
         >
           + 신규 기기 등록
@@ -70,15 +79,15 @@ export default function ProductListPage() {
             {devices.map((device) => (
               <tr key={device.model} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap flex items-center gap-3">
-                  
+
                   <div className="relative w-10 h-10 rounded bg-gray-100 overflow-hidden border border-gray-200 shrink-0">
-                    <Image 
+                    <Image
                       src={`${process.env.NEXT_PUBLIC_CDN_URL}/phone/${device.category}/${device.thumbnail}/01.png`}
                       alt={`${device.pet_name} 썸네일`}
                       fill
                       sizes="40px"
                       className="object-cover"
-                      // 이미지가 없을 경우 깨짐 방지용 로그
+                      unoptimized
                       onError={() => console.error(`이미지 로드 실패: ${device.category}/${device.thumbnail}`)}
                     />
                   </div>
@@ -96,8 +105,8 @@ export default function ProductListPage() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center">
                   <span className={`px-2 py-1 text-xs rounded-full ${
-                    device.is_available 
-                      ? 'bg-green-100 text-green-800' 
+                    device.is_available
+                      ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
                   }`}>
                     {device.is_available ? '판매중' : '품절'}
