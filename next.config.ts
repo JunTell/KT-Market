@@ -15,6 +15,12 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'ktmarket.co.kr',
       },
+      {
+        protocol: 'https',
+        hostname: 'd2ilcqjaeymypa.cloudfront.net',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
   // 성능 최적화
