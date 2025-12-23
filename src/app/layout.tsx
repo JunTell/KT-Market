@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "./provider";
 import { defaultMetadata } from "@/src/lib/seo";
-import AuthStateListener from "../components/auth/AuthStateListener";
+import AuthStateListener from "../components/ui/AuthStateListener";
 
 const pretendard = localFont({
   src: "./fonts/PretendardVariable.woff2",
