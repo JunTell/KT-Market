@@ -8,8 +8,6 @@ interface Profile {
   id: string
   email: string
   is_admin: boolean
-  created_at: string
-  updated_at: string
 }
 
 interface AuthContextType {
@@ -20,8 +18,6 @@ interface AuthContextType {
   isAuthenticated: boolean
   isAdmin: boolean
   logout: () => Promise<void>
-  refreshToken: () => Promise<boolean>
-  checkSession: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)

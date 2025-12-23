@@ -1,15 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabaseClient } from '@/src/lib/supabase/client'
+import { useUserStore } from '@/src/stores/useUserStore'
 import type { User, Session } from '@supabase/supabase-js'
 
 interface Profile {
   id: string
   email: string
   is_admin: boolean
-  created_at: string
-  updated_at: string
 }
 
 interface AuthState {
@@ -21,205 +20,142 @@ interface AuthState {
   isAdmin: boolean
 }
 
-/**
- * 클라이언트 사이드 인증 상태 관리 Hook
- *
- * 기능:
- * - 로그인/로그아웃 상태 추적
- * - 세션 토큰 자동 갱신
- * - 사용자 프로필 정보 관리
- * - 관리자 권한 확인
- */
 export function useAuth() {
+  const setUserStore = useUserStore((state) => state.setUser)
+  const clearUserStore = useUserStore((state) => state.clearUser)
+
   const [authState, setAuthState] = useState<AuthState>({
-    user: null,
-    profile: null,
-    session: null,
-    loading: true,
-    isAuthenticated: false,
-    isAdmin: false,
+    user: null, profile: null, session: null,
+    loading: true, isAuthenticated: false, isAdmin: false,
   })
 
-  useEffect(() => {
-    // 초기 세션 확인
-    checkSession()
-
-    // 안전장치: 10초 후에도 로딩 중이면 강제로 false로 설정
-    const timeout = setTimeout(() => {
-      setAuthState((prev) => {
-        if (prev.loading) {
-          console.warn('[useAuth] ⏰ 타임아웃: 10초 경과, 강제로 loading을 false로 설정')
-          return { ...prev, loading: false }
-        }
-        return prev
+  // 상태 업데이트 핵심 로직
+  const updateAuthState = useCallback(async (session: Session | null) => {
+    if (!session) {
+      setAuthState({
+        user: null, profile: null, session: null,
+        loading: false, isAuthenticated: false, isAdmin: false,
       })
-    }, 10000)
-
-    // 인증 상태 변경 리스너 등록
-    const {
-      data: { subscription },
-    } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
-      console.log('[useAuth] 🔄 Auth state changed:', event)
-
-      if (session) {
-        await updateAuthState(session)
-      } else {
-        // 로그아웃 시 상태 초기화
-        console.log('[useAuth] 🚪 Logging out, clearing state')
-        setAuthState({
-          user: null,
-          profile: null,
-          session: null,
-          loading: false,
-          isAuthenticated: false,
-          isAdmin: false,
-        })
-      }
-    })
-
-    // 클린업 함수
-    return () => {
-      clearTimeout(timeout)
-      subscription.unsubscribe()
+      clearUserStore()
+      return
     }
-  }, [])
 
-  /**
-   * 현재 세션 확인
-   */
-  async function checkSession() {
-    console.log('[useAuth] 🔍 초기 세션 확인 시작')
+    // 1단계: 유저 정보 즉시 반영 (로딩 해제 및 이메일 표시)
+    setAuthState(prev => ({
+      ...prev,
+      user: session.user,
+      session: session,
+      isAuthenticated: true,
+      loading: false, // 여기서 로딩을 먼저 풀어야 버튼 판단 로직이 작동함
+    }))
 
     try {
-      const {
-        data: { session },
-        error,
-      } = await supabaseClient.auth.getSession()
-
-      if (error) {
-        console.error('[useAuth] ❌ 세션 확인 에러:', error)
-        setAuthState((prev) => ({ ...prev, loading: false }))
-        return
-      }
-
-      if (session) {
-        console.log('[useAuth] ✅ 세션 발견, 프로필 로드 중...')
-        await updateAuthState(session)
-      } else {
-        console.log('[useAuth] ℹ️ 세션 없음 (로그아웃 상태)')
-        setAuthState((prev) => ({ ...prev, loading: false }))
-      }
-    } catch (error) {
-      console.error('[useAuth] ❌ 세션 확인 중 예외:', error)
-      setAuthState((prev) => ({ ...prev, loading: false }))
-    }
-  }
-
-  /**
-   * 세션 정보로 인증 상태 업데이트
-   */
-  async function updateAuthState(session: Session) {
-    console.log('[useAuth] Updating auth state for user:', session.user.email)
-
-    try {
-      // 프로필 정보 조회
-      const { data: profile, error: profileError } = await supabaseClient
+      // 2단계: 프로필(관리자 여부) 조회
+      const { data: profile } = await supabaseClient
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
         .single()
 
-      if (profileError) {
-        console.error('[useAuth] ❌ Error fetching profile:', profileError)
-        console.warn('[useAuth] ⚠️ 프로필을 가져올 수 없습니다. RLS 정책을 확인하세요.')
-        console.warn('[useAuth] ⚠️ 인증 상태는 유지되지만 프로필 정보는 없습니다.')
+      const isAdmin = profile?.is_admin === true
 
-        // 프로필 로드 실패해도 인증 상태는 설정
-        setAuthState({
-          user: session.user,
-          profile: null,
-          session,
-          loading: false,
-          isAuthenticated: true,
-          isAdmin: false,
-        })
-        return
+      // Zustand와 내부 State를 동시에 업데이트
+      const userData = {
+        id: session.user.id,
+        email: session.user.email ?? '',
+        isAdmin: isAdmin,
       }
 
-      console.log('[useAuth] ✅ Profile loaded:', profile)
-      console.log('[useAuth] ✅ isAuthenticated: true, isAdmin:', profile?.is_admin === true)
-
-      setAuthState({
-        user: session.user,
+      setUserStore(userData)
+      setAuthState(prev => ({
+        ...prev,
         profile: profile || null,
-        session,
-        loading: false,
-        isAuthenticated: true,
-        isAdmin: profile?.is_admin === true,
-      })
+        isAdmin: isAdmin,
+      }))
     } catch (error) {
-      console.error('[useAuth] ❌ Unexpected error updating auth state:', error)
-
-      // 에러 발생해도 반드시 loading을 false로 설정
-      setAuthState({
-        user: session.user,
-        profile: null,
-        session,
-        loading: false,
-        isAuthenticated: true,
+      console.error('[useAuth] Profile fetch error:', error)
+      // 프로필 조회 실패 시에도 기본 프로필 설정하여 로드 완료 표시
+      const defaultProfile: Profile = {
+        id: session.user.id,
+        email: session.user.email ?? '',
+        is_admin: false,
+      }
+      setAuthState(prev => ({
+        ...prev,
+        profile: defaultProfile,
+        isAdmin: false,
+      }))
+      setUserStore({
+        id: session.user.id,
+        email: session.user.email ?? '',
         isAdmin: false,
       })
     }
-  }
+  }, [setUserStore, clearUserStore])
 
-  /**
-   * 로그아웃
-   */
-  async function logout() {
+  useEffect(() => {
+    // 초기 세션 로드
+    const init = async () => {
+      const { data: { session } } = await supabaseClient.auth.getSession()
+      await updateAuthState(session)
+    }
+    init()
+
+    // 인증 상태 변경 리스너 (카카오 로그인 등 대응)
+    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_OUT') {
+          await updateAuthState(null)
+        } else if (session) {
+          await updateAuthState(session)
+        }
+      }
+    )
+
+    return () => subscription.unsubscribe()
+  }, [updateAuthState])
+
+  const logout = useCallback(async () => {
+    console.log('[Logout] 로그아웃 시작')
+
     try {
-      // API 엔드포인트를 통해 로그아웃 (서버 쿠키 제거)
-      await fetch('/api/auth/logout', {
-        method: 'POST',
+      // 1. 즉시 로컬 상태 초기화 (UI 즉시 반영)
+      clearUserStore()
+      setAuthState({
+        user: null,
+        profile: null,
+        session: null,
+        loading: false,
+        isAuthenticated: false,
+        isAdmin: false,
       })
 
-      // 클라이언트 세션도 제거
-      await supabaseClient.auth.signOut()
-    } catch (error) {
-      console.error('Error during logout:', error)
-    }
-  }
-
-  /**
-   * 토큰 수동 갱신
-   */
-  async function refreshToken() {
-    try {
-      const {
-        data: { session },
-        error,
-      } = await supabaseClient.auth.refreshSession()
-
-      if (error) {
-        console.error('Error refreshing token:', error)
-        return false
+      // 2. 클라이언트 사이드 Supabase 세션 종료
+      const { error: signOutError } = await supabaseClient.auth.signOut()
+      if (signOutError) {
+        console.error('[Logout] 클라이언트 로그아웃 에러:', signOutError)
       }
 
-      if (session) {
-        await updateAuthState(session)
-        return true
+      // 3. 서버 사이드 로그아웃 API 호출 (쿠키 제거)
+      try {
+        const res = await fetch('/api/auth/logout', { method: 'POST' })
+        if (!res.ok) {
+          console.warn('[Logout] 서버 로그아웃 응답 에러:', res.status)
+        }
+      } catch (fetchError) {
+        console.warn('[Logout] 서버 로그아웃 요청 실패:', fetchError)
       }
 
-      return false
+      // 4. 페이지 강제 리로드 및 이동
+      console.log('[Logout] 로그인 페이지로 이동')
+      window.location.replace('/login')
     } catch (error) {
-      console.error('Error refreshing token:', error)
-      return false
+      console.error('[Logout] 로그아웃 처리 중 예상치 못한 오류:', error)
+      // 오류가 발생해도 로그인 페이지로 이동
+      clearUserStore()
+      window.location.replace('/login')
     }
-  }
+  }, [clearUserStore])
 
-  return {
-    ...authState,
-    logout,
-    refreshToken,
-    checkSession,
-  }
+  return { ...authState, logout }
 }

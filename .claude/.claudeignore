@@ -1,6 +1,5 @@
 # .claudeignore 예시
 
-# 패키지 잠금 파일 (가장 중요! 여기서 토큰 엄청 아낌)
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
