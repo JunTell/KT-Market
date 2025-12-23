@@ -3,8 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "./provider";
 import { defaultMetadata } from "@/src/lib/seo";
-import { Header } from "../components/layout/Header";
-import { Footer } from "../components/layout/Footer";
+import AuthStateListener from "../components/auth/AuthStateListener";
 
 const pretendard = localFont({
   src: "./fonts/PretendardVariable.woff2",
@@ -22,20 +21,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className={pretendard.variable} suppressHydrationWarning>
-      <body className="font-sans antialiased bg-background text-label-900" suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <Providers>
-          <div className="flex min-h-screen flex-col">
-            {/* Header는 서버 컴포넌트로 동작하여 SSR 최적화 */}
-            <Header />
-            
-            {/* 페이지별 콘텐츠가 들어가는 영역 */}
-            <main className="flex-1">
-              {children}
-            </main>
-
-            {/* 모든 페이지 공통 하단 */}
-            <Footer />
-          </div>
+          <AuthStateListener />
+          {children}
         </Providers>
       </body>
     </html>
