@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  /* ✅ 1. 핵심 컬러 (User Defined 3 Colors) */
+  /* ✅ 1. 핵심 컬러 */
   --primary: #0066FF;
   --secondary: #3C83EC;
   --tertiary: #BBEBFF;
@@ -74,30 +74,41 @@
   --radius-xl: var(--radius-xl);
   --radius-2xl: var(--radius-2xl);
 }
+
 html {
-  background-color: #F2F4F6;
+  background-color: var(--bg-alternative);
   height: 100%;
   width: 100%;
 }
 
 body {
-  background-color: #F2F4F6;
+  /* ✅ 수정: Flex 및 중앙 정렬 제거 (전체 화면 사용을 위해) */
+  background-color: var(--bg-alternative);
   margin: 0;
   padding: 0;
-  height: 100%;
+  min-height: 100%;
   width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start; /* top 정렬 (중요) */
   font-family: var(--font-sans);
+  color: var(--label-900);
   -webkit-font-smoothing: antialiased;
+}
+
+/* ✅ 추가: 모바일 레이아웃 전용 클래스 (기존 body 스타일을 이쪽으로 이동) */
+.mobile-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 440px; /* 모바일 최대 너비 제한 */
+  margin: 0 auto;   /* 중앙 정렬 */
+  background-color: var(--bg-default);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05); /* 경계 구분을 위한 그림자 */
 }
 
 .scrollbar-hide {
   -ms-overflow-style: none; 
-  scrollbar-width: none;  /* Firefox */
+  scrollbar-width: none;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
 }
