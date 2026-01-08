@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabaseClient } from '@/src/lib/supabase/client'; 
-import { useUserStore } from '@/src/stores/useUserStore'; 
+import { supabaseClient } from '@/src/shared/lib/supabase/client';
+import { useUserStore } from '@/src/shared/stores/useUserStore';
 
 export default function AuthStateListener() {
   const { setUser, clearUser } = useUserStore();
@@ -17,10 +17,14 @@ export default function AuthStateListener() {
       } = await supabaseClient.auth.getSession();
 
       if (session?.user) {
-        // useUserStore의 UserData 타입에 맞춰서 변환
-        const isAdmin = 
-          session.user.email === 'admin@ktmarket.co.kr' || 
-          session.user.app_metadata?.role === 'admin';
+        // 초기 로드시에도 프로필 정확하게 조회
+        const { data: profile } = await supabaseClient
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', session.user.id)
+          .single();
+
+        const isAdmin = profile?.is_admin === true;
 
         setUser({
           id: session.user.id,
@@ -41,22 +45,27 @@ export default function AuthStateListener() {
       console.log('Auth State Change:', event); // 디버깅용
 
       if (event === 'SIGNED_IN' && session?.user) {
-        const isAdmin = 
-          session.user.email === 'admin@ktmarket.co.kr' || 
-          session.user.app_metadata?.role === 'admin';
+        // 프로필 정보 조회 (관리자 여부 확인)
+        const { data: profile } = await supabaseClient
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', session.user.id)
+          .single();
+
+        const isAdmin = profile?.is_admin === true;
 
         setUser({
           id: session.user.id,
           email: session.user.email ?? '',
           isAdmin: isAdmin,
         });
-        
-        router.refresh(); // UI 갱신
-        
+
+        router.refresh();
+
       } else if (event === 'SIGNED_OUT') {
         clearUser();
         router.refresh();
-        router.push('/'); 
+        router.push('/');
       }
     });
 

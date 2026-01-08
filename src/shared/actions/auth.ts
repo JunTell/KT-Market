@@ -1,6 +1,6 @@
 'use server'
 
-import { createSupabaseServerClient } from '@/src/lib/supabase/server'
+import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
@@ -38,9 +38,9 @@ export async function login(prevState: AuthState, formData: FormData): Promise<A
 
   if (!validatedFields.success) {
     return {
-      error: validatedFields.error.flatten().fieldErrors.email?.[0] || 
-             validatedFields.error.flatten().fieldErrors.password?.[0] || 
-             '입력 정보를 확인해주세요.'
+      error: validatedFields.error.flatten().fieldErrors.email?.[0] ||
+        validatedFields.error.flatten().fieldErrors.password?.[0] ||
+        '입력 정보를 확인해주세요.'
     }
   }
 
@@ -54,8 +54,8 @@ export async function login(prevState: AuthState, formData: FormData): Promise<A
 
   if (error) {
     return {
-      error: error.message === 'Invalid login credentials' 
-        ? '아이디 또는 비밀번호가 일치하지 않습니다.' 
+      error: error.message === 'Invalid login credentials'
+        ? '아이디 또는 비밀번호가 일치하지 않습니다.'
         : error.message
     }
   }
@@ -76,10 +76,10 @@ export async function signup(prevState: AuthState, formData: FormData): Promise<
 
   if (!validatedFields.success) {
     return {
-      error: validatedFields.error.flatten().fieldErrors.email?.[0] || 
-             validatedFields.error.flatten().fieldErrors.password?.[0] || 
-             validatedFields.error.flatten().fieldErrors.passwordConfirm?.[0] || 
-             '입력 정보를 확인해주세요.'
+      error: validatedFields.error.flatten().fieldErrors.email?.[0] ||
+        validatedFields.error.flatten().fieldErrors.password?.[0] ||
+        validatedFields.error.flatten().fieldErrors.passwordConfirm?.[0] ||
+        '입력 정보를 확인해주세요.'
     }
   }
 
@@ -104,7 +104,7 @@ export async function signup(prevState: AuthState, formData: FormData): Promise<
         email: data.user.email,
         is_admin: false,
       }, { onConflict: 'id' })
-    
+
     if (profileError) {
       console.error('Profile creation error:', profileError)
       // Note: User is created but profile failed. 
