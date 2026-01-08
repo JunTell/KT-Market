@@ -1,6 +1,8 @@
 import { Header } from "@/src/components/layout/Header";
 import { Footer } from "@/src/components/layout/Footer";
 
+export const dynamic = 'force-dynamic';
+
 export default function HomeLayout({
   children,
 }: {
@@ -10,7 +12,7 @@ export default function HomeLayout({
     <div className="mobile-layout">
       {/* Header */}
       <Header />
-      
+
       {/* Main Content */}
       <main className="flex-1">
         {children}

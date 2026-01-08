@@ -1,6 +1,6 @@
 'use client'
 
-import { signOut } from '@/src/actions/auth'
+import { logout } from '@/src/actions/auth'
 import { useState } from 'react'
 
 /**
@@ -16,7 +16,7 @@ export function LogoutButton() {
   const handleLogout = async () => {
     try {
       setIsLoading(true)
-      await signOut()
+      await logout()
     } catch (error) {
       console.error('Logout failed:', error)
       setIsLoading(false)

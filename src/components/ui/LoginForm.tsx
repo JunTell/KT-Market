@@ -1,28 +1,33 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { login } from '@/src/actions/auth'
 import { supabaseClient } from '@/src/lib/supabase/client'
+import Link from 'next/link'
 import {
   getSavedEmail,
   setSavedEmail,
   clearSavedEmail,
   setRememberMe,
 } from '@/src/lib/auth'
-import Link from 'next/link'
+
+const initialState = {
+  error: null,
+  message: null
+}
 
 export default function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') || '/'
 
+  // React 19 useActionState hook for form handling
+  const [state, formAction, isPending] = useActionState(login, initialState)
+
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [rememberMeChecked, setRememberMeChecked] = useState(false)
   const [saveIdChecked, setSaveIdChecked] = useState(true)
-  const [redirecting, setRedirecting] = useState(false)
 
   useEffect(() => {
     const savedEmail = getSavedEmail()
@@ -32,47 +37,19 @@ export default function LoginForm() {
     }
   }, [])
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
+  // Handle side-effects (saving email) before form submission or in a separate handler
+  const handleSubmit = (formData: FormData) => {
+    if (saveIdChecked) setSavedEmail(formData.get('email') as string)
+    else clearSavedEmail()
 
-    try {
-      if (saveIdChecked) setSavedEmail(email)
-      else clearSavedEmail()
+    setRememberMe(rememberMeChecked)
 
-      setRememberMe(rememberMeChecked)
-
-      const { error: signInError } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-      if (signInError) {
-        setLoading(false)
-        setError(signInError.message === 'Invalid login credentials'
-          ? '아이디 또는 비밀번호가 일치하지 않습니다.'
-          : signInError.message)
-        return
-      }
-
-      // 서버에 세션 동기화 (서버 쿠키 설정 보장)
-      try {
-        await fetch('/api/auth/session', { method: 'POST' })
-      } catch (syncError) {
-        console.warn('세션 동기화 실패, 계속 진행:', syncError)
-      }
-
-      setLoading(false)
-      setRedirecting(true)
-
-      // 확실한 페이지 리로드를 위해 replace 사용
-      window.location.replace(redirectTo)
-
-    } catch (err) {
-      setLoading(false)
-      setError('로그인 처리 중 오류가 발생했습니다.')
+    // Append redirectTo to formData if needed, or handle in action
+    if (redirectTo) {
+      formData.append('redirectTo', redirectTo)
     }
+
+    formAction(formData)
   }
 
   return (
@@ -85,15 +62,15 @@ export default function LoginForm() {
           </Link>
         </div>
 
-        {/* 탭 메뉴 삭제 후 제목 추가 (선택 사항) */}
         <div className="mb-8 text-center">
           <h2 className="text-xl font-bold text-gray-900">로그인</h2>
         </div>
 
         {/* 로그인 폼 */}
-        <form onSubmit={handleLogin} className="space-y-3">
+        <form action={handleSubmit} className="space-y-3">
           <div className="space-y-2">
             <input
+              name="email"
               type="email"
               placeholder="아이디(이메일)"
               className="w-full h-12 px-4 border border-gray-300 rounded-md focus:outline-none focus:border-[#0066FF] transition-all text-sm"
@@ -102,11 +79,10 @@ export default function LoginForm() {
               required
             />
             <input
+              name="password"
               type="password"
               placeholder="비밀번호"
               className="w-full h-12 px-4 border border-gray-300 rounded-md focus:outline-none focus:border-[#0066FF] transition-all text-sm"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
@@ -138,14 +114,14 @@ export default function LoginForm() {
           {/* 로그인 버튼 */}
           <button
             type="submit"
-            disabled={loading || redirecting}
+            disabled={isPending}
             className="w-full h-12 bg-[#0066FF] text-white rounded-md font-bold text-base hover:bg-[#0052cc] transition-colors mt-2 cursor-pointer disabled:bg-blue-300 disabled:cursor-not-allowed"
           >
-            {redirecting ? '이동 중...' : loading ? '로그인 중...' : '로그인'}
+            {isPending ? '로그인 중...' : '로그인'}
           </button>
 
           {/* 에러 메시지 */}
-          {error && <p className="text-red-500 text-xs text-center mt-2 font-medium">{error}</p>}
+          {state.error && <p className="text-red-500 text-xs text-center mt-2 font-medium">{state.error}</p>}
 
           {/* 하단 링크 */}
           <div className="flex items-center justify-center gap-3 text-[13px] text-gray-400 mt-6">
@@ -167,9 +143,9 @@ export default function LoginForm() {
           <div className="flex justify-center gap-6">
             <button
               type="button"
-              onClick={() => supabaseClient.auth.signInWithOAuth({ 
-                provider: 'kakao', 
-                options: { redirectTo: `${window.location.origin}/` } 
+              onClick={() => supabaseClient.auth.signInWithOAuth({
+                provider: 'kakao',
+                options: { redirectTo: `${window.location.origin}/` }
               })}
               className="group flex flex-col items-center gap-2 cursor-pointer"
             >
@@ -180,9 +156,9 @@ export default function LoginForm() {
 
             <button
               type="button"
-              onClick={() => supabaseClient.auth.signInWithOAuth({ 
-                provider: 'google', 
-                options: { redirectTo: `${window.location.origin}/` } 
+              onClick={() => supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: `${window.location.origin}/` }
               })}
               className="group flex flex-col items-center gap-2 cursor-pointer"
             >

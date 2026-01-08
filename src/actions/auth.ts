@@ -3,75 +3,125 @@
 import { createSupabaseServerClient } from '@/src/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { z } from 'zod'
 
-/**
- * Server Action에서 쿠키 기반 인증 사용 예시
- *
- * Server Action은:
- * - 'use server' 지시문으로 시작
- * - cookies().set()이 정상 작동 (Route Handler처럼)
- * - Form 제출이나 클라이언트에서 직접 호출 가능
- */
+// Schema Definitions
+const loginSchema = z.object({
+  email: z.string().email('유효한 이메일 주소를 입력해주세요.'),
+  password: z.string().min(1, '비밀번호를 입력해주세요.'),
+  redirectTo: z.string().optional(),
+})
 
-/**
- * 현재 사용자 정보 가져오기
- */
-export async function getCurrentUser() {
-  const supabase = await createSupabaseServerClient()
+const signupSchema = z.object({
+  email: z.string().email('유효한 이메일 주소를 입력해주세요.'),
+  password: z.string().min(6, '비밀번호는 6자 이상이어야 합니다.'),
+  passwordConfirm: z.string().min(6, '비밀번호는 6자 이상이어야 합니다.'),
+}).refine((data) => data.password === data.passwordConfirm, {
+  message: '비밀번호가 일치하지 않습니다.',
+  path: ['passwordConfirm'],
+})
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  return user
+type AuthState = {
+  error: string | null
+  success?: boolean
+  message?: string | null
 }
 
-/**
- * 로그아웃 처리
- */
-export async function signOut() {
-  const supabase = await createSupabaseServerClient()
-
-  await supabase.auth.signOut()
-
-  // 캐시 무효화 및 리다이렉트
-  revalidatePath('/', 'layout')
-  redirect('/login')
-}
-
-/**
- * 사용자 프로필 업데이트
- */
-export async function updateProfile(formData: FormData) {
-  const supabase = await createSupabaseServerClient()
-
-  // 현재 사용자 확인
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error('인증되지 않은 사용자입니다.')
+export async function login(prevState: AuthState, formData: FormData): Promise<AuthState> {
+  const rawData = {
+    email: formData.get('email'),
+    password: formData.get('password'),
+    redirectTo: formData.get('redirectTo'),
   }
 
-  // FormData에서 값 추출
-  const displayName = formData.get('displayName') as string
+  const validatedFields = loginSchema.safeParse(rawData)
 
-  // 프로필 업데이트
-  const { error } = await supabase
-    .from('profiles')
-    .update({
-      display_name: displayName,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', user.id)
+  if (!validatedFields.success) {
+    return {
+      error: validatedFields.error.flatten().fieldErrors.email?.[0] || 
+             validatedFields.error.flatten().fieldErrors.password?.[0] || 
+             '입력 정보를 확인해주세요.'
+    }
+  }
+
+  const { email, password, redirectTo } = validatedFields.data
+  const supabase = await createSupabaseServerClient()
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
 
   if (error) {
-    throw new Error(error.message)
+    return {
+      error: error.message === 'Invalid login credentials' 
+        ? '아이디 또는 비밀번호가 일치하지 않습니다.' 
+        : error.message
+    }
   }
 
-  // 관련 페이지 재검증
-  revalidatePath('/admin')
+  // NOTE: revalidatePath might not be needed depending on where we redirect, but good for clearing cache
+  revalidatePath('/', 'layout')
+  redirect(redirectTo || '/')
+}
 
-  return { success: true }
+export async function signup(prevState: AuthState, formData: FormData): Promise<AuthState> {
+  const rawData = {
+    email: formData.get('email'),
+    password: formData.get('password'),
+    passwordConfirm: formData.get('passwordConfirm'),
+  }
+
+  const validatedFields = signupSchema.safeParse(rawData)
+
+  if (!validatedFields.success) {
+    return {
+      error: validatedFields.error.flatten().fieldErrors.email?.[0] || 
+             validatedFields.error.flatten().fieldErrors.password?.[0] || 
+             validatedFields.error.flatten().fieldErrors.passwordConfirm?.[0] || 
+             '입력 정보를 확인해주세요.'
+    }
+  }
+
+  const { email, password } = validatedFields.data
+  const supabase = await createSupabaseServerClient()
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  if (data.user) {
+    // Create Profile
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: data.user.id,
+        email: data.user.email,
+        is_admin: false,
+      }, { onConflict: 'id' })
+    
+    if (profileError) {
+      console.error('Profile creation error:', profileError)
+      // Note: User is created but profile failed. 
+      // In a real app we might want to rollback or queue a retry.
+    }
+  }
+
+  return {
+    error: null,
+    success: true,
+    message: '회원가입이 완료되었습니다. 이메일 인증을 확인하시거나 로그인해주세요.',
+  }
+}
+
+export async function logout() {
+  const supabase = await createSupabaseServerClient()
+  await supabase.auth.signOut()
+  revalidatePath('/', 'layout')
+  redirect('/login')
 }

@@ -1,6 +1,8 @@
 import SignupForm from '@/src/components/ui/SignupForm'
 import { Suspense } from 'react'
 
+export const dynamic = 'force-dynamic';
+
 export default function SignupPage() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-white px-4 py-8">
