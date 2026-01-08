@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/src/lib/supabase/server'
+import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
 
 /**
  * Route Handler에서 쿠키 기반 인증 사용 예시

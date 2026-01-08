@@ -1,6 +1,6 @@
 'use client'
 
-import { logout } from '@/src/actions/auth'
+import { logout } from '@/src/shared/actions/auth'
 import { useState } from 'react'
 
 /**

@@ -1,6 +1,6 @@
 'use client'
 
-import { useAuthContext } from '@/src/contexts/AuthContext'
+import { useAuthContext } from '@/src/shared/contexts/AuthContext'
 
 /**
  * 사용자 프로필 컴포넌트 예시

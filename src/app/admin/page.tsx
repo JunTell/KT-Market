@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/src/lib/supabase/server';
+import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { VisitorChart, RevenueChart } from '@/src/features/admin/components/DashboardCharts';

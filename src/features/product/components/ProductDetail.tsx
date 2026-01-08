@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { Product } from '@/types/product'
+import { Product } from '@/src/shared/types/product'
 
 interface ProductDetailProps {
   product: Product
@@ -68,11 +68,10 @@ export function ProductDetail({ product }: ProductDetailProps) {
               <button
                 key={index}
                 onClick={() => setSelectedImage(index)}
-                className={`aspect-square overflow-hidden rounded-md border-2 ${
-                  selectedImage === index
+                className={`aspect-square overflow-hidden rounded-md border-2 ${selectedImage === index
                     ? 'border-primary'
                     : 'border-line-200 hover:border-line-400'
-                }`}
+                  }`}
               >
                 <Image
                   src={image}

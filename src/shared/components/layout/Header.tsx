@@ -1,10 +1,10 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/src/lib/supabase/server'
+import { supabaseClient } from '@/src/shared/lib/supabase/client'
 import { UserMenu } from '../common/UserMenu'
 
 export async function Header() {
-  const supabase = await createSupabaseServerClient()
-  
+  const supabase = supabaseClient
+
   // 서버에서 세션 확인
   const { data: { user } } = await supabase.auth.getUser()
 

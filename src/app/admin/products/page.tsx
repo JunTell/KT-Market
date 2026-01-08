@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { supabaseClient } from '@/src/lib/supabase/client';
-import { Device } from '@/src/types/supabase';
+import { supabaseClient } from '@/src/shared/lib/supabase/client';
+import { Device } from '@/src/shared/types/supabase';
 
 export default function ProductListPage() {
   const [devices, setDevices] = useState<Device[]>([]);
@@ -100,9 +100,8 @@ export default function ProductListPage() {
                   {device.price?.toLocaleString()}원
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    device.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
+                  <span className={`px-2 py-1 text-xs rounded-full ${device.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
                     {device.is_available ? '판매중' : '품절'}
                   </span>
                 </td>

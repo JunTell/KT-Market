@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Device } from '@/src/types/supabase';
+import { signup } from '@/src/shared/actions/auth';
+import { Device } from '@/src/shared/types/supabase';
 
 interface ProductFormProps {
   initialData?: Partial<Device>;

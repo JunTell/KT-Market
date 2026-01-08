@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { createMiddlewareClient } from './lib/supabase/server'
+import { createMiddlewareClient } from '@/src/shared/lib/supabase/server'
 
 /**
  * Middleware에서 쿠키 기반 인증 처리 및 자동 토큰 갱신

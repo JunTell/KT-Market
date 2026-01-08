@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useMemo, useRef, useState } from 'react';
 import 'react-quill-new/dist/quill.snow.css';
-import { supabaseClient } from '@/src/lib/supabase/client';
+import { supabaseClient } from '@/src/shared/lib/supabase/client';
 
 // ✅ 핵심: 'as any'를 붙여서 TypeScript의 ref 타입 검사 에러를 해결
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -56,12 +56,12 @@ export default function TextEditor({ value, onChange }: TextEditorProps) {
         // 3. 에디터의 현재 커서 위치에 이미지 태그 삽입
         const editor = quillRef.current.getEditor();
         const range = editor.getSelection();
-        
+
         // range가 null일 경우(포커스 잃음) 에디터 끝에 삽입
         const index = range ? range.index : editor.getLength();
-        
+
         editor.insertEmbed(index, 'image', publicUrl);
-        
+
         // 4. 커서를 이미지 다음으로 이동
         editor.setSelection(index + 1);
 
@@ -102,7 +102,7 @@ export default function TextEditor({ value, onChange }: TextEditorProps) {
           </div>
         </div>
       )}
-      
+
       <ReactQuill
         ref={quillRef}
         theme="snow"

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/src/lib/supabase/server'
+import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
 
 /**
  * Route Handler에서 로그아웃 처리
