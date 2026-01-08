@@ -1,10 +1,10 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { Header } from '@/src/components/layout/Header'
-import { Footer } from '@/src/components/layout/Footer'
-import { ProductDetail } from '@/src/components/ProductDetail'
-import { generateProductSchema, generateBreadcrumbSchema } from '@/src/lib/seo'
-import { Product } from '@/types/product'
+import { Header } from '@/src/shared/components/layout/Header'
+import { Footer } from '@/src/shared/components/layout/Footer'
+import { ProductDetail } from '@/src/features/product/components/ProductDetail'
+import { generateProductSchema, generateBreadcrumbSchema } from '@/src/shared/lib/seo'
+import { Product } from '@/src/shared/types/product'
 
 // 이것은 임시 데이터입니다. 실제로는 Supabase에서 가져와야 합니다.
 async function getProduct(slug: string): Promise<Product | null> {

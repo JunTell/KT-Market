@@ -1,10 +1,10 @@
-import EventForm from '@/src/components/admin/EventForm'
+import EventForm from '@/src/features/admin/components/EventForm'
 import { createSupabaseServerClient } from '@/src/lib/supabase/server'
 import { notFound } from 'next/navigation'
 
 export default async function EditEventPage({ params }: { params: { id: string } }) {
   const supabase = await createSupabaseServerClient()
-  
+
   const { data: event } = await supabase
     .from('events')
     .select('*')

@@ -1,8 +1,8 @@
 import { createSupabaseServerClient } from '@/src/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { VisitorChart, RevenueChart } from '@/src/components/admin/DashboardCharts';
-import StatCard from '@/src/components/admin/StatCard';
+import { VisitorChart, RevenueChart } from '@/src/features/admin/components/DashboardCharts';
+import StatCard from '@/src/features/admin/components/StatCard';
 
 interface DashboardStats {
   totalProducts: number;

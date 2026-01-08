@@ -1,5 +1,5 @@
-import { Header } from "@/src/components/layout/Header";
-import { Footer } from "@/src/components/layout/Footer";
+import { Header } from "@/src/shared/components/layout/Header";
+import { Footer } from "@/src/shared/components/layout/Footer";
 
 export const dynamic = 'force-dynamic';
 

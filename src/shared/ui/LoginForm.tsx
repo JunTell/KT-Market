@@ -2,15 +2,15 @@
 
 import { useActionState, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { login } from '@/src/actions/auth'
-import { supabaseClient } from '@/src/lib/supabase/client'
+import { login } from '@/src/shared/actions/auth'
+import { supabaseClient } from '@/src/shared/lib/supabase/client'
 import Link from 'next/link'
 import {
   getSavedEmail,
   setSavedEmail,
   clearSavedEmail,
   setRememberMe,
-} from '@/src/lib/auth'
+} from '@/src/shared/lib/auth'
 
 const initialState = {
   error: null,

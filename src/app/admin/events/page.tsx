@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/src/lib/supabase/server'
+import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
 

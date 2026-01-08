@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useAuth } from '@/src/hooks/useAuth'
+import { useAuth } from '@/src/shared/hooks/useAuth'
 import type { User } from '@supabase/supabase-js'
 import { AdminButton } from '../common/AdminButton'
 
@@ -43,7 +43,7 @@ export function UserMenu({ initialUser, initialIsAdmin }: UserMenuProps) {
     <div className="flex items-center space-x-4">
       {/* 관리자 버튼 노출 조건 */}
       {currentIsAdmin && <AdminButton />}
-      
+
       <span className="text-sm text-label-700">{currentUser?.email}</span>
       <button
         onClick={logout}

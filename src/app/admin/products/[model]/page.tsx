@@ -4,11 +4,11 @@ import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseClient } from '@/src/lib/supabase/client';
 import { Device } from '@/src/types/supabase';
-import ProductForm from '@/src/components/admin/ProductForm';
+import ProductForm from '@/src/features/admin/components/ProductForm';
 
 export default function ProductEditPage({ params }: { params: Promise<{ model: string }> }) {
   const router = useRouter();
-  
+
   const { model } = use(params);
 
   const [device, setDevice] = useState<Partial<Device>>({});
@@ -22,7 +22,7 @@ export default function ProductEditPage({ params }: { params: Promise<{ model: s
     try {
       // [중요] 세션 확인
       await supabaseClient.auth.getSession();
-      
+
       const modelId = decodeURIComponent(model);
 
       const { data, error } = await supabaseClient
@@ -74,12 +74,12 @@ export default function ProductEditPage({ params }: { params: Promise<{ model: s
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-20">
       <h1 className="text-2xl font-bold text-label-900">기기 정보 수정 ({device.model})</h1>
-      
+
       {/* ProductForm 재사용 (Edit Mode) */}
-      <ProductForm 
-        initialData={device} 
-        onSubmit={handleUpdate} 
-        isEditMode={true} 
+      <ProductForm
+        initialData={device}
+        onSubmit={handleUpdate}
+        isEditMode={true}
       />
     </div>
   );

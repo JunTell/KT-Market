@@ -1,4 +1,4 @@
-import EventForm from "@/src/components/admin/EventForm";
+import EventForm from "@/src/features/admin/components/EventForm";
 
 export default function NewEventPage() {
   return (

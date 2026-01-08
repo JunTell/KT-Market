@@ -73,6 +73,10 @@
   --radius-lg: var(--radius-lg);
   --radius-xl: var(--radius-xl);
   --radius-2xl: var(--radius-2xl);
+  /* 📱 Breakpoints 확장 */
+  --breakpoint-xs: 480px;
+  --breakpoint-lg: 980px;
+  /* Desktop Split Criteria */
 }
 
 html {
@@ -98,14 +102,17 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  max-width: 440px; /* 모바일 최대 너비 제한 */
-  margin: 0 auto;   /* 중앙 정렬 */
+  max-width: 440px;
+  /* 모바일 최대 너비 제한 */
+  margin: 0 auto;
+  /* 중앙 정렬 */
   background-color: var(--bg-default);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05); /* 경계 구분을 위한 그림자 */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+  /* 경계 구분을 위한 그림자 */
 }
 
 .scrollbar-hide {
-  -ms-overflow-style: none; 
+  -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
