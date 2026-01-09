@@ -24,7 +24,7 @@ export default function AdminLayout({
           <div className="pt-4 pb-2 px-3 text-xs font-semibold text-label-500 uppercase">
             상품 및 이벤트
           </div>
-          <MenuLink href="/admin/events" label="이벤트 페이지 관리" icon="🎉" />
+          <MenuLink href="/admin/event" label="이벤트 페이지 관리" icon="🎉" />
           <MenuLink href="/admin/products" label="상품 재고 관리" icon="📦" />
 
           <div className="pt-4 pb-2 px-3 text-xs font-semibold text-label-500 uppercase">

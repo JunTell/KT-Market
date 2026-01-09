@@ -67,7 +67,7 @@ export default function ProductForm({ initialData = {}, onSubmit, isEditMode = f
     if (!device.thumbnail) return null;
     const categoryPath = device.category || device.model;
     if (!categoryPath) return null;
-    return `${CDN_URL}/phone/${categoryPath}/${device.thumbnail}/01.png`;
+    return `${CDN_URL}/phone/${encodeURIComponent(categoryPath)}/${encodeURIComponent(device.thumbnail)}/01.png`;
   };
 
   const previewUrl = getPreviewUrl();

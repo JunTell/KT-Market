@@ -1,6 +1,6 @@
 'use client'
 
-import { deleteEvent } from "@/src/app/admin/events/actions"
+import { deleteEvent } from "@/src/app/admin/event/actions"
 
 export default function DeleteEventButton({ id }: { id: string }) {
   const handleDelete = async () => {
