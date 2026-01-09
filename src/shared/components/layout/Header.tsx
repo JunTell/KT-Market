@@ -1,23 +1,10 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
+import { getCurrentUserWithRole } from '@/src/shared/lib/auth/session'
 import { UserMenu } from '../common/UserMenu'
 
 export async function Header() {
-  const supabase = await createSupabaseServerClient()
-
-  // 서버에서 세션 확인
-  const { data: { user } } = await supabase.auth.getUser()
-
-  // 서버에서 관리자 여부 확인
-  let isAdmin = false
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', user.id)
-      .single()
-    isAdmin = !!profile?.is_admin
-  }
+  // DAL을 통해 유저 및 관리자 권한 확인
+  const { user, isAdmin } = await getCurrentUserWithRole()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-line-200 bg-background/60 backdrop-blur supports-backdrop-filter:bg-background/60">
