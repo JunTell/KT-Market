@@ -1,0 +1,15 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "executionArgs": {
+    "projectName": "KT-Market-1",
+    "projectPath": "/Users/apple/Documents/GitHub/KT-Market-1",
+    "testIds": [],
+    "additionalInstruction": "Focus on ensuring the Header authentication state is stable and does not flash loading states unnecessarily. Verify login and logout flows update the UI correctly.",
+    "envs": {
+      "API_KEY": "sk-user-kKczNagbDcCxTnTcQFOOdVzR97-TvZokoPWmYDi3lR876dWyTnNhWlgL10gZPREnkcj0UKKD8Kp--HJWIdDqrZrrakRDIm7YeAqE2nau-2f55R-j7Tpe1P_Rbvjxzqg96co"
+    }
+  }
+}

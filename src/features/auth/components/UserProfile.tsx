@@ -1,15 +1,15 @@
 'use client'
 
-import { useAuthContext } from '@/src/shared/contexts/AuthContext'
+import { useAuth } from '@/src/shared/hooks/useAuth'
 
 /**
  * 사용자 프로필 컴포넌트 예시
  *
- * useAuthContext를 사용하여 전역 인증 상태에 접근
+ * useAuth hook을 사용하여 전역 인증 상태에 접근
  */
 export function UserProfile() {
   const { user, profile, loading, isAuthenticated, isAdmin, logout } =
-    useAuthContext()
+    useAuth()
 
   const handleLogout = async () => {
     await logout()

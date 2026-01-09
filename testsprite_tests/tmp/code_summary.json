@@ -1,0 +1,43 @@
+{
+    "tech_stack": [
+        "Next.js 15+ (App Router)",
+        "TypeScript",
+        "Tailwind CSS v4",
+        "Supabase (SSR)",
+        "TanStack Query",
+        "Zustand",
+        "Lucide React"
+    ],
+    "features": [
+        {
+            "name": "Authentication",
+            "description": "User authentication using Supabase SSR, including Login, Signup, Logout, and Session Management.",
+            "files": [
+                "src/shared/hooks/useAuth.ts",
+                "src/shared/stores/useUserStore.ts",
+                "src/shared/contexts/AuthContext.tsx",
+                "src/shared/ui/AuthStateListener.tsx",
+                "src/middleware.ts",
+                "src/shared/lib/supabase/client.ts",
+                "src/shared/lib/supabase/server.ts"
+            ]
+        },
+        {
+            "name": "Global Header",
+            "description": "Navigation header with User Menu and Auth state display.",
+            "files": [
+                "src/shared/components/layout/Header.tsx",
+                "src/shared/components/common/UserMenu.tsx"
+            ]
+        },
+        {
+            "name": "Admin Dashboard",
+            "description": "Protected admin area for product and event management.",
+            "files": [
+                "src/app/admin/layout.tsx",
+                "src/app/admin/page.tsx",
+                "src/shared/components/common/AdminButton.tsx"
+            ]
+        }
+    ]
+}

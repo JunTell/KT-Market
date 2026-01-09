@@ -1,0 +1,81 @@
+{
+  "meta": {
+    "project": "KT-Market Commerce/Admin Web App",
+    "date": "2025-12-30",
+    "prepared_by": "Senior Tech Lead"
+  },
+  "product_overview": "KT-Market is a commerce and admin web application built with Next.js and Supabase that offers a secure and efficient platform for users to authenticate, browse products and events, and for admins to manage product and event data via a protected dashboard.",
+  "core_goals": [
+    "Provide seamless authentication and session management using Supabase SSR.",
+    "Ensure secure admin access with strict role based authorization checks at middleware and database level.",
+    "Deliver a performant user experience through clear separation of server and client components.",
+    "Maintain high code quality and type safety with strict TypeScript conventions.",
+    "Implement a scalable UI with Tailwind CSS and a consistent design system."
+  ],
+  "key_features": [
+    "User Authentication including login, signup, logout, and session management using Supabase SSR.",
+    "Global Navigation Header with user menu and dynamic authentication state display.",
+    "Protected Admin Dashboard with role-based access control for managing products and events.",
+    "Clear separation of Client and Server components to optimize performance and security.",
+    "Robust middleware enforcing session validation and admin authorization checks.",
+    "Use of Zustand for client state management and TanStack Query for server state synchronization."
+  ],
+  "user_flow_summary": [
+    "Users visit the home route and can sign up or log in using the authentication system.",
+    "Once authenticated, users can browse products and events with their session maintained via SSR.",
+    "Admins navigate to the /admin route, where the middleware verifies login and admin status before granting access.",
+    "Admins manage products and events in a dashboard interface designed for secure and efficient content management.",
+    "Users can log out, which clears their session and redirects them appropriately."
+  ],
+  "validation_criteria": [
+    "All authentication flows correctly handle session states and edge cases.",
+    "Admin routes enforce strict RBAC - only authorized users can access /admin area.",
+    "No sensitive environment variables or service keys are exposed to the client.",
+    "Server and client components are properly separated to prevent security leaks and optimize performance.",
+    "TypeScript strict typing is maintained with no use of any type.",
+    "UI elements adhere to the Tailwind CSS based design system and render correctly across devices."
+  ],
+  "code_summary": {
+    "tech_stack": [
+      "Next.js 15+ (App Router)",
+      "TypeScript",
+      "Tailwind CSS v4",
+      "Supabase (SSR)",
+      "TanStack Query",
+      "Zustand",
+      "Lucide React"
+    ],
+    "features": [
+      {
+        "name": "Authentication",
+        "description": "User authentication using Supabase SSR, including Login, Signup, Logout, and Session Management.",
+        "files": [
+          "src/shared/hooks/useAuth.ts",
+          "src/shared/stores/useUserStore.ts",
+          "src/shared/contexts/AuthContext.tsx",
+          "src/shared/ui/AuthStateListener.tsx",
+          "src/middleware.ts",
+          "src/shared/lib/supabase/client.ts",
+          "src/shared/lib/supabase/server.ts"
+        ]
+      },
+      {
+        "name": "Global Header",
+        "description": "Navigation header with User Menu and Auth state display.",
+        "files": [
+          "src/shared/components/layout/Header.tsx",
+          "src/shared/components/common/UserMenu.tsx"
+        ]
+      },
+      {
+        "name": "Admin Dashboard",
+        "description": "Protected admin area for product and event management.",
+        "files": [
+          "src/app/admin/layout.tsx",
+          "src/app/admin/page.tsx",
+          "src/shared/components/common/AdminButton.tsx"
+        ]
+      }
+    ]
+  }
+}

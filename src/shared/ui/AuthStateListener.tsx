@@ -12,27 +12,32 @@ export default function AuthStateListener() {
   useEffect(() => {
     // 1. 현재 세션 체크 및 스토어 초기화 함수
     const initializeUser = async () => {
-      const {
-        data: { session },
-      } = await supabaseClient.auth.getSession();
+      try {
+        const {
+          data: { session },
+        } = await supabaseClient.auth.getSession();
 
-      if (session?.user) {
-        // 초기 로드시에도 프로필 정확하게 조회
-        const { data: profile } = await supabaseClient
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', session.user.id)
-          .single();
+        if (session?.user) {
+          // 초기 로드시에도 프로필 정확하게 조회
+          const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', session.user.id)
+            .single();
 
-        const isAdmin = profile?.is_admin === true;
+          const isAdmin = profile?.is_admin === true;
 
-        setUser({
-          id: session.user.id,
-          email: session.user.email ?? '',
-          isAdmin: isAdmin,
-        });
-      } else {
-        clearUser();
+          setUser({
+            id: session.user.id,
+            email: session.user.email ?? '',
+            isAdmin: isAdmin,
+          });
+        } else {
+          clearUser();
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        clearUser(); // 에러 발생 시에도 로딩 해제
       }
     };
 
@@ -45,20 +50,30 @@ export default function AuthStateListener() {
       console.log('Auth State Change:', event); // 디버깅용
 
       if (event === 'SIGNED_IN' && session?.user) {
-        // 프로필 정보 조회 (관리자 여부 확인)
-        const { data: profile } = await supabaseClient
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', session.user.id)
-          .single();
+        try {
+          // 프로필 정보 조회 (관리자 여부 확인)
+          const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', session.user.id)
+            .single();
 
-        const isAdmin = profile?.is_admin === true;
+          const isAdmin = profile?.is_admin === true;
 
-        setUser({
-          id: session.user.id,
-          email: session.user.email ?? '',
-          isAdmin: isAdmin,
-        });
+          setUser({
+            id: session.user.id,
+            email: session.user.email ?? '',
+            isAdmin: isAdmin,
+          });
+        } catch (error) {
+          console.error('Profile fetch error on sign in:', error);
+          // 프로필 조회 실패해도 기본 로그인 상태로는 전환
+          setUser({
+            id: session.user.id,
+            email: session.user.email ?? '',
+            isAdmin: false,
+          });
+        }
 
         router.refresh();
 

@@ -145,7 +145,7 @@ export default function LoginForm() {
               type="button"
               onClick={() => supabaseClient.auth.signInWithOAuth({
                 provider: 'kakao',
-                options: { redirectTo: `${window.location.origin}/` }
+                options: { redirectTo: `${window.location.origin}/auth/callback` }
               })}
               className="group flex flex-col items-center gap-2 cursor-pointer"
             >
@@ -158,7 +158,7 @@ export default function LoginForm() {
               type="button"
               onClick={() => supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
-                options: { redirectTo: `${window.location.origin}/` }
+                options: { redirectTo: `${window.location.origin}/auth/callback` }
               })}
               className="group flex flex-col items-center gap-2 cursor-pointer"
             >
