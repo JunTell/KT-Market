@@ -2,13 +2,14 @@ import EventForm from '@/src/features/admin/components/EventForm'
 import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
 import { notFound } from 'next/navigation'
 
-export default async function EditEventPage({ params }: { params: { id: string } }) {
+export default async function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createSupabaseServerClient()
 
   const { data: event } = await supabase
     .from('events')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (!event) notFound()

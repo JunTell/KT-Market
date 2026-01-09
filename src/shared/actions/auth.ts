@@ -88,7 +88,7 @@ export async function signup(prevState: AuthState, formData: FormData): Promise<
   const { email, password } = validatedFields.data
   const supabase = await createSupabaseServerClient()
 
-  const origin = (await headers()).get('origin')
+  const origin = (await headers()).get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
   const { data, error } = await supabase.auth.signUp({
     email,
