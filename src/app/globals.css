@@ -91,6 +91,8 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
+  min-width: 360px;
+  /* ✅ 최소 너비 360px 설정 */
   width: 100%;
   font-family: var(--font-sans);
   color: var(--label-900);
