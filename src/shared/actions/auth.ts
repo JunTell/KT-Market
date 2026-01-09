@@ -1,5 +1,7 @@
 'use server'
 
+import { headers } from 'next/headers'
+
 import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -86,9 +88,14 @@ export async function signup(prevState: AuthState, formData: FormData): Promise<
   const { email, password } = validatedFields.data
   const supabase = await createSupabaseServerClient()
 
+  const origin = (await headers()).get('origin')
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      emailRedirectTo: `${origin}/auth/callback`,
+    },
   })
 
   if (error) {

@@ -1,234 +1,315 @@
 [
   {
     "id": "TC001",
-    "title": "User Signup Success Flow",
-    "description": "Verify that a new user can successfully sign up using valid credentials and is authenticated with an active session.",
+    "title": "User Signup with Valid Data",
+    "description": "Verify that a new user can successfully sign up using valid email and password",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to signup page"
+        "description": "Navigate to the signup page"
       },
       {
         "type": "action",
-        "description": "Enter valid user information (email, password, and required fields)"
+        "description": "Enter a valid email address"
       },
       {
         "type": "action",
-        "description": "Submit signup form"
+        "description": "Enter a valid password that meets security criteria"
+      },
+      {
+        "type": "action",
+        "description": "Submit the signup form"
       },
       {
         "type": "assertion",
-        "description": "Verify signup is successful and user is redirected to authenticated home view"
+        "description": "Check that signup succeeds and user session is created"
       },
       {
         "type": "assertion",
-        "description": "Verify session is active and maintained via Supabase SSR"
+        "description": "Verify user is redirected to the authenticated home or dashboard page"
       }
     ]
   },
   {
     "id": "TC002",
-    "title": "User Signup Failure with Invalid Data",
-    "description": "Verify that signup fails when user inputs invalid or incomplete data and appropriate error messages are shown.",
+    "title": "User Signup with Invalid Email Format",
+    "description": "Verify that signup fails when an invalid email format is provided",
     "category": "error handling",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to signup page"
+        "description": "Navigate to the signup page"
       },
       {
         "type": "action",
-        "description": "Enter invalid or incomplete signup data (e.g., invalid email, weak password)"
+        "description": "Enter an invalid email address (e.g., 'user@@domain')"
       },
       {
         "type": "action",
-        "description": "Submit signup form"
+        "description": "Enter a valid password"
+      },
+      {
+        "type": "action",
+        "description": "Submit the signup form"
       },
       {
         "type": "assertion",
-        "description": "Verify form validation errors are displayed and signup is rejected"
+        "description": "Check that signup is rejected with appropriate email format validation error"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no user session is created"
       }
     ]
   },
   {
     "id": "TC003",
-    "title": "User Login Success Flow",
-    "description": "Verify users can log in successfully with valid credentials and that session is properly created and maintained.",
+    "title": "User Login with Valid Credentials",
+    "description": "Verify that a user can log in successfully using correct email and password",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to login page"
+        "description": "Navigate to the login page"
       },
       {
         "type": "action",
-        "description": "Input valid email and password"
+        "description": "Enter a valid registered email address"
       },
       {
         "type": "action",
-        "description": "Submit login form"
+        "description": "Enter the correct password"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
       },
       {
         "type": "assertion",
-        "description": "Verify user is authenticated and redirected appropriately"
+        "description": "Check that login succeeds and user session is established"
       },
       {
         "type": "assertion",
-        "description": "Verify session is active via Supabase SSR"
+        "description": "Verify user is redirected to home or previous intended page"
       }
     ]
   },
   {
     "id": "TC004",
-    "title": "User Login Failure with Incorrect Credentials",
-    "description": "Verify login fails when users enter invalid credentials and appropriate error message is shown.",
+    "title": "User Login with Incorrect Password",
+    "description": "Verify that login fails when a valid email is used with incorrect password",
     "category": "error handling",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to login page"
+        "description": "Navigate to the login page"
       },
       {
         "type": "action",
-        "description": "Enter incorrect email or password"
+        "description": "Enter a valid registered email address"
       },
       {
         "type": "action",
-        "description": "Submit login form"
+        "description": "Enter an incorrect password"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
       },
       {
         "type": "assertion",
-        "description": "Verify login fails and error message is displayed"
+        "description": "Check that login fails with invalid credentials error"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no user session is created"
       }
     ]
   },
   {
     "id": "TC005",
-    "title": "User Logout Flow",
-    "description": "Verify that users can logout successfully, session is cleared, and user is redirected appropriately.",
+    "title": "Session Persistence and Expiry using Supabase SSR",
+    "description": "Verify that user session is maintained correctly between page reloads and expires as expected",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Login with valid user credentials"
+        "description": "Log in successfully as a user"
       },
       {
         "type": "action",
-        "description": "Click logout button/menu item"
+        "description": "Reload or navigate across several pages in the application"
       },
       {
         "type": "assertion",
-        "description": "Verify session is cleared"
+        "description": "Verify the user session persists via Supabase SSR and user remains authenticated"
+      },
+      {
+        "type": "action",
+        "description": "Simulate session expiry or force sign out from server side"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to navigate to an authenticated route"
       },
       {
         "type": "assertion",
-        "description": "Verify user is redirected to public home or login page"
+        "description": "Verify user is redirected to login page and session is cleared client side"
       }
     ]
   },
   {
     "id": "TC006",
-    "title": "Admin Dashboard Access Control - Authorized Admin User",
-    "description": "Verify that authorized admin users can access the /admin route and all admin dashboard features.",
-    "category": "security",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Login with valid admin user credentials"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to /admin URL"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify access is granted to admin dashboard"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify role based authorization middleware validates admin role"
-      }
-    ]
-  },
-  {
-    "id": "TC007",
-    "title": "Admin Dashboard Access Control - Non-Admin User",
-    "description": "Verify that non-admin users are blocked from accessing the /admin route and redirected or shown error.",
-    "category": "security",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Login with valid non-admin user credentials"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to /admin URL"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify access is denied and user is redirected or presented an access denied message"
-      }
-    ]
-  },
-  {
-    "id": "TC008",
-    "title": "Middleware Enforces Session Validation on Admin Routes",
-    "description": "Verify middleware correctly checks for user session and denies access if session is missing or expired on /admin.",
-    "category": "security",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Attempt to navigate to /admin URL without an active session"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify middleware redirects to login page or displays appropriate error"
-      },
-      {
-        "type": "action",
-        "description": "Login and expire session manually, then access /admin"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify access is denied due to expired session"
-      }
-    ]
-  },
-  {
-    "id": "TC009",
-    "title": "Product Management on Admin Dashboard",
-    "description": "Verify that admin users can create, edit, and delete products via the admin dashboard interface.",
+    "title": "Logout clears session and redirects",
+    "description": "Verify that logging out clears the user session and redirects to public pages",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Login as admin and navigate to product management section"
+        "description": "Log in successfully as a user"
       },
       {
         "type": "action",
-        "description": "Create a new product with valid data"
+        "description": "Click the logout button in the user menu"
       },
       {
         "type": "assertion",
-        "description": "Verify new product appears in product list"
+        "description": "Verify the user session is destroyed both client and server side"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user is redirected to the home or login page"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Global Navigation Header reflects authentication state",
+    "description": "Verify that the navigation header updates dynamically based on user's authentication state",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the home page as an anonymous user"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that the header prompts for login/signup"
       },
       {
         "type": "action",
-        "description": "Edit existing product details"
+        "description": "Log in as a user"
       },
       {
         "type": "assertion",
-        "description": "Verify updated product details are saved and displayed"
+        "description": "Verify the header shows the user menu with correct details"
+      },
+      {
+        "type": "action",
+        "description": "Log out"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the header reverts to login/signup state"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Admin Dashboard access is restricted to admin users",
+    "description": "Verify that only users with admin role can access the /admin route and dashboard features",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as a non-admin user"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to navigate to /admin route"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user is denied access or redirected appropriately (e.g. to home or forbidden page)"
+      },
+      {
+        "type": "action",
+        "description": "Log in as an admin user"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin route"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify admin dashboard loads successfully with product and event management UI elements"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Role Based Access Control enforced at middleware and database",
+    "description": "Verify that role checks are performed both in middleware and in database queries to secure admin operations",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to perform admin actions (e.g. modify product/event data) as a non-admin user via API or UI"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that the middleware blocks the request and returns a forbidden error"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify database-level role filters reject unauthorized writes or reads"
+      },
+      {
+        "type": "action",
+        "description": "Perform the same actions as an admin user"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify operations succeed with expected data changes"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Admin Dashboard product and event management UI",
+    "description": "Verify all CRUD operations on products and events work correctly in the admin dashboard",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as admin and open the admin dashboard"
+      },
+      {
+        "type": "action",
+        "description": "Create a new product with valid information"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new product appears in the products list and persists after reload"
+      },
+      {
+        "type": "action",
+        "description": "Edit an existing product’s details"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the edited changes are saved and reflected in the UI"
       },
       {
         "type": "action",
@@ -236,157 +317,170 @@
       },
       {
         "type": "assertion",
-        "description": "Verify product is removed from the list"
-      }
-    ]
-  },
-  {
-    "id": "TC010",
-    "title": "Event Management on Admin Dashboard",
-    "description": "Verify that admin users can create, update, and remove events through the admin dashboard.",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Login as admin and navigate to event management section"
+        "description": "Verify the product is removed from the list and database"
       },
       {
         "type": "action",
-        "description": "Add a new event with valid details"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify new event is listed and displayed correctly"
-      },
-      {
-        "type": "action",
-        "description": "Update an event's details"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify updated event details are saved and shown"
-      },
-      {
-        "type": "action",
-        "description": "Delete an existing event"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify event is removed from the admin dashboard"
+        "description": "Repeat the above steps for event entities"
       }
     ]
   },
   {
     "id": "TC011",
-    "title": "Session Persistence Across Server and Client Components",
-    "description": "Verify that user sessions are seamlessly maintained and synchronized between server and client components via Supabase SSR and state management.",
-    "category": "functional",
-    "priority": "Medium",
+    "title": "Middleware session validation for protected routes",
+    "description": "Verify middleware correctly validates user sessions and redirects unauthenticated users",
+    "category": "security",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Login with valid user"
+        "description": "Try to access protected routes (/admin or authenticated user pages) without an active session"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify middleware redirects to login page"
       },
       {
         "type": "action",
-        "description": "Navigate across different pages and reload the browser"
+        "description": "Access the same protected route with a valid session"
       },
       {
         "type": "assertion",
-        "description": "Verify session state persists and UI updates accordingly using Zustand and TanStack Query"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify no unauthorized data leak between client and server components"
+        "description": "Verify middleware allows access and user can interact with the page normally"
       }
     ]
   },
   {
     "id": "TC012",
-    "title": "UI Render Consistency and Responsiveness",
-    "description": "Verify that UI elements in the Global Header, User Menu, and Admin Dashboard render properly across different devices and screen sizes following the Tailwind CSS design system.",
-    "category": "ui",
-    "priority": "Medium",
+    "title": "No sensitive environment variables or keys exposed to client",
+    "description": "Ensure no sensitive keys such as Supabase service keys or secrets are available in client bundles",
+    "category": "security",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Open application in various device simulators (mobile, tablet, desktop)"
+        "description": "Build and analyze client-side code bundle"
       },
       {
         "type": "assertion",
-        "description": "Verify Global Navigation Header is visible and correctly styled"
+        "description": "Check that environment variables containing secrets do not appear in client bundles"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to access environment variables from client runtime"
       },
       {
         "type": "assertion",
-        "description": "Verify User Menu items display correctly and respond to authentication state changes"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify Admin Dashboard UI and interactive elements render correctly and consistently"
+        "description": "Verify client cannot access any secret environment variables"
       }
     ]
   },
   {
     "id": "TC013",
-    "title": "No Exposure of Sensitive Environment Variables to Client",
-    "description": "Verify that no sensitive environment variables or service keys are leaked or accessible on the client side.",
-    "category": "security",
-    "priority": "High",
+    "title": "Separation of client and server components",
+    "description": "Verify components designated as server or client only execute in their intended environment and prevent data leaks",
+    "category": "functional",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Perform static code scan and runtime inspection of client bundles"
+        "description": "Load pages containing server components and verify no client-side code attempts to access server APIs or secrets"
+      },
+      {
+        "type": "action",
+        "description": "Load pages/component sets designed as client components and verify they do not expose server-only data"
       },
       {
         "type": "assertion",
-        "description": "Verify that environment variables with sensitive information are only accessible on server-side code"
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm that no credentials, keys, or secrets appear in client-exposed code or network requests"
+        "description": "Verify proper error handling or compile errors occur if set incorrectly"
       }
     ]
   },
   {
     "id": "TC014",
-    "title": "TypeScript Strict Typing Enforcement",
-    "description": "Validate that all code modules related to authentication, global header, and admin dashboard adhere to strict TypeScript typing with no use of any type.",
+    "title": "TypeScript strict type enforcement without any usage",
+    "description": "Verify codebase does not use 'any' type and maintains strict typing across all modules",
     "category": "code quality",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Run static type checking over all related source files"
+        "description": "Run static analysis and TypeScript compiler checks with strict mode enabled"
       },
       {
         "type": "assertion",
-        "description": "Verify no usage of any type and no TypeScript compilation errors"
+        "description": "Verify zero usage of 'any' type and no TypeScript type errors"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify type safety is enforced in hooks, stores, middleware, and UI components"
       }
     ]
   },
   {
     "id": "TC015",
-    "title": "Role-Based Authorization Middleware Data Integrity",
-    "description": "Ensure that middleware enforcing RBAC correctly validates user roles at the database and session level without bypass, preventing unauthorized admin access.",
-    "category": "security",
-    "priority": "High",
+    "title": "Responsive UI rendering with Tailwind CSS",
+    "description": "Verify UI elements adhere to Tailwind CSS design system and render correctly on multiple device viewports",
+    "category": "ui",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Login as various users with different roles (admin, user, guest)"
+        "description": "Open home, login, and admin pages on desktop viewport"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify UI elements align correctly, with no overflow or styling glitches"
       },
       {
         "type": "action",
-        "description": "Attempt to access /admin endpoints and sensitive admin functions"
+        "description": "Open same pages on tablet and mobile viewports"
       },
       {
         "type": "assertion",
-        "description": "Verify middleware performs accurate role validation and denies unauthorized access"
+        "description": "Verify responsive adjustments occur, navigation remains accessible, and layout is consistent with design system"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Zustand state management consistency",
+    "description": "Verify client-side state managed by Zustand updates and persists correctly across components",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Perform updates to user-related state via client interactions (e.g., user menu selections)"
       },
       {
         "type": "assertion",
-        "description": "Verify database level authorization prevents unauthorized data manipulation"
+        "description": "Verify updated state propagates across all relevant components immediately"
+      },
+      {
+        "type": "action",
+        "description": "Reload page and verify Zustand state is restored or synced properly with server session"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "TanStack Query data synchronization correctness",
+    "description": "Verify that server state synchronization using TanStack Query correctly updates UI based on data fetch results and mutations",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Load product and event data pages and verify data fetching occurs correctly with loading and error states handled"
+      },
+      {
+        "type": "action",
+        "description": "Perform mutations such as product creation and verify query invalidation triggers refetch and UI updates"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that data is fresh and UI reflects changes immediately without stale data"
       }
     ]
   }

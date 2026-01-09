@@ -37,9 +37,7 @@ export default function AdminLayout({
 
       {/* 메인 컨텐츠 영역 */}
       <main className="flex-1 ml-64 p-8 overflow-y-auto">
-        <div className="max-w-5xl mx-auto">
-          {children}
-        </div>
+        {children}
       </main>
     </div>
   );

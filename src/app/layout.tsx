@@ -24,11 +24,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <Providers>
           <AuthStateListener />
-          <div className="flex justify-center min-h-screen">
-            <div className="w-full max-w-[940px] min-w-[360px] bg-background shadow-xl min-h-screen overflow-x-hidden">
-              {children}
-            </div>
-          </div>
+          {children}
         </Providers>
       </body>
     </html>
