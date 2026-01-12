@@ -4,7 +4,7 @@ import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseClient } from '@/src/shared/lib/supabase/client';
 import { Device } from '@/src/shared/types/supabase';
-import ProductForm from '@/src/features/admin/components/ProductForm';
+import ProductForm from '@/src/features/admin/products/components/ProductForm';
 
 export default function ProductEditPage({ params }: { params: Promise<{ model: string }> }) {
   const router = useRouter();

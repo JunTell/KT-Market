@@ -26,6 +26,8 @@ export default function AdminLayout({
           </div>
           <MenuLink href="/admin/event" label="이벤트 페이지 관리" icon="🎉" />
           <MenuLink href="/admin/applications" label="신청서 관리" icon="📝" />
+          <MenuLink href="/admin/consultations" label="상담 신청 관리" icon="📞" />
+          <MenuLink href="/admin/reviews" label="리뷰 관리" icon="⭐" />
           <MenuLink href="/admin/products" label="상품 재고 관리" icon="📦" />
 
           <div className="pt-4 pb-2 px-3 text-xs font-semibold text-label-500 uppercase">

@@ -1,40 +1,34 @@
 'use server';
 
 import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
-import { Application, ApplicationStatus } from './types';
+import { Consultation, ConsultationStatus } from './types';
 import { revalidatePath } from 'next/cache';
 
-interface GetApplicationsParams {
+interface GetConsultationsParams {
     page?: number;
     limit?: number;
     status?: string;
     search?: string;
-    type?: string;
 }
 
-export async function getApplications({
+export async function getConsultations({
     page = 1,
     limit = 10,
     status,
     search,
-    type,
-}: GetApplicationsParams) {
+}: GetConsultationsParams) {
     const supabase = await createSupabaseServerClient();
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
     let query = supabase
-        .from('applications')
+        .from('consultations')
         .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(from, to);
 
     if (status && status !== 'all') {
         query = query.eq('status', status);
-    }
-
-    if (type && type !== 'all') {
-        query = query.eq('type', type);
     }
 
     if (search) {
@@ -44,45 +38,45 @@ export async function getApplications({
     const { data, error, count } = await query;
 
     if (error) {
-        console.error('Error fetching applications:', error);
-        throw new Error('신청서 목록을 불러오지 못했습니다.');
+        console.error('Error fetching consultations:', error);
+        throw new Error('상담 목록을 불러오지 못했습니다.');
     }
 
     return {
-        data: data as Application[],
+        data: data as Consultation[],
         count: count || 0,
         totalPages: count ? Math.ceil(count / limit) : 0,
     };
 }
 
-export async function updateApplicationStatus(id: string, status: ApplicationStatus) {
+export async function updateConsultationStatus(id: string, status: ConsultationStatus) {
     const supabase = await createSupabaseServerClient();
 
     const { error } = await supabase
-        .from('applications')
+        .from('consultations')
         .update({ status })
         .eq('id', id);
 
     if (error) {
-        console.error('Error updating application status:', error);
+        console.error('Error updating consultation status:', error);
         throw new Error('상태 변경에 실패했습니다.');
     }
 
-    revalidatePath('/admin/applications');
+    revalidatePath('/admin/consultations');
 }
 
-export async function updateApplicationMemo(id: string, memo: string) {
+export async function updateConsultationMemo(id: string, memo: string) {
     const supabase = await createSupabaseServerClient();
 
     const { error } = await supabase
-        .from('applications')
+        .from('consultations')
         .update({ memo })
         .eq('id', id);
 
     if (error) {
-        console.error('Error updating application memo:', error);
+        console.error('Error updating consultation memo:', error);
         throw new Error('메모 저장에 실패했습니다.');
     }
 
-    revalidatePath('/admin/applications');
+    revalidatePath('/admin/consultations');
 }
