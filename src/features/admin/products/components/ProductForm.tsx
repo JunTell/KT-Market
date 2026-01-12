@@ -12,7 +12,9 @@ interface ProductFormProps {
   isEditMode?: boolean;
 }
 
-export default function ProductForm({ initialData = {}, onSubmit, isEditMode = false }: ProductFormProps) {
+const DEFAULT_DATA = {};
+
+export default function ProductForm({ initialData = DEFAULT_DATA, onSubmit, isEditMode = false }: ProductFormProps) {
   const router = useRouter();
   const CDN_URL = process.env.NEXT_PUBLIC_CDN_URL;
 

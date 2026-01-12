@@ -38,7 +38,7 @@ export default async function AdminEventsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">이벤트 관리</h1>
         <Link
-          href="/admin/events/new"
+          href="/admin/event/new"
           className="border rounded px-3 py-1.5 text-sm"
         >
           새 이벤트 만들기
@@ -113,7 +113,7 @@ export default async function AdminEventsPage() {
               </td>
               <td className="py-2 pr-3 text-right">
                 <Link
-                  href={`/admin/events/${ev.id}`}
+                  href={`/admin/event/${ev.id}`}
                   className="text-xs underline"
                 >
                   수정

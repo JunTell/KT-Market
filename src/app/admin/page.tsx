@@ -95,14 +95,14 @@ export default async function AdminDashboardPage() {
           label="진행 중 이벤트"
           value={`${stats.activeEvents}건`}
           desc="현재 노출 중인 프로모션"
-          href="/admin/events"
+          href="/admin/event"
           icon="🎉"
         />
         <StatCard
           label="전체 이벤트 이력"
           value={`${stats.totalEvents}건`}
           desc="종료된 이벤트 포함"
-          href="/admin/events"
+          href="/admin/event"
           icon="🗂️"
         />
       </div>
@@ -122,7 +122,7 @@ export default async function AdminDashboardPage() {
             + 신규 기기 등록
           </Link>
           <Link
-            href="/admin/events/new"
+            href="/admin/event/new"
             className="px-4 py-2 border border-line-400 rounded hover:bg-bg-alternative transition-colors"
           >
             + 새 이벤트 만들기

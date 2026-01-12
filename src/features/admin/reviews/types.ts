@@ -14,6 +14,5 @@ export interface Review {
     };
     user?: {
         email: string;
-        username: string; // from profile
     };
 }

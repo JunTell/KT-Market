@@ -24,7 +24,7 @@ export async function getReviews({
         .select(`
             *,
             product:devices!product_id(model, pet_name),
-            user:profiles!user_id(email, username)
+            user:profiles!user_id(email)
         `, { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(from, to);
