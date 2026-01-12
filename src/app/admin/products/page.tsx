@@ -88,7 +88,6 @@ export default function ProductListPage() {
                       fill
                       sizes="40px"
                       className="object-cover"
-                      unoptimized // 외부 CDN 사용 시 최적화 건너뛰기 권장
                       onError={(e) => console.error(`이미지 로드 실패: ${device.thumbnail}`)}
                     />
                   </div>

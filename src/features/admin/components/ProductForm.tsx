@@ -129,7 +129,7 @@ export default function ProductForm({ initialData = {}, onSubmit, isEditMode = f
           {previewUrl ? (
             <div className="text-center">
               <div className="relative w-32 h-32 mx-auto mb-2 bg-white rounded border shadow-sm">
-                <Image src={previewUrl} alt="미리보기" fill sizes="128px" className="object-contain p-2" unoptimized onError={() => console.error('미리보기 로드 실패')} />
+                <Image src={previewUrl} alt="미리보기" fill sizes="128px" className="object-contain p-2" onError={() => console.error('미리보기 로드 실패')} />
               </div>
               <p className="text-xs text-gray-500 break-all px-4">{previewUrl}</p>
             </div>

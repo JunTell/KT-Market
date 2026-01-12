@@ -25,6 +25,7 @@ export default function AdminLayout({
             상품 및 이벤트
           </div>
           <MenuLink href="/admin/event" label="이벤트 페이지 관리" icon="🎉" />
+          <MenuLink href="/admin/applications" label="신청서 관리" icon="📝" />
           <MenuLink href="/admin/products" label="상품 재고 관리" icon="📦" />
 
           <div className="pt-4 pb-2 px-3 text-xs font-semibold text-label-500 uppercase">
@@ -43,12 +44,22 @@ export default function AdminLayout({
   );
 }
 
-function MenuLink({ href, label, icon, external = false }: { href: string; label: string; icon: string; external?: boolean }) {
+const MenuLink = ({
+  href,
+  label,
+  icon,
+  external = false,
+}: {
+  href: string;
+  label: string;
+  icon: string;
+  external?: boolean;
+}) => {
   return (
     <Link
       href={href}
       target={external ? "_blank" : undefined}
-      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-label-800 hover:bg-background-altxt-[var(--label-900)] transition-colors text-sm font-medium"
+      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-label-800 hover:bg-background-alt text-[var(--label-900)] transition-colors text-sm font-medium"
     >
       <span className="text-lg">{icon}</span>
       {label}

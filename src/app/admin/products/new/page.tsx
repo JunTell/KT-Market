@@ -201,7 +201,6 @@ export default function ProductForm({ initialData, onSubmit, isEditMode = false 
                   fill
                   sizes="128px"
                   className="object-contain p-2"
-                  unoptimized
                   onError={() => console.error('미리보기 로드 실패')}
                 />
               </div>
