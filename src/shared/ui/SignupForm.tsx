@@ -33,7 +33,7 @@ export default function SignupForm() {
   }
 
   return (
-    <div className="w-full max-w-[400px]">
+    <section className="w-full max-w-[400px]">
       <div className="mb-10 text-center">
         <Link href="/" className="text-3xl font-extrabold text-[#0066FF] tracking-tight cursor-pointer">
           KT Market
@@ -118,6 +118,6 @@ export default function SignupForm() {
           </button>
         </div>
       </div>
-    </div>
+    </section>
   )
 }

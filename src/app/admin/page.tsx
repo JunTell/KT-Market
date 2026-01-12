@@ -75,7 +75,7 @@ export default async function AdminDashboardPage() {
         <p className="text-label-700">KT Market 관리자 페이지에 오신 것을 환영합니다.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <section aria-label="Key Statistics" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="전체 등록 기기"
           value={`${stats.totalProducts}건`}
@@ -105,15 +105,15 @@ export default async function AdminDashboardPage() {
           href="/admin/event"
           icon="🗂️"
         />
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <section aria-label="Analytics Charts" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <VisitorChart data={visitorData} />
         <RevenueChart data={revenueData} />
-      </div>
+      </section>
 
-      <div className="bg-white p-6 rounded-lg border border-line-200">
-        <h2 className="text-lg font-bold mb-4">빠른 작업</h2>
+      <section aria-labelledby="quick-actions-heading" className="bg-white p-6 rounded-lg border border-line-200">
+        <h2 id="quick-actions-heading" className="text-lg font-bold mb-4">빠른 작업</h2>
         <div className="flex gap-4">
           <Link
             href="/admin/products/new"
@@ -128,7 +128,7 @@ export default async function AdminDashboardPage() {
             + 새 이벤트 만들기
           </Link>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

@@ -18,7 +18,7 @@ export default function AdminLayout({
           </Link>
         </div>
 
-        <nav className="p-4 space-y-1">
+        <nav aria-label="Admin Navigation" className="p-4 space-y-1">
           <MenuLink href="/admin" label="대시보드" icon="📊" />
 
           <div className="pt-4 pb-2 px-3 text-xs font-semibold text-label-500 uppercase">
@@ -28,6 +28,7 @@ export default function AdminLayout({
           <MenuLink href="/admin/applications" label="신청서 관리" icon="📝" />
           <MenuLink href="/admin/consultations" label="상담 신청 관리" icon="📞" />
           <MenuLink href="/admin/reviews" label="리뷰 관리" icon="⭐" />
+          <MenuLink href="/admin/posts" label="블로그/뉴스" icon="📰" />
           <MenuLink href="/admin/products" label="상품 재고 관리" icon="📦" />
 
           <div className="pt-4 pb-2 px-3 text-xs font-semibold text-label-500 uppercase">

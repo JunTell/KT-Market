@@ -4,7 +4,7 @@ export function Footer() {
   return (
     <footer className="w-full border-t border-line-200 bg-background-alt">
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
+        <nav aria-label="Footer" className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
           {/* 회사 정보 */}
           <div>
             <h3 className="text-sm font-semibold text-label-900 mb-4">
@@ -140,7 +140,7 @@ export function Footer() {
               </li>
             </ul>
           </div>
-        </div>
+        </nav>
 
         <div className="mt-12 border-t border-line-200 pt-8">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">

@@ -29,7 +29,7 @@ export default async function EventLandingPage({ params }: { params: Promise<{ s
   if (!event) notFound()
 
   return (
-    <div className="min-h-screen bg-white">
+    <main className="min-h-screen bg-white">
       {/* 1. 이벤트 헤더/배너 */}
       {event.thumbnail_url && (
         <div className="w-full relative h-[300px] md:h-[400px]">
@@ -71,6 +71,6 @@ export default async function EventLandingPage({ params }: { params: Promise<{ s
           </div>
         )}
       </div>
-    </div>
+    </main>
   )
 }
