@@ -1,5 +1,7 @@
 'use server'
 
+import { headers } from 'next/headers'
+
 import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -25,6 +27,7 @@ type AuthState = {
   error: string | null
   success?: boolean
   message?: string | null
+  email?: string | null
 }
 
 export async function login(prevState: AuthState, formData: FormData): Promise<AuthState> {
@@ -53,11 +56,13 @@ export async function login(prevState: AuthState, formData: FormData): Promise<A
   })
 
   if (error) {
-    return {
-      error: error.message === 'Invalid login credentials'
-        ? '아이디 또는 비밀번호가 일치하지 않습니다.'
-        : error.message
+    if (error.message === 'Invalid login credentials') {
+      return { error: '아이디 또는 비밀번호가 일치하지 않습니다.' }
     }
+    if (error.message.includes('Email not confirmed')) {
+      return { error: '이메일 인증이 완료되지 않았습니다. 메일함을 확인해주세요.' }
+    }
+    return { error: error.message }
   }
 
   // NOTE: revalidatePath might not be needed depending on where we redirect, but good for clearing cache
@@ -86,9 +91,14 @@ export async function signup(prevState: AuthState, formData: FormData): Promise<
   const { email, password } = validatedFields.data
   const supabase = await createSupabaseServerClient()
 
+  const origin = (await headers()).get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      emailRedirectTo: `${origin}/auth/callback`,
+    },
   })
 
   if (error) {
@@ -96,26 +106,14 @@ export async function signup(prevState: AuthState, formData: FormData): Promise<
   }
 
   if (data.user) {
-    // Create Profile
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .upsert({
-        id: data.user.id,
-        email: data.user.email,
-        is_admin: false,
-      }, { onConflict: 'id' })
-
-    if (profileError) {
-      console.error('Profile creation error:', profileError)
-      // Note: User is created but profile failed. 
-      // In a real app we might want to rollback or queue a retry.
-    }
+    // Profile creation is now handled in /auth/callback after verification
   }
 
   return {
     error: null,
     success: true,
     message: '회원가입이 완료되었습니다. 이메일 인증을 확인하시거나 로그인해주세요.',
+    email: email
   }
 }
 

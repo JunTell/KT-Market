@@ -53,9 +53,9 @@ export async function upsertEvent(formData: FormData) {
     throw new Error('이벤트 저장 실패')
   }
 
-  revalidatePath('/admin/events')
+  revalidatePath('/admin/event')
   revalidatePath(`/event/${slug}`) // 캐시 갱신
-  redirect('/admin/events')
+  redirect('/admin/event')
 }
 
 export async function deleteEvent(id: string) {
@@ -69,6 +69,6 @@ export async function deleteEvent(id: string) {
 
   if (error) throw new Error('삭제 실패')
 
-  revalidatePath('/admin/events')
+  revalidatePath('/admin/event')
   revalidatePath('/event') // 관련 캐시 초기화
 }

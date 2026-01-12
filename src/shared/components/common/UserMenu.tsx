@@ -19,11 +19,13 @@ export function UserMenu({ initialUser, initialIsAdmin }: UserMenuProps) {
     setMounted(true)
   }, [])
 
-  // 1. 하이드레이션 전에는 서버 데이터를 사용, 후에는 클라이언트 상태 사용
-  const currentUser = mounted ? user : initialUser
-  // 프로필이 실제로 로드될 때까지 initialIsAdmin 사용
-  const currentIsAdmin = mounted && profile !== null ? isAdmin : initialIsAdmin
-  const isAuth = mounted ? isAuthenticated : !!initialUser
+  // 1. 하이드레이션 전( mounted=false )이거나, 아직 인증 로딩 중( loading=true )인 경우
+  // 서버에서 받아온 initialUser를 우선 보여주어 "깜빡임(Flash)"을 방지합니다.
+  const shouldUseInitial = !mounted || (loading && !!initialUser)
+
+  const currentUser = shouldUseInitial ? initialUser : user
+  const currentIsAdmin = shouldUseInitial ? initialIsAdmin : (isAdmin && profile !== null)
+  const isAuth = shouldUseInitial ? !!initialUser : isAuthenticated
 
   // 로딩 중일 때 깜빡임 방지
   if (mounted && loading && !initialUser) {

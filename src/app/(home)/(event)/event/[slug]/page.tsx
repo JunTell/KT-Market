@@ -2,9 +2,10 @@ import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
   const supabase = await createSupabaseServerClient()
-  const { data } = await supabase.from('events').select('title, thumbnail_url').eq('slug', params.slug).single()
+  const { data } = await supabase.from('events').select('title, thumbnail_url').eq('slug', slug).single()
 
   return {
     title: data?.title,
@@ -14,14 +15,15 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-export default async function EventLandingPage({ params }: { params: { slug: string } }) {
+export default async function EventLandingPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
   const supabase = await createSupabaseServerClient()
 
   // 1. Slug로 이벤트 조회
   const { data: event } = await supabase
     .from('events')
     .select('*')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .single()
 
   if (!event) notFound()

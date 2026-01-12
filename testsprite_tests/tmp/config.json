@@ -1,0 +1,16 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "executionArgs": {
+    "projectName": "KT-Market-1",
+    "projectPath": "/Users/apple/Documents/GitHub/KT-Market-1",
+    "testIds": [],
+    "additionalInstruction": "Execute the Signup test again. Verify that the signup action returns success (or at least attempts to send email without 500 error). Note: Real email delivery cannot be verified, but the server action response should be successful.",
+    "envs": {
+      "API_KEY": "sk-user-kKczNagbDcCxTnTcQFOOdVzR97-TvZokoPWmYDi3lR876dWyTnNhWlgL10gZPREnkcj0UKKD8Kp--HJWIdDqrZrrakRDIm7YeAqE2nau-2f55R-j7Tpe1P_Rbvjxzqg96co"
+    }
+  },
+  "proxy": "http://ab26690e-8184-450d-8015-0ea956de35f7:8CG09jrFfjQDfEB1sUkG04GOHssqdzcq@tun.testsprite.com:8080"
+}

@@ -17,13 +17,10 @@ export default function SignupForm() {
   const [state, formAction, isPending] = useActionState(signup, initialState)
 
   useEffect(() => {
-    if (state.success) {
-      const timer = setTimeout(() => {
-        router.push('/login')
-      }, 2000)
-      return () => clearTimeout(timer)
+    if (state.success && state.email) {
+      router.push(`/signup/verify?email=${encodeURIComponent(state.email)}`)
     }
-  }, [state.success, router])
+  }, [state.success, state.email, router])
 
   // 소셜 로그인 핸들러 (클라이언트 사이드 유지)
   const handleSocialSignup = async (provider: 'kakao' | 'google') => {

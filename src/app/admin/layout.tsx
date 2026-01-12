@@ -24,7 +24,7 @@ export default function AdminLayout({
           <div className="pt-4 pb-2 px-3 text-xs font-semibold text-label-500 uppercase">
             상품 및 이벤트
           </div>
-          <MenuLink href="/admin/events" label="이벤트 페이지 관리" icon="🎉" />
+          <MenuLink href="/admin/event" label="이벤트 페이지 관리" icon="🎉" />
           <MenuLink href="/admin/products" label="상품 재고 관리" icon="📦" />
 
           <div className="pt-4 pb-2 px-3 text-xs font-semibold text-label-500 uppercase">
@@ -37,9 +37,7 @@ export default function AdminLayout({
 
       {/* 메인 컨텐츠 영역 */}
       <main className="flex-1 ml-64 p-8 overflow-y-auto">
-        <div className="max-w-5xl mx-auto">
-          {children}
-        </div>
+        {children}
       </main>
     </div>
   );

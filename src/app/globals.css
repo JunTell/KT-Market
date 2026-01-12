@@ -91,25 +91,15 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
+  min-width: 360px;
+  /* ✅ 최소 너비 360px 설정 */
   width: 100%;
   font-family: var(--font-sans);
   color: var(--label-900);
   -webkit-font-smoothing: antialiased;
 }
 
-/* ✅ 추가: 모바일 레이아웃 전용 클래스 (기존 body 스타일을 이쪽으로 이동) */
-.mobile-layout {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  max-width: 440px;
-  /* 모바일 최대 너비 제한 */
-  margin: 0 auto;
-  /* 중앙 정렬 */
-  background-color: var(--bg-default);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
-  /* 경계 구분을 위한 그림자 */
-}
+
 
 .scrollbar-hide {
   -ms-overflow-style: none;
