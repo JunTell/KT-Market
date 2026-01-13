@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
+import { requireAdmin } from '@/src/shared/lib/auth/admin';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { VisitorChart, RevenueChart } from '@/src/features/admin/components/DashboardCharts';
@@ -15,22 +16,8 @@ export default async function AdminDashboardPage() {
 
   const supabase = await createSupabaseServerClient();
 
-  // [1] Check Auth
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
-    redirect('/login?redirectTo=/admin');
-  }
-
-  // [2] Check Admin Role (Doubly secure alongside middleware)
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_admin')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile || !profile.is_admin) {
-    redirect('/');
-  }
+  // [1] Check Auth & Admin Role
+  await requireAdmin();
 
   // [3] Fetch Data in Parallel
   const [

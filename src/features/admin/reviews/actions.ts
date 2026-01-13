@@ -3,6 +3,7 @@
 import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
 import { Review } from './types';
 import { revalidatePath } from 'next/cache';
+import { requireAdmin } from '@/src/shared/lib/auth/admin';
 
 interface GetReviewsParams {
     page?: number;
@@ -15,6 +16,7 @@ export async function getReviews({
     limit = 10,
     search,
 }: GetReviewsParams) {
+    await requireAdmin();
     const supabase = await createSupabaseServerClient();
     const from = (page - 1) * limit;
     const to = from + limit - 1;
@@ -49,6 +51,7 @@ export async function getReviews({
 }
 
 export async function toggleReviewVisibility(id: string, isHidden: boolean) {
+    await requireAdmin();
     const supabase = await createSupabaseServerClient();
 
     const { error } = await supabase

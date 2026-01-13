@@ -1,3 +1,4 @@
+import { requireAdmin } from '@/src/shared/lib/auth/admin';
 import { ReviewTable } from '@/src/features/admin/reviews/components/ReviewTable';
 import { getReviews } from '@/src/features/admin/reviews/actions';
 
@@ -9,6 +10,8 @@ interface PageProps {
 }
 
 export default async function ReviewsPage({ searchParams }: PageProps) {
+    await requireAdmin();
+
     const params = await searchParams;
     const page = Number(params.page) || 1;
     const search = params.search || '';

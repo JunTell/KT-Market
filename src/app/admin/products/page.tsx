@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getProducts } from '@/src/features/admin/products/actions';
 import { ProductTable } from '@/src/features/admin/products/components/ProductTable';
+import { requireAdmin } from '@/src/shared/lib/auth/admin';
 
 interface PageProps {
   searchParams: Promise<{
@@ -11,6 +12,7 @@ interface PageProps {
 }
 
 export default async function ProductListPage({ searchParams }: PageProps) {
+  await requireAdmin();
   const params = await searchParams;
   const page = Number(params.page) || 1;
   const search = params.search || '';
