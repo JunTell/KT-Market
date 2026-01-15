@@ -75,7 +75,9 @@
   --radius-2xl: var(--radius-2xl);
   /* 📱 Breakpoints 확장 */
   --breakpoint-xs: 480px;
-  --breakpoint-lg: 980px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 940px;
   /* Desktop Split Criteria */
 }
 
