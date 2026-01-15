@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Post } from '../types';
+import { useState } from 'react';
+
 import { deletePost, updatePost } from '../actions';
+
+import type { Post } from '../types';
 
 interface PostTableProps {
     initialData: Post[];

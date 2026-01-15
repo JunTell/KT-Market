@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Consultation, ConsultationStatus } from '../types';
+import { useState, useEffect } from 'react';
+
 import { updateConsultationStatus } from '../actions';
-import { StatusBadge } from './StatusBadge';
+
 import { ConsultationDetailModal } from './ConsultationDetailModal';
+import { StatusBadge } from './StatusBadge';
+
+import type { Consultation, ConsultationStatus } from '../types';
 
 interface ConsultationTableProps {
     initialData: Consultation[];

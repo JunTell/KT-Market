@@ -1,7 +1,7 @@
 'use client';
 
-import PostForm from '@/src/features/admin/posts/components/PostForm';
 import { createPost } from '@/src/features/admin/posts/actions';
+import PostForm from '@/src/features/admin/posts/components/PostForm';
 
 export default function NewPostPage() {
     return (

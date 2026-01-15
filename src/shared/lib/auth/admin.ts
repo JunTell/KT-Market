@@ -1,5 +1,6 @@
-import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
 import { redirect } from 'next/navigation';
+
+import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
 
 /**
  * 서버 컴포넌트/Server Actions에서 관리자 권한을 강제로 확인합니다.

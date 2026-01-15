@@ -1,8 +1,10 @@
 'use server';
 
-import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
-import { Consultation, ConsultationStatus } from './types';
 import { revalidatePath } from 'next/cache';
+
+import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
+
+import type { Consultation, ConsultationStatus } from './types';
 
 interface GetConsultationsParams {
     page?: number;

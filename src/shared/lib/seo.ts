@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+import type { Metadata } from 'next'
 
 export const defaultMetadata: Metadata = {
   metadataBase: new URL('https://ktmarket.co.kr'),

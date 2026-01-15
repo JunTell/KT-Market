@@ -1,5 +1,5 @@
-import { ConsultationTable } from '@/src/features/admin/consultations/components/ConsultationTable';
 import { getConsultations } from '@/src/features/admin/consultations/actions';
+import { ConsultationTable } from '@/src/features/admin/consultations/components/ConsultationTable';
 
 interface PageProps {
     searchParams: Promise<{

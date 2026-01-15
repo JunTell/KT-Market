@@ -1,6 +1,7 @@
+import { notFound } from 'next/navigation'
+
 import EventForm from '@/src/features/admin/components/EventForm'
 import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
-import { notFound } from 'next/navigation'
 
 export default async function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

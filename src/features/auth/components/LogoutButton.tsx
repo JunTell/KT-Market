@@ -1,7 +1,8 @@
 'use client'
 
-import { logout } from '@/src/shared/actions/auth'
 import { useState } from 'react'
+
+import { logout } from '@/src/shared/actions/auth'
 
 /**
  * 로그아웃 버튼 컴포넌트

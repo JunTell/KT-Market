@@ -1,4 +1,5 @@
 import { supabaseClient } from './supabase/client'
+
 import type { Session } from '@supabase/supabase-js'
 
 /**

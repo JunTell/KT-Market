@@ -1,13 +1,18 @@
-import { ReactElement, ReactNode } from 'react';
 import {
+  Controller
+} from 'react-hook-form';
+
+import { ErrorMessage } from './ErrorMessage';
+
+import type { ReactElement, ReactNode } from 'react';
+import type {
   Control,
-  Controller,
   ControllerRenderProps,
   FieldValues,
   Path,
   RegisterOptions
 } from 'react-hook-form';
-import { ErrorMessage } from './ErrorMessage';
+
 
 interface FormFieldProps<T extends FieldValues> {
   name: Path<T>;

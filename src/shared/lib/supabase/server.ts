@@ -1,6 +1,6 @@
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 /**
  * Server Component 및 Route Handler용 Supabase 클라이언트

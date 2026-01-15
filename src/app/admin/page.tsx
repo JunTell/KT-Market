@@ -1,9 +1,10 @@
-import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
-import { requireAdmin } from '@/src/shared/lib/auth/admin';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+
 import { VisitorChart, RevenueChart } from '@/src/features/admin/components/DashboardCharts';
 import StatCard from '@/src/features/admin/components/StatCard';
+import { requireAdmin } from '@/src/shared/lib/auth/admin';
+import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
 
 interface DashboardStats {
   totalProducts: number;

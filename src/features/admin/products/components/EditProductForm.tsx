@@ -1,9 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Device } from '@/src/shared/types/supabase';
-import ProductForm from './ProductForm';
+
+import type { Device } from '@/src/shared/types/supabase';
+
 import { updateProduct } from '../actions';
+
+import ProductForm from './ProductForm';
 
 interface EditProductFormProps {
     initialData: Partial<Device>;

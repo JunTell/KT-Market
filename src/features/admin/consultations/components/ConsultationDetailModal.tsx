@@ -1,9 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Consultation } from '../types';
+
 import { updateConsultationMemo } from '../actions';
+
 import { StatusBadge } from './StatusBadge';
+
+import type { Consultation } from '../types';
+
 
 interface ConsultationDetailModalProps {
     consultation: Consultation | null;

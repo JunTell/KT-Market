@@ -1,5 +1,6 @@
-import SignupForm from '@/src/shared/ui/SignupForm'
 import { Suspense } from 'react'
+
+import SignupForm from '@/src/shared/ui/SignupForm'
 
 export const dynamic = 'force-dynamic';
 

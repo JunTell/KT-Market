@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Application, ApplicationStatus } from '../types';
+import { useState, useEffect } from 'react';
+
 import { updateApplicationStatus } from '../actions';
-import { StatusBadge } from './StatusBadge';
+
 import { ApplicationDetailModal } from './ApplicationDetailModal';
+import { StatusBadge } from './StatusBadge';
+
+import type { Application, ApplicationStatus } from '../types';
 
 // ...
 

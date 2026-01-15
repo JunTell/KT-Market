@@ -1,9 +1,10 @@
 'use server';
 
-import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
-import { Device } from '@/src/shared/types/supabase';
 import { revalidatePath } from 'next/cache';
+
 import { requireAdmin } from '@/src/shared/lib/auth/admin';
+import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
+import type { Device } from '@/src/shared/types/supabase';
 
 interface GetProductsParams {
     page?: number;

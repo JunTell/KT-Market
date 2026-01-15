@@ -1,9 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Application } from '../types';
+
 import { updateApplicationMemo } from '../actions';
+
 import { StatusBadge } from './StatusBadge';
+
+import type { Application } from '../types';
+
 
 interface ApplicationDetailModalProps {
     application: Application | null;

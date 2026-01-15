@@ -1,6 +1,7 @@
-import { Header } from '@/src/shared/components/layout/Header';
-import { Footer } from '@/src/shared/components/layout/Footer';
 import { notFound } from 'next/navigation';
+
+import { Footer } from '@/src/shared/components/layout/Footer';
+import { Header } from '@/src/shared/components/layout/Header';
 import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
 
 interface PageProps {

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+
 import { getProducts } from '@/src/features/admin/products/actions';
 import { ProductTable } from '@/src/features/admin/products/components/ProductTable';
 import { requireAdmin } from '@/src/shared/lib/auth/admin';

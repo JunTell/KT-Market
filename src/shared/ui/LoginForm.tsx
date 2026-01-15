@@ -1,16 +1,17 @@
 'use client'
 
-import { useActionState, useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { login } from '@/src/shared/actions/auth'
-import { supabaseClient } from '@/src/shared/lib/supabase/client'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useActionState, useEffect, useState } from 'react'
+
+import { login } from '@/src/shared/actions/auth'
 import {
   getSavedEmail,
   setSavedEmail,
   clearSavedEmail,
   setRememberMe,
 } from '@/src/shared/lib/auth'
+import { supabaseClient } from '@/src/shared/lib/supabase/client'
 
 const initialState = {
   error: null,
@@ -32,8 +33,8 @@ export default function LoginForm() {
   useEffect(() => {
     const savedEmail = getSavedEmail()
     if (savedEmail) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEmail(savedEmail)
-      setSaveIdChecked(true)
     }
   }, [])
 

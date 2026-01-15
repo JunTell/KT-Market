@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Review } from '../types';
+import { useState } from 'react';
+
 import { toggleReviewVisibility } from '../actions';
+
+import type { Review } from '../types';
 
 interface ReviewTableProps {
     initialData: Review[];

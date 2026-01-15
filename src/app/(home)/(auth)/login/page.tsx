@@ -1,5 +1,6 @@
-import LoginForm from "@/src/shared/ui/LoginForm";
 import { Suspense } from "react";
+
+import LoginForm from "@/src/shared/ui/LoginForm";
 
 export const dynamic = 'force-dynamic';
 

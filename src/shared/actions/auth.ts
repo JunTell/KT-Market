@@ -1,11 +1,12 @@
 'use server'
 
-import { headers } from 'next/headers'
 
-import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
+
+import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
 
 // Schema Definitions
 const loginSchema = z.object({

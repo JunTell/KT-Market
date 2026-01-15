@@ -1,9 +1,11 @@
 'use server';
 
-import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
-import { Review } from './types';
 import { revalidatePath } from 'next/cache';
+
 import { requireAdmin } from '@/src/shared/lib/auth/admin';
+import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
+
+import type { Review } from './types';
 
 interface GetReviewsParams {
     page?: number;

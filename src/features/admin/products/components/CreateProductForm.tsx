@@ -1,9 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Device } from '@/src/shared/types/supabase';
-import ProductForm from './ProductForm';
+
+import type { Device } from '@/src/shared/types/supabase';
+
 import { createProduct } from '../actions';
+
+import ProductForm from './ProductForm';
 
 export default function CreateProductForm() {
     const router = useRouter();

@@ -1,6 +1,9 @@
-import { ReactNode } from 'react';
 import classNames from 'classnames';
+
 import { ButtonSpinner } from './ButtonSpinner';
+
+import type { ReactNode } from 'react';
+
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;

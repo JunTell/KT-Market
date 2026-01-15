@@ -1,8 +1,10 @@
 'use server';
 
-import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
-import { Post, PostFormData } from './types';
 import { revalidatePath } from 'next/cache';
+
+import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
+
+import type { Post, PostFormData } from './types';
 
 export async function getPosts({ page = 1, limit = 10, search = '' }) {
     const supabase = await createSupabaseServerClient();

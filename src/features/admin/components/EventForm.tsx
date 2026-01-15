@@ -1,7 +1,9 @@
 'use client'
 
-import { upsertEvent } from '@/src/app/admin/event/actions'
 import { useState } from 'react'
+
+import { upsertEvent } from '@/src/app/admin/event/actions'
+
 import TextEditor from './TextEditor'
 
 interface EventData {

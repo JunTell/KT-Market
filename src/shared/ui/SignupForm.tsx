@@ -1,10 +1,11 @@
 'use client'
 
-import { useActionState, useEffect } from 'react'
-import { signup } from '@/src/shared/actions/auth'
-import { supabaseClient } from '@/src/shared/lib/supabase/client'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useActionState, useEffect } from 'react'
+
+import { signup } from '@/src/shared/actions/auth'
+import { supabaseClient } from '@/src/shared/lib/supabase/client'
 
 const initialState = {
   error: null,

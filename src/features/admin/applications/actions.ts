@@ -1,8 +1,10 @@
 'use server';
 
-import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
-import { Application, ApplicationStatus } from './types';
 import { revalidatePath } from 'next/cache';
+
+import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
+
+import type { Application, ApplicationStatus } from './types';
 
 interface GetApplicationsParams {
     page?: number;

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import Image from 'next/image'
-import { Product } from '@/src/shared/types/product'
+import { useState } from 'react'
+
+import type { Product } from '@/src/shared/types/product'
 
 interface ProductDetailProps {
   product: Product

@@ -1,10 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
+
 import { useAuth } from '@/src/shared/hooks/useAuth'
-import type { User } from '@supabase/supabase-js'
+
 import { AdminButton } from '../common/AdminButton'
+
+import type { User } from '@supabase/supabase-js'
 
 interface UserMenuProps {
   initialUser: User | null
@@ -16,6 +19,7 @@ export function UserMenu({ initialUser, initialIsAdmin }: UserMenuProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 

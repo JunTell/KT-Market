@@ -1,4 +1,6 @@
-import { ApplicationStatus, STATUS_COLORS, STATUS_LABELS } from '../types';
+import { STATUS_COLORS, STATUS_LABELS } from '../types';
+
+import type { ApplicationStatus} from '../types';
 
 interface StatusBadgeProps {
     status: ApplicationStatus;

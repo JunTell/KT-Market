@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
+
 import type { User } from '@supabase/supabase-js'
 
 export interface UserWithRole {

@@ -1,6 +1,7 @@
-import PostForm from '@/src/features/admin/posts/components/PostForm';
-import { getPost, updatePost } from '@/src/features/admin/posts/actions';
 import { notFound } from 'next/navigation';
+
+import { getPost, updatePost } from '@/src/features/admin/posts/actions';
+import PostForm from '@/src/features/admin/posts/components/PostForm';
 
 interface PageProps {
     params: Promise<{ id: string }>;

@@ -1,5 +1,5 @@
-import { requireAdmin } from '@/src/shared/lib/auth/admin';
 import CreateProductForm from '@/src/features/admin/products/components/CreateProductForm';
+import { requireAdmin } from '@/src/shared/lib/auth/admin';
 
 export default async function NewProductPage() {
   await requireAdmin();

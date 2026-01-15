@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
+
 import localFont from "next/font/local";
+
 import "./globals.css";
-import { Providers } from "./provider";
 import { defaultMetadata } from "@/src/shared/lib/seo";
+
 import AuthStateListener from "../shared/ui/AuthStateListener";
+
+import { Providers } from "./provider";
 
 const pretendard = localFont({
   src: "./fonts/PretendardVariable.woff2",

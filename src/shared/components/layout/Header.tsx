@@ -1,5 +1,7 @@
 import Link from 'next/link'
+
 import { getCurrentUserWithRole } from '@/src/shared/lib/auth/session'
+
 import { UserMenu } from '../common/UserMenu'
 
 export async function Header() {

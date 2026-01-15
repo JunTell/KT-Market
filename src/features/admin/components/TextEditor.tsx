@@ -2,11 +2,12 @@
 
 import dynamic from 'next/dynamic';
 import { useMemo, useRef, useState } from 'react';
+
 import 'react-quill-new/dist/quill.snow.css';
 import { supabaseClient } from '@/src/shared/lib/supabase/client';
 
 // ✅ 핵심: 'as any'를 붙여서 TypeScript의 ref 타입 검사 에러를 해결
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const ReactQuill = dynamic(() => import('react-quill-new'), {
   ssr: false,
   loading: () => <div className="h-64 bg-gray-100 animate-pulse" />,
@@ -18,7 +19,7 @@ interface TextEditorProps {
 }
 
 export default function TextEditor({ value, onChange }: TextEditorProps) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const quillRef = useRef<any>(null);
   const [isUploading, setIsUploading] = useState(false);
 

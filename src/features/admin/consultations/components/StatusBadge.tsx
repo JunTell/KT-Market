@@ -1,4 +1,6 @@
-import { ConsultationStatus, CONSULTATION_STATUS_COLORS, CONSULTATION_STATUS_LABELS } from '../types';
+import { CONSULTATION_STATUS_COLORS, CONSULTATION_STATUS_LABELS } from '../types';
+
+import type { ConsultationStatus} from '../types';
 
 interface StatusBadgeProps {
     status: ConsultationStatus;

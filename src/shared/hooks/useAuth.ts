@@ -1,8 +1,10 @@
 'use client'
 
 import { useCallback } from 'react'
+
 import { supabaseClient } from '@/src/shared/lib/supabase/client'
 import { useUserStore } from '@/src/shared/stores/useUserStore'
+
 import type { User } from '@supabase/supabase-js'
 
 interface Profile {

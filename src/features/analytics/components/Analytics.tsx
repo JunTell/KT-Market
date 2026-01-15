@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, Suspense } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import Script from 'next/script'
+import { useEffect, Suspense } from 'react'
+
 import { pageview, GA_TRACKING_ID, GTM_ID } from '@/src/shared/lib/analytics'
 
 function AnalyticsTracker() {

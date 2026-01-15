@@ -1,7 +1,9 @@
-import { requireAdmin } from '@/src/shared/lib/auth/admin';
-import EditProductForm from '@/src/features/admin/products/components/EditProductForm';
-import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
 import { notFound } from 'next/navigation';
+
+import EditProductForm from '@/src/features/admin/products/components/EditProductForm';
+import { requireAdmin } from '@/src/shared/lib/auth/admin';
+import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server';
+
 
 export default async function ProductEditPage({ params }: { params: Promise<{ model: string }> }) {
   await requireAdmin();

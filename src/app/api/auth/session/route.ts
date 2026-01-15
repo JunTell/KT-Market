@@ -1,5 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
+
 import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
+
+import type { NextRequest} from 'next/server';
 
 /**
  * POST /api/auth/session

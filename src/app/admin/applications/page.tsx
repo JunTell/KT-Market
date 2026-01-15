@@ -1,5 +1,5 @@
-import { ApplicationTable } from '@/src/features/admin/applications/components/ApplicationTable';
 import { getApplications } from '@/src/features/admin/applications/actions';
+import { ApplicationTable } from '@/src/features/admin/applications/components/ApplicationTable';
 
 interface PageProps {
     searchParams: Promise<{

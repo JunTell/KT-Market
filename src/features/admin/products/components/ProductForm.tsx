@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+
 import { signup } from '@/src/shared/actions/auth';
-import { Device } from '@/src/shared/types/supabase';
+import type { Device } from '@/src/shared/types/supabase';
 
 interface ProductFormProps {
   initialData?: Partial<Device>;
@@ -54,7 +55,6 @@ export default function ProductForm({ initialData = DEFAULT_DATA, onSubmit, isEd
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    // @ts-ignore
     const val = type === 'number' ? Number(value) : value;
     setDevice(prev => ({ ...prev, [name]: val }));
   };

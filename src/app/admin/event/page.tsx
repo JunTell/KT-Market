@@ -1,6 +1,7 @@
-import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
+
+import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
 
 type EventRow = {
   id: string

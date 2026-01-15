@@ -1,5 +1,5 @@
-import { Header } from '@/src/shared/components/layout/Header';
 import { Footer } from '@/src/shared/components/layout/Footer';
+import { Header } from '@/src/shared/components/layout/Header';
 
 export default function AgreementPage() {
     return (

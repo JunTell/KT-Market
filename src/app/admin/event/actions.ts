@@ -1,8 +1,9 @@
 'use server'
 
-import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
+
+import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
 
 // 이벤트 생성/수정 로직
 export async function upsertEvent(formData: FormData) {

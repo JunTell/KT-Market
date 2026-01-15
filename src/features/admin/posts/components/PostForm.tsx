@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Post, PostFormData } from '../types';
+import { useState, useEffect } from 'react';
+
+
 import TextEditor from '@/src/features/admin/components/TextEditor';
 import { createSupabaseBrowserClient } from '@/src/shared/lib/supabase/client';
+
+import type { Post, PostFormData } from '../types';
 
 interface PostFormProps {
     initialData?: Post;

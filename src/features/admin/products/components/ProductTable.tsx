@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
-import { Device } from '@/src/shared/types/supabase';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+
+import type { Device } from '@/src/shared/types/supabase';
 
 interface ProductTableProps {
     initialData: Device[];
