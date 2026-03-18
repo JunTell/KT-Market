@@ -1,21 +1,36 @@
 'use client'
 
-import { deleteEvent } from "@/src/app/admin/event/actions"
+import { useState } from 'react'
+
+import { Button } from '../../../shared/ui/Button'
+import { deleteEventAction as deleteEvent } from "../../events/api/actions"
 
 export default function DeleteEventButton({ id }: { id: string }) {
+  const [isDeleting, setIsDeleting] = useState(false)
+
   const handleDelete = async () => {
     if (!confirm('정말 삭제하시겠습니까? 복구할 수 없습니다.')) return
+
+    setIsDeleting(true)
     try {
       await deleteEvent(id)
       alert('삭제되었습니다.')
     } catch (e) {
       alert('삭제 실패')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
   return (
-    <button onClick={handleDelete} className="text-red-500 hover:text-red-700 text-xs underline ml-2">
+    <Button
+      type="button"
+      variant="danger"
+      size="xsmall"
+      onClick={handleDelete}
+      loading={isDeleting}
+    >
       삭제
-    </button>
+    </Button>
   )
 }
