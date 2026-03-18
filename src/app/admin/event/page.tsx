@@ -1,4 +1,5 @@
 import Link from 'next/link'
+
 import { getEvents } from '../../../features/events/api/get-events'
 import EventListTable from '../../../features/events/components/EventListTable'
 import { cn } from '../../../shared/lib/utils/cn'

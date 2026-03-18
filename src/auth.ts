@@ -1,7 +1,7 @@
 // src/auth.ts
+import { createClient } from "@supabase/supabase-js";
 import NextAuth from "next-auth";
 import NaverProvider from "next-auth/providers/naver";
-import { createClient } from "@supabase/supabase-js";
 
 // 서버 환경에서 동작하는 Supabase Admin 클라이언트 
 const supabaseAdmin = createClient(

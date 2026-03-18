@@ -1,9 +1,10 @@
-import { getAuthenticatedAdmin } from '../../shared/lib/auth/server-auth';
 import { redirect } from 'next/navigation';
-import { AuthInitializer } from '../../shared/components/providers/auth-initializer';
-import { Sidebar } from '../../features/admin/components/Sidebar';
+
 import { AdminLayoutShell } from '../../features/admin/components/AdminLayoutShell';
 import { Header } from '../../features/admin/components/Header';
+import { Sidebar } from '../../features/admin/components/Sidebar';
+import { AuthInitializer } from '../../shared/components/providers/auth-initializer';
+import { getAuthenticatedAdmin } from '../../shared/lib/auth/server-auth';
 
 export const dynamic = 'force-dynamic';
 

@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+
 import EventForm from '../../../../features/admin/components/EventForm' // Leave as is, user will update if needed
 import { getEventById } from '../../../../features/events/api/get-events'
 

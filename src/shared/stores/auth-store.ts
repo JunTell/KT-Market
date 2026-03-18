@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import { AdminUser, ROLE_PERMISSIONS } from '../types/auth'
+
+import { ROLE_PERMISSIONS } from '../types/auth'
+
+import type { AdminUser} from '../types/auth';
 
 interface AuthState {
     // 상태

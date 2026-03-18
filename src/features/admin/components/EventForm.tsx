@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useActionState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useState, useActionState, useEffect } from 'react'
 
-import { upsertEventAction as upsertEvent } from '../../events/api/actions'
-import TextEditor from './TextEditor'
-import { EventRow as EventData } from '../../../shared/types/event'
 import { Button } from '../../../shared/ui/Button'
+import { upsertEventAction as upsertEvent } from '../../events/api/actions'
+
+import TextEditor from './TextEditor'
+
+import type { EventRow as EventData } from '../../../shared/types/event'
 
 export default function EventForm({ initialData }: { initialData?: EventData }) {
   const router = useRouter()

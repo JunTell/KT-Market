@@ -1,10 +1,11 @@
 'use client'
 
+import { LogOut, Menu } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+
 import { createSupabaseBrowserClient as createClient } from '../../../shared/lib/supabase/client'
 import { useAuthStore } from '../../../shared/stores/auth-store'
 import { useAdminUIStore } from '../stores/ui-store'
-import { LogOut, Menu } from 'lucide-react'
 
 export function Header() {
     const router = useRouter()

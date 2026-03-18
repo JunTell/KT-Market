@@ -1,5 +1,7 @@
-import { Role, ROLE_DISPLAY } from '../../../shared/types/auth'
 import { cn } from '../../../shared/lib/utils/cn'
+import { ROLE_DISPLAY } from '../../../shared/types/auth'
+
+import type { Role} from '../../../shared/types/auth';
 
 interface RoleBadgeProps {
     role: Role

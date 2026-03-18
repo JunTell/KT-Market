@@ -1,7 +1,9 @@
-import { createSupabaseServerClient as createClient } from '../supabase/server'
 import { redirect } from 'next/navigation'
-import { Role, AdminUser } from '../../types/auth'
 import { cache } from 'react'
+
+import { createSupabaseServerClient as createClient } from '../supabase/server'
+
+import type { Role, AdminUser } from '../../types/auth'
 
 // 현재 인증된 관리자 조회 (DB 직접 조회) - Request Memoization 적용
 export const getAuthenticatedAdmin = cache(async (): Promise<AdminUser | null> => {

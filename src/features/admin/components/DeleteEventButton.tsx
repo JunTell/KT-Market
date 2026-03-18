@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { deleteEventAction as deleteEvent } from "../../events/api/actions"
+
 import { Button } from '../../../shared/ui/Button'
+import { deleteEventAction as deleteEvent } from "../../events/api/actions"
 
 export default function DeleteEventButton({ id }: { id: string }) {
   const [isDeleting, setIsDeleting] = useState(false)

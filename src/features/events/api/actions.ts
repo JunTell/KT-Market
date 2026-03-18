@@ -2,9 +2,11 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createSupabaseServerClient } from '../../../shared/lib/supabase/server'
-import { ActionState } from '../../../shared/types/action'
+
 import { requireRole } from '../../../shared/lib/auth/server-auth'
+import { createSupabaseServerClient } from '../../../shared/lib/supabase/server'
+
+import type { ActionState } from '../../../shared/types/action'
 
 export async function upsertEventAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
     try {

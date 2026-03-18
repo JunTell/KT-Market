@@ -1,18 +1,22 @@
 'use client'
 
+import {
+    Home, Users, Settings,
+    ChevronDown, ChevronRight, X,
+    Handshake, Edit, Newspaper, FileText, ShoppingBag, FolderHeart
+} from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
+
+import { cn } from '../../../shared/lib/utils/cn'
 import { useAuthStore } from '../../../shared/stores/auth-store'
 import { useAdminUIStore } from '../stores/ui-store'
-import { Role } from '../../../shared/types/auth'
+
 import { RoleBadge } from './RoleBadge'
-import {
-    Home, Users, Settings,
-    ChevronDown, ChevronRight, LucideIcon, X,
-    Handshake, Edit, Newspaper, FileText, ShoppingBag, FolderHeart
-} from 'lucide-react'
-import { cn } from '../../../shared/lib/utils/cn'
+
+import type { Role } from '../../../shared/types/auth'
+import type { LucideIcon} from 'lucide-react';
 
 type MenuItem = {
     title: string

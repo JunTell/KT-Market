@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from '../../../shared/lib/supabase/server'
-import { EventRow } from '../../../shared/types/event'
+
+import type { EventRow } from '../../../shared/types/event'
 
 export async function getEvents(): Promise<EventRow[]> {
     const supabase = await createSupabaseServerClient()

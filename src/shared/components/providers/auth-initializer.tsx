@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+
 import { useAuthStore } from '../../stores/auth-store'
-import { AdminUser } from '../../types/auth'
+
+import type { AdminUser } from '../../types/auth'
 
 interface AuthInitializerProps {
     admin: AdminUser | null

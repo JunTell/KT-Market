@@ -1,7 +1,9 @@
 import Image from 'next/image'
 import Link from 'next/link'
+
 import { deleteEventAction } from '../api/actions'
-import { EventRow } from '../../../shared/types/event'
+
+import type { EventRow } from '../../../shared/types/event'
 
 interface EventListTableProps {
     events: EventRow[]
