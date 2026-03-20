@@ -75,6 +75,7 @@ export default function AuthStateListener() {
     return () => {
       subscription.unsubscribe();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, setUser, clearUser, router]);
 
   return null;

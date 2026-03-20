@@ -9,7 +9,7 @@ import type { NextRequest} from 'next/server';
  * 클라이언트에서 로그인 후 서버에 세션을 동기화하는 API
  * 클라이언트의 세션 토큰을 받아서 서버 쿠키에 설정
  */
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const supabase = await createSupabaseServerClient()
 

@@ -19,7 +19,6 @@ const initialState = {
 }
 
 export default function LoginForm() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') || '/'
 
