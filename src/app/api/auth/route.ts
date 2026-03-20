@@ -1,11 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: Request) {
-  // request.url에서 현재 API가 실행 중인 서버의 origin 
-  // (예: http://localhost:3000 또는 https://kt-market-puce.vercel.app)
-  const { searchParams, origin } = new URL(request.url);
-  const provider = searchParams.get("provider");
+export async function GET(request: NextRequest) {
+  // request.nextUrl을 통해 안전하게 쿼리 파라미터와 origin을 추출합니다.
+  const searchParams = request.nextUrl.searchParams;
+  const origin = request.nextUrl.origin;
+  const provider = searchParams.get("provider")?.toLowerCase(); // 혹시 모를 대소문자 문제 방지
 
   // 1. API를 처리하는 백엔드(Next.js) 도메인 
   // 동적으로 파악하므로 로컬과 Vercel 배포 모두 알아서 호환됩니다.
