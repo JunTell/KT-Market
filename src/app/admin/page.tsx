@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 
 import { VisitorChart, RevenueChart } from '@/src/features/admin/components/DashboardCharts';
 import StatCard from '@/src/features/admin/components/StatCard';
