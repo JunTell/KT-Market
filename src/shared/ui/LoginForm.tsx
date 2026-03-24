@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useActionState, useEffect, useState } from 'react'
 
 import { login } from '@/src/shared/actions/auth'

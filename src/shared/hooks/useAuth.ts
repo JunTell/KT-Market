@@ -14,14 +14,14 @@ interface Profile {
 }
 
 // 기존 AuthState 인터페이스 유지 (호환성)
-interface AuthState {
-  user: User | null
-  profile: Profile | null
-  session: any | null // 세션은 이제 스토어에서 직접 관리하지 않거나 필요시 추가
-  loading: boolean
-  isAuthenticated: boolean
-  isAdmin: boolean
-}
+// interface AuthState {
+//   user: User | null
+//   profile: Profile | null
+//   session: any | null // 세션은 이제 스토어에서 직접 관리하지 않거나 필요시 추가
+//   loading: boolean
+//   isAuthenticated: boolean
+//   isAdmin: boolean
+// }
 
 export function useAuth() {
   // 전역 스토어에서 데이터 구독
@@ -49,7 +49,7 @@ export function useAuth() {
   } as User : null
 
   const logout = useCallback(async () => {
-    console.log('[Logout] 로그아웃 시작')
+    // console.log('[Logout] 로그아웃 시작')
 
     try {
       // 1. 즉시 로컬 상태 초기화

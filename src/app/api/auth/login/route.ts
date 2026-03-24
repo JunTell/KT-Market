@@ -5,8 +5,8 @@ import { signIn } from "@/src/auth";
 import type { NextRequest} from "next/server";
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const provider = searchParams.get('provider');
+  const searchParams = request.nextUrl.searchParams;
+  const provider = searchParams.get('provider')?.toLowerCase();
 
   // 제공자 검증
   const allowedProviders = ['kakao', 'naver'];

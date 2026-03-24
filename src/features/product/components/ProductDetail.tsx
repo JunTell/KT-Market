@@ -19,12 +19,12 @@ export function ProductDetail({ product }: ProductDetailProps) {
 
   const handleAddToCart = () => {
     // TODO: 장바구니에 추가하는 로직 구현
-    console.log('장바구니에 추가:', product.id, quantity)
+    // console.log('장바구니에 추가:', product.id, quantity)
   }
 
   const handleBuyNow = () => {
     // TODO: 바로 구매하는 로직 구현
-    console.log('바로 구매:', product.id, quantity)
+    // console.log('바로 구매:', product.id, quantity)
   }
 
   return (

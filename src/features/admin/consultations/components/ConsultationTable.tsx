@@ -39,7 +39,7 @@ export function ConsultationTable({ initialData, initialTotalPages }: Consultati
         try {
             await updateConsultationStatus(id, newStatus);
             setData(prev => prev.map(item => item.id === id ? { ...item, status: newStatus } : item));
-        } catch (error) {
+        } catch {
             alert('상태 변경 실패');
         } finally {
             setUpdatingId(null);

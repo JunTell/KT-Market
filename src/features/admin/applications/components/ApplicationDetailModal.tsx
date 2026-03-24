@@ -34,7 +34,7 @@ export function ApplicationDetailModal({ application, isOpen, onClose, onMemoUpd
             await updateApplicationMemo(application.id, memo);
             onMemoUpdate(application.id, memo);
             alert('메모가 저장되었습니다.');
-        } catch (e) {
+        } catch {
             alert('저장 실패');
         } finally {
             setIsSaving(false);

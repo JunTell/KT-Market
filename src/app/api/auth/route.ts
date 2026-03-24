@@ -1,21 +1,20 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
-export async function GET(request: Request) {
-  // request.url에서 현재 API가 실행 중인 서버의 origin 
-  // (예: http://localhost:3000 또는 https://kt-market-puce.vercel.app)
-  const { searchParams, origin } = new URL(request.url);
-  const provider = searchParams.get("provider");
+import type { NextRequest } from "next/server";
 
-  // 1. API를 처리하는 백엔드(Next.js) 도메인 
-  // 동적으로 파악하므로 로컬과 Vercel 배포 모두 알아서 호환됩니다.
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const origin = request.nextUrl.origin;
+  const provider = searchParams.get("provider")?.toLowerCase();
+
   const apiServerUrl = origin;
 
-  // 2. 접속 중인 프론트엔드(Framer) 도메인
-  // 기존 `.env`에 있던 NEXT_PUBLIC_FRAMER_SITE_URL을 활용하고 기본값을 맞춰줍니다.
-  const frontendUrl = process.env.NEXT_PUBLIC_FRAMER_SITE_URL || "https://ktmarket.co.kr";
+  // 개발 환경(localhost)과 프로덕션(ktmarket.co.kr) 동적 분기
+  const frontendUrl = process.env.NODE_ENV === "development"
+    ? "http://localhost:3000"
+    : (process.env.NEXT_PUBLIC_FRAMER_SITE_URL || "https://ktmarket.co.kr");
 
-  // 카카오(Kakao) 로그인 - Supabase OAuth 연동 처리
   if (provider === "kakao") {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -30,8 +29,8 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "kakao",
       options: {
-        // 인증 성공 후 코드를 전달받을 콜백은 Next.js 서버(apiServerUrl) 쪽으로 설정
-        redirectTo: `${apiServerUrl}/api/auth/callback`,
+        // ✅ 수정된 부분: 토큰을 포함한 리다이렉트를 프론트엔드(Framer)로 직접 보냅니다.
+        redirectTo: frontendUrl,
       },
     });
 
@@ -40,18 +39,15 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${frontendUrl}/?error=kakao_auth_failed`);
     }
 
-    // 성공 시 제공된 카카오 서버 로그인 화면으로 리다이렉트
     return NextResponse.redirect(data.url);
   }
 
-  // 네이버(Naver) 로그인 - NextAuth 연동 처리
   if (provider === "naver") {
-    // NextAuth의 로그인 흐름은 Next.js 서버(apiServerUrl)에서 처리
-    // 로그인이 완료된 뒤 다시 Framer 웹사이트(frontendUrl)로 돌아가기 위해 callbackUrl 지정
+    // 네이버(NextAuth)의 경우 세션 쿠키를 사용한다면 기존 방식 유지, 
+    // 혹은 Framer 전역 상태와 맞추려면 별도의 콜백 페이지 처리가 필요할 수 있습니다.
     const nextAuthUrl = `${apiServerUrl}/api/auth/signin/naver?callbackUrl=${encodeURIComponent(frontendUrl)}`;
     return NextResponse.redirect(nextAuthUrl);
   }
 
-  // 잘못된 플랫폼 식별자가 넘어올 경우 안전하게 프론트엔드 홈으로 리다이렉트
   return NextResponse.redirect(`${frontendUrl}/?error=invalid_provider_request`);
 }

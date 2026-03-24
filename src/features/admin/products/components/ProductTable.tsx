@@ -96,7 +96,7 @@ export function ProductTable({ initialData, initialTotalPages }: ProductTablePro
                                             fill
                                             sizes="40px"
                                             className="object-cover"
-                                            onError={(e) => console.error(`이미지 로드 실패: ${device.thumbnail}`)}
+                                            onError={() => console.error(`이미지 로드 실패: ${device.thumbnail}`)}
                                         />
                                     </div>
                                     <span className="font-medium text-gray-900">{device.pet_name || device.model}</span>
