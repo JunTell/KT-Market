@@ -43,10 +43,23 @@ export async function GET(request: NextRequest) {
   }
 
   if (provider === "naver") {
-    // 네이버(NextAuth)의 경우 세션 쿠키를 사용한다면 기존 방식 유지, 
-    // 혹은 Framer 전역 상태와 맞추려면 별도의 콜백 페이지 처리가 필요할 수 있습니다.
-    const nextAuthUrl = `${apiServerUrl}/api/auth/signin/naver?callbackUrl=${encodeURIComponent(frontendUrl)}`;
-    return NextResponse.redirect(nextAuthUrl);
+    const clientId = process.env.AUTH_NAVER_ID;
+    
+    // 현재 요청이 들어온 도메인(origin)을 네이버의 Callback URI로 설정합니다.
+    const redirectUri = `${request.nextUrl.origin}/api/auth/callback/naver`;
+
+    if (!clientId) {
+      console.error("네이버 클라이언트 ID(AUTH_NAVER_ID)가 설정되지 않았습니다.");
+      return NextResponse.redirect(`${frontendUrl}/?error=config_missing`);
+    }
+
+    // 네이버 인증 완료 후 돌아갈 목적지 프론트엔드 도메인을 state에 담아 인코딩합니다.
+    const state = encodeURIComponent(frontendUrl);
+
+    // 네이버 사용자 인가 URL 생성
+    const naverAuthUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
+
+    return NextResponse.redirect(naverAuthUrl);
   }
 
   return NextResponse.redirect(`${frontendUrl}/?error=invalid_provider_request`);
