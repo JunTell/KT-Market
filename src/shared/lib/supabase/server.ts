@@ -24,7 +24,7 @@ export async function createSupabaseServerClient() {
         set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options })
-          } catch (error) {
+          } catch {
             // Server Component에서는 cookies().set()이 작동하지 않을 수 있음
             // Route Handler나 Server Action에서만 사용 가능
           }
@@ -32,7 +32,7 @@ export async function createSupabaseServerClient() {
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: '', ...options })
-          } catch (error) {
+          } catch {
             // Server Component에서는 cookies().set()이 작동하지 않을 수 있음
           }
         },

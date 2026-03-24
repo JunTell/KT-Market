@@ -26,7 +26,7 @@ export function PostTable({ initialData, initialTotalPages }: PostTableProps) {
         try {
             await deletePost(id);
             setData(prev => prev.filter(p => p.id !== id));
-        } catch (error) {
+        } catch {
             alert('삭제 실패');
         }
     };
@@ -35,7 +35,7 @@ export function PostTable({ initialData, initialTotalPages }: PostTableProps) {
         try {
             await updatePost(id, { is_published: !current });
             setData(prev => prev.map(p => p.id === id ? { ...p, is_published: !current } : p));
-        } catch (error) {
+        } catch {
             alert('상태 변경 실패');
         }
     };

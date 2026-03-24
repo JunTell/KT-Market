@@ -29,7 +29,7 @@ export function ReviewTable({ initialData, initialTotalPages }: ReviewTableProps
             const newHidden = !currentHidden;
             await toggleReviewVisibility(id, newHidden);
             setData(prev => prev.map(item => item.id === id ? { ...item, is_hidden: newHidden } : item));
-        } catch (error) {
+        } catch {
             alert('상태 변경 실패');
         } finally {
             setUpdatingId(null);

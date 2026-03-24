@@ -22,7 +22,6 @@ export function ApplicationTable({ initialData, initialTotalPages }: Application
     const searchParams = useSearchParams();
 
     const [data, setData] = useState<Application[]>(initialData);
-    const [loading, setLoading] = useState(false);
     const [updatingId, setUpdatingId] = useState<string | null>(null);
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,7 +46,7 @@ export function ApplicationTable({ initialData, initialTotalPages }: Application
             await updateApplicationStatus(id, newStatus);
             // Optimistic update
             setData(prev => prev.map(item => item.id === id ? { ...item, status: newStatus } : item));
-        } catch (error) {
+        } catch {
             alert('상태 변경 실패');
         } finally {
             setUpdatingId(null);

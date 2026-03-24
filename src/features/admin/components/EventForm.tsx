@@ -1,7 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { useState, useActionState, useEffect } from 'react'
+import { useState, useActionState } from 'react'
 
 import { Button } from '../../../shared/ui/Button'
 import { upsertEventAction as upsertEvent } from '../../events/api/actions'
@@ -11,7 +10,6 @@ import TextEditor from './TextEditor'
 import type { EventRow as EventData } from '../../../shared/types/event'
 
 export default function EventForm({ initialData }: { initialData?: EventData }) {
-  const router = useRouter()
   const [content, setContent] = useState(initialData?.content || '');
   const [state, formAction, isPending] = useActionState(upsertEvent, { success: true })
 

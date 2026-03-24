@@ -28,7 +28,7 @@ export function ConsultationDetailModal({ consultation, isOpen, onClose, onMemoU
             await updateConsultationMemo(consultation.id, memo);
             onMemoUpdate(consultation.id, memo);
             alert('메모가 저장되었습니다.');
-        } catch (e) {
+        } catch {
             alert('저장 실패');
         } finally {
             setIsSaving(false);

@@ -169,7 +169,7 @@ export async function signInWithEmail(
     setRememberMe(rememberMe)
 
     return { success: true, error: null, data }
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '로그인 중 오류가 발생했습니다.',
@@ -228,7 +228,7 @@ export async function getCurrentUserProfile() {
     }
 
     return { success: true, error: null, data: { user, profile } }
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '프로필을 가져오는 중 오류가 발생했습니다.',

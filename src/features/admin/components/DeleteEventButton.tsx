@@ -15,7 +15,7 @@ export default function DeleteEventButton({ id }: { id: string }) {
     try {
       await deleteEvent(id)
       alert('삭제되었습니다.')
-    } catch (e) {
+    } catch {
       alert('삭제 실패')
     } finally {
       setIsDeleting(false)
