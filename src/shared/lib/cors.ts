@@ -20,13 +20,16 @@ function getAllowedOrigins(): string[] {
 
 export function getCorsHeaders(requestOrigin: string | null): Record<string, string> {
   const allowed = getAllowedOrigins()
-  const origin =
-    requestOrigin && allowed.includes(requestOrigin)
-      ? requestOrigin
-      : allowed[0]
+  const isAllowed = requestOrigin && allowed.includes(requestOrigin)
+
+  // 허용되지 않은 origin은 CORS 헤더를 내보내지 않음
+  // (브라우저가 차단하더라도 허용 도메인 정보를 응답에 노출하지 않음)
+  if (!isAllowed) {
+    return { 'Vary': 'Origin' }
+  }
 
   return {
-    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Origin': requestOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Credentials': 'true',
