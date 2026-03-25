@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 
-import { corsHeaders } from '@/src/shared/lib/cors'
+import { getCorsHeaders } from '@/src/shared/lib/cors'
 import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
+
+import type { NextRequest } from 'next/server'
 
 /**
  * 010-1234-5678 → 010-****-5678
@@ -18,7 +20,9 @@ function maskPhone(phone: string | null | undefined): string | null {
  * 로그인:    { isLoggedIn: true,  user: { id, full_name, avatar_url, phone(마스킹), kakao_id } }
  * 비로그인:  { isLoggedIn: false }
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const cors = getCorsHeaders(request.headers.get('origin'))
+
   try {
     const supabase = await createSupabaseServerClient()
 
@@ -27,14 +31,19 @@ export async function GET() {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      return NextResponse.json({ isLoggedIn: false }, { headers: corsHeaders() })
+      return NextResponse.json({ isLoggedIn: false }, { headers: cors })
     }
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('full_name, avatar_url, phone, kakao_id')
+      .select('full_name, avatar_url, phone, kakao_id, is_active')
       .eq('id', user.id)
       .single()
+
+    // 탈퇴 처리된 회원은 비로그인으로 응답
+    if (profile?.is_active === false) {
+      return NextResponse.json({ isLoggedIn: false }, { headers: cors })
+    }
 
     return NextResponse.json(
       {
@@ -47,17 +56,20 @@ export async function GET() {
           kakao_id: profile?.kakao_id ?? null,
         },
       },
-      { headers: corsHeaders() }
+      { headers: cors }
     )
   } catch (error) {
     console.error('GET /api/auth/me 오류:', error)
     return NextResponse.json(
       { error: '서버 오류가 발생했습니다.' },
-      { status: 500, headers: corsHeaders() }
+      { status: 500, headers: cors }
     )
   }
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, { status: 204, headers: corsHeaders() })
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: getCorsHeaders(request.headers.get('origin')),
+  })
 }

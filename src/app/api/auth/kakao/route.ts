@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { corsHeaders } from '@/src/shared/lib/cors'
+import { getCorsHeaders } from '@/src/shared/lib/cors'
 import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
 
 import type { NextRequest } from 'next/server'
@@ -34,6 +34,9 @@ export async function GET(request: NextRequest) {
   return NextResponse.redirect(data.url)
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, { status: 204, headers: corsHeaders() })
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: getCorsHeaders(request.headers.get('origin')),
+  })
 }

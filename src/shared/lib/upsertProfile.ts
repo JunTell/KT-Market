@@ -26,7 +26,9 @@ function formatBirthday(
 export async function upsertProfile(supabase: SupabaseClient, user: User) {
   const meta = user.user_metadata ?? {}
   const kakaoId =
-    user.identities?.[0]?.identity_data?.provider_id ?? null
+    user.identities
+      ?.find((i) => i.provider === 'kakao')
+      ?.identity_data?.provider_id ?? null
 
   const { error } = await supabase.from('profiles').upsert(
     {

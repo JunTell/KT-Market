@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-import { corsHeaders } from '@/src/shared/lib/cors'
+import { getCorsHeaders } from '@/src/shared/lib/cors'
 import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
 
 /**
@@ -15,7 +16,8 @@ import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
  * 4. Supabase auth.users 완전 삭제 (service_role key 사용)
  * 5. { success: true } 반환 → Framer에서 메인 페이지로 리다이렉트
  */
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
+  const cors = getCorsHeaders(request.headers.get('origin'))
   const supabase = await createSupabaseServerClient()
 
   // 1. 세션 검증
@@ -27,7 +29,7 @@ export async function DELETE() {
   if (authError || !user) {
     return NextResponse.json(
       { error: '인증이 필요합니다.' },
-      { status: 401, headers: corsHeaders() }
+      { status: 401, headers: cors }
     )
   }
 
@@ -37,7 +39,7 @@ export async function DELETE() {
   if (!serviceKey) {
     return NextResponse.json(
       { error: '서버 설정 오류' },
-      { status: 500, headers: corsHeaders() }
+      { status: 500, headers: cors }
     )
   }
 
@@ -63,7 +65,7 @@ export async function DELETE() {
     console.error('프로필 soft delete 실패:', updateError)
     return NextResponse.json(
       { error: '탈퇴 처리 중 오류가 발생했습니다.' },
-      { status: 500, headers: corsHeaders() }
+      { status: 500, headers: cors }
     )
   }
 
@@ -98,13 +100,16 @@ export async function DELETE() {
     console.error('Supabase 유저 삭제 실패:', deleteError)
     return NextResponse.json(
       { error: '회원탈퇴 처리 중 오류가 발생했습니다.' },
-      { status: 500, headers: corsHeaders() }
+      { status: 500, headers: cors }
     )
   }
 
-  return NextResponse.json({ success: true }, { headers: corsHeaders() })
+  return NextResponse.json({ success: true }, { headers: cors })
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, { status: 204, headers: corsHeaders() })
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: getCorsHeaders(request.headers.get('origin')),
+  })
 }

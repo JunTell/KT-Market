@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 
-import { upsertProfile } from '@/src/shared/lib/upsertProfile'
+import { getCorsHeaders } from '@/src/shared/lib/cors'
 import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
+import { upsertProfile } from '@/src/shared/lib/upsertProfile'
 
 import type { NextRequest } from 'next/server'
 
@@ -47,4 +48,11 @@ export async function GET(request: NextRequest) {
     console.error('콜백 처리 오류:', err)
     return NextResponse.redirect(`${FRONTEND_URL}/?login_error=true`)
   }
+}
+
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: getCorsHeaders(request.headers.get('origin')),
+  })
 }
