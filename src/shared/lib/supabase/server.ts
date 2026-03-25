@@ -3,6 +3,21 @@ import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 
 /**
+ * 크로스 도메인(Framer ↔ Next.js API) 쿠키 전송을 위한 공통 옵션
+ * - 개발: sameSite=lax, secure=false (localhost http 지원)
+ * - 프로덕션: sameSite=none, secure=true (크로스 도메인 필수)
+ */
+const isProduction = process.env.NODE_ENV === 'production'
+
+function crossDomainCookieOptions(): Partial<CookieOptions> {
+  return {
+    sameSite: isProduction ? 'none' : 'lax',
+    secure: isProduction,
+    ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {}),
+  }
+}
+
+/**
  * Server Component 및 Route Handler용 Supabase 클라이언트
  *
  * 쿠키 기반 세션 관리:
@@ -23,7 +38,7 @@ export async function createSupabaseServerClient() {
         },
         set(name: string, value: string, options: CookieOptions) {
           try {
-            cookieStore.set({ name, value, ...options })
+            cookieStore.set({ name, value, ...options, ...crossDomainCookieOptions() })
           } catch {
             // Server Component에서는 cookies().set()이 작동하지 않을 수 있음
             // Route Handler나 Server Action에서만 사용 가능
@@ -31,7 +46,7 @@ export async function createSupabaseServerClient() {
         },
         remove(name: string, options: CookieOptions) {
           try {
-            cookieStore.set({ name, value: '', ...options })
+            cookieStore.set({ name, value: '', ...options, ...crossDomainCookieOptions() })
           } catch {
             // Server Component에서는 cookies().set()이 작동하지 않을 수 있음
           }
@@ -46,11 +61,9 @@ export async function createSupabaseServerClient() {
  *
  * Middleware에서는 NextRequest/NextResponse의 쿠키 API를 사용:
  * - req.cookies.get() - 쿠키 읽기
- * - res.cookies.set() - 쿠키 쓰기
- * - HTTP-Only + Secure 플래그로 안전한 세션 관리
+ * - res.cookies.set() - 쿠키 쓰기 (sameSite=none + secure 적용)
  */
 export function createMiddlewareClient(req: NextRequest) {
-  // Response 객체를 미리 생성하여 쿠키 설정에 사용
   const res = NextResponse.next()
 
   const supabase = createServerClient(
@@ -62,30 +75,14 @@ export function createMiddlewareClient(req: NextRequest) {
           return req.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          // Request와 Response 양쪽에 쿠키 설정
-          req.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-          res.cookies.set({
-            name,
-            value,
-            ...options,
-          })
+          const merged = { name, value, ...options, ...crossDomainCookieOptions() }
+          req.cookies.set(merged)
+          res.cookies.set(merged)
         },
         remove(name: string, options: CookieOptions) {
-          // Request와 Response 양쪽에서 쿠키 제거
-          req.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
-          res.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
+          const merged = { name, value: '', ...options, ...crossDomainCookieOptions() }
+          req.cookies.set(merged)
+          res.cookies.set(merged)
         },
       },
     }

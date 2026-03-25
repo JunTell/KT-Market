@@ -12,6 +12,15 @@ const nextConfig: NextConfig = {
         hostname: '**.supabase.co',
       },
       {
+        // 카카오 프로필 이미지 CDN
+        protocol: 'https',
+        hostname: 'k.kakaocdn.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img1.kakaocdn.net',
+      },
+      {
         protocol: 'https',
         hostname: 'ktmarket.co.kr',
       },
@@ -26,6 +35,10 @@ const nextConfig: NextConfig = {
   // 성능 최적화
   compress: true,
   poweredByHeader: false,
+  // Turbopack 루트 명시 (workspace root 오탐 방지)
+  turbopack: {
+    root: __dirname,
+  },
   // 실험적 기능
   experimental: {
     optimizePackageImports: ['@supabase/supabase-js', 'zustand'],
