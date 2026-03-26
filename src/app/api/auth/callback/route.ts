@@ -35,9 +35,35 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${FRONTEND_URL}/?login_error=true`)
     }
 
+    // Supabase GoTrue는 phone_number/birthday/birthyear를 user_metadata에 저장하지 않으므로
+    // provider_token(카카오 액세스 토큰)으로 카카오 API를 직접 호출해 추가 정보를 가져옴
+    let kakaoExtra: { phone?: string; birthday?: string; birthyear?: string } =
+      {}
+    const providerToken = data.session?.provider_token
+    if (providerToken) {
+      try {
+        const kakaoRes = await fetch('https://kapi.kakao.com/v2/user/me', {
+          headers: { Authorization: `Bearer ${providerToken}` },
+        })
+        if (kakaoRes.ok) {
+          const kakaoData = await kakaoRes.json()
+          const account = kakaoData.kakao_account ?? {}
+          kakaoExtra = {
+            phone: account.phone_number ?? undefined,
+            birthday: account.birthday ?? undefined,
+            birthyear: account.birthyear ?? undefined,
+          }
+        } else {
+          console.error('카카오 사용자 정보 조회 실패:', kakaoRes.status)
+        }
+      } catch (e) {
+        console.error('카카오 추가 정보 조회 오류:', e)
+      }
+    }
+
     // profiles 테이블 upsert (신규 가입 + 기존 회원 정보 갱신)
     try {
-      await upsertProfile(supabase, data.user)
+      await upsertProfile(supabase, data.user, kakaoExtra)
     } catch (profileError) {
       // 프로필 upsert 실패는 로그인 자체를 막지 않음
       console.error('프로필 upsert 실패 (로그인은 계속):', profileError)

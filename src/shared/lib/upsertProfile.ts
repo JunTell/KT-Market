@@ -19,11 +19,24 @@ function formatBirthday(
   return birthyear + birthday
 }
 
+interface KakaoExtra {
+  phone?: string | null
+  birthday?: string | null
+  birthyear?: string | null
+}
+
 /**
  * 카카오 로그인 완료 후 profiles 테이블에 upsert
  * kakao_id 충돌 시 기존 레코드를 최신 정보로 갱신
+ *
+ * extra: callback에서 provider_token으로 직접 조회한 카카오 추가 정보
+ * (Supabase GoTrue는 phone_number/birthday/birthyear를 user_metadata에 저장하지 않음)
  */
-export async function upsertProfile(supabase: SupabaseClient, user: User) {
+export async function upsertProfile(
+  supabase: SupabaseClient,
+  user: User,
+  extra: KakaoExtra = {}
+) {
   const meta = user.user_metadata ?? {}
   const kakaoId =
     user.identities
@@ -37,8 +50,11 @@ export async function upsertProfile(supabase: SupabaseClient, user: User) {
       full_name: meta.name ?? meta.full_name ?? null,
       avatar_url: meta.avatar_url ?? null,
       email: user.email ?? null,
-      phone: formatPhone(meta.phone_number),
-      birthday: formatBirthday(meta.birthyear, meta.birthday),
+      phone: formatPhone(extra.phone ?? meta.phone_number),
+      birthday: formatBirthday(
+        extra.birthyear ?? meta.birthyear,
+        extra.birthday ?? meta.birthday
+      ),
       provider: 'kakao',
       last_login_at: new Date().toISOString(),
     },
