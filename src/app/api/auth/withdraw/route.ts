@@ -50,8 +50,25 @@ export async function DELETE(request: NextRequest) {
     .eq('id', user.id)
     .single()
 
-  // 3. profiles soft delete: 개인정보(PII) 익명화
-  const { error: updateError } = await supabase.from('profiles').update({
+  // 3. Supabase 유저 완전 삭제를 먼저 시도 (service_role key 필수)
+  // → 삭제 성공 후 PII 익명화 순서로 변경하여 inconsistent state 방지
+  const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
+
+  const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id)
+
+  if (deleteError) {
+    console.error('Supabase 유저 삭제 실패:', deleteError)
+    return NextResponse.json(
+      { error: '회원탈퇴 처리 중 오류가 발생했습니다.' },
+      { status: 500, headers: cors }
+    )
+  }
+
+  // 4. profiles soft delete: 개인정보(PII) 익명화
+  // auth.users 삭제 성공 후 진행 — 실패해도 계정은 이미 삭제됨
+  const { error: updateError } = await supabaseAdmin.from('profiles').update({
     is_active: false,
     deleted_at: new Date().toISOString(),
     full_name: '탈퇴한 회원',
@@ -62,14 +79,11 @@ export async function DELETE(request: NextRequest) {
   }).eq('id', user.id)
 
   if (updateError) {
-    console.error('프로필 soft delete 실패:', updateError)
-    return NextResponse.json(
-      { error: '탈퇴 처리 중 오류가 발생했습니다.' },
-      { status: 500, headers: cors }
-    )
+    // 계정 삭제는 성공했으므로 에러 반환하지 않고 로그만 기록
+    console.error('프로필 soft delete 실패 (계정 삭제는 완료됨):', updateError)
   }
 
-  // 4. 카카오 연동 해제 (선택 — KAKAO_ADMIN_KEY 설정 시)
+  // 5. 카카오 연동 해제 (선택 — KAKAO_ADMIN_KEY 설정 시)
   const kakaoAdminKey = process.env.KAKAO_ADMIN_KEY
   if (kakaoAdminKey && profile?.kakao_id) {
     try {
@@ -87,21 +101,6 @@ export async function DELETE(request: NextRequest) {
     } catch (err) {
       console.error('카카오 연동 해제 요청 오류 (계속 진행):', err)
     }
-  }
-
-  // 5. Supabase 유저 완전 삭제 (service_role key 필수)
-  const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  })
-
-  const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id)
-
-  if (deleteError) {
-    console.error('Supabase 유저 삭제 실패:', deleteError)
-    return NextResponse.json(
-      { error: '회원탈퇴 처리 중 오류가 발생했습니다.' },
-      { status: 500, headers: cors }
-    )
   }
 
   return NextResponse.json({ success: true }, { headers: cors })
