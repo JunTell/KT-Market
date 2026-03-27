@@ -123,45 +123,6 @@ function SkeletonMenuItem() {
     )
 }
 
-// ─── Skeleton: 최근 본 기기 섹션 ────────────────────────
-function SkeletonViewedSection() {
-    return (
-        <div>
-            <SkeletonBox
-                width="80px"
-                height="12px"
-                style={{ marginBottom: "10px" }}
-            />
-            <div style={{ display: "flex", gap: "8px" }}>
-                {[0, 1, 2].map((i) => (
-                    <div
-                        key={i}
-                        style={{
-                            flexShrink: 0,
-                            width: "100px",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            gap: "6px",
-                            padding: "10px 8px",
-                            borderRadius: T.radius.md,
-                            border: `1px solid ${T.colors.border}`,
-                        }}
-                    >
-                        <SkeletonBox
-                            width="56px"
-                            height="56px"
-                            radius={T.radius.sm}
-                        />
-                        <SkeletonBox width="70px" height="11px" />
-                        <SkeletonBox width="50px" height="11px" />
-                    </div>
-                ))}
-            </div>
-        </div>
-    )
-}
-
 // ─── Skeleton: 전체 메뉴 섹션 (초기 로딩용) ────────────
 function SkeletonMenuSection() {
     return (
@@ -1074,51 +1035,38 @@ function MyPage({
                         </AnimatePresence>
 
                         {/* 최근 본 기기 섹션 */}
-                        {isLoggedIn && (
+                        {isLoggedIn && !summaryLoading && displayViewed.length > 0 && (
                             <AnimatePresence mode="wait">
-                                {summaryLoading ? (
-                                    <motion.div
-                                        key="skeleton-viewed"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{
-                                            opacity: 0,
+                                <motion.div
+                                    key="viewed"
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{
+                                        opacity: 0,
+                                    }}
+                                >
+                                    <SectionLabel text="최근 본 기기" />
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            gap: "8px",
+                                            overflowX: "auto",
+                                            paddingBottom: "4px",
+                                            scrollbarWidth: "none",
                                         }}
                                     >
-                                        <SkeletonViewedSection />
-                                    </motion.div>
-                                ) : displayViewed.length > 0 ? (
-                                    <motion.div
-                                        key="viewed"
-                                        initial={{ opacity: 0, y: 8 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{
-                                            opacity: 0,
-                                        }}
-                                    >
-                                        <SectionLabel text="최근 본 기기" />
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                gap: "8px",
-                                                overflowX: "auto",
-                                                paddingBottom: "4px",
-                                                scrollbarWidth: "none",
-                                            }}
-                                        >
-                                            {displayViewed.map((item) => (
-                                                <ViewedDeviceCard
-                                                    key={item.device_model}
-                                                    item={item}
-                                                    onClick={() => {
-                                                        if (!isCanvas)
-                                                            window.location.href = `${deviceBaseUrl}/${item.device_model}`
-                                                    }}
-                                                />
-                                            ))}
-                                        </div>
-                                    </motion.div>
-                                ) : null}
+                                        {displayViewed.map((item) => (
+                                            <ViewedDeviceCard
+                                                key={item.device_model}
+                                                item={item}
+                                                onClick={() => {
+                                                    if (!isCanvas)
+                                                        window.location.href = `${deviceBaseUrl}/${item.device_model}`
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </motion.div>
                             </AnimatePresence>
                         )}
 
