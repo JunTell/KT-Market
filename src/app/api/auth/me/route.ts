@@ -6,18 +6,10 @@ import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
 import type { NextRequest } from 'next/server'
 
 /**
- * 010-1234-5678 → 010-****-5678
- */
-function maskPhone(phone: string | null | undefined): string | null {
-  if (!phone) return null
-  return phone.replace(/^(\d{3})\d{4}(\d{4})$/, '$1-****-$2')
-}
-
-/**
  * GET /api/auth/me
  * Framer에서 주기적으로 호출하여 로그인 상태 및 유저 정보 확인
  *
- * 로그인:    { isLoggedIn: true,  user: { id, full_name, avatar_url, phone(마스킹), kakao_id } }
+ * 로그인:    { isLoggedIn: true,  user: { id, full_name, avatar_url, phone, kakao_id } }
  * 비로그인:  { isLoggedIn: false }
  */
 export async function GET(request: NextRequest) {
@@ -52,7 +44,7 @@ export async function GET(request: NextRequest) {
           id: user.id,
           full_name: profile?.full_name ?? null,
           avatar_url: profile?.avatar_url ?? null,
-          phone: maskPhone(profile?.phone),
+          phone: profile?.phone ?? null,
           kakao_id: profile?.kakao_id ?? null,
         },
       },

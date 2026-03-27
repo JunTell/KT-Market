@@ -1,6 +1,6 @@
+import { addPropertyControls, ControlType } from "framer"
 import * as React from "react"
 import { useState, useEffect } from "react"
-import { addPropertyControls, ControlType } from "framer"
 import { checkAuth, userState } from "https://framer.com/m/AuthStore-jiikDX.js@QRzzhL7x0LkccW6oL0Cw"
 
 // --- Skeleton Components ---
@@ -178,21 +178,7 @@ const CheckCircleIcon = () => (
     </svg>
 )
 
-const HeadsetIcon = () => (
-    <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#333D4B"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-    >
-        <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
-        <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
-    </svg>
-)
+
 
 const UserIcon = () => (
     <svg
@@ -354,6 +340,7 @@ export default function ApplicationConfirmPage(props: Props) {
             const telecomStr =
                 registerType === "번호이동" ? "타사 -> KT" : "기기변경 (KT)"
 
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setData({
                 petName: parsedData.device?.pet_name || "기기명 없음",
                 capacity: parsedData.device?.capacity || "",
@@ -413,7 +400,7 @@ export default function ApplicationConfirmPage(props: Props) {
                 setKakaoStatus("NONE")
                 setSyncMessage(result.error || "확인 중 오류가 발생했습니다.")
             }
-        } catch (err) {
+        } catch (_err) {
             setKakaoStatus("NONE")
             setSyncMessage("네트워크 오류가 발생했습니다.")
         }

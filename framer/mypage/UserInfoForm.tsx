@@ -1,9 +1,9 @@
+import { createClient } from "@supabase/supabase-js"
+import { addPropertyControls, ControlType } from "framer"
+import { checkAuth, userState } from "https://framer.com/m/AuthStore-jiikDX.js@QRzzhL7x0LkccW6oL0Cw"
+import LoadingIndicator from "https://framer.com/m/LoadingIndicator-9X6k.js"
 import * as React from "react"
 import { useState, useEffect, useRef, useCallback } from "react"
-import { addPropertyControls, ControlType } from "framer"
-import { createClient } from "@supabase/supabase-js"
-import LoadingIndicator from "https://framer.com/m/LoadingIndicator-9X6k.js"
-import { checkAuth, userState } from "https://framer.com/m/AuthStore-jiikDX.js@QRzzhL7x0LkccW6oL0Cw"
 
 // --- Supabase 설정 ---
 const supabaseUrl = "https://crooiozzbjwdaghqddnu.supabase.co"
@@ -104,7 +104,7 @@ export default function UserInfoForm(props: Props) {
     const [isInitialLoading, setIsInitialLoading] = useState(true)
 
     const [orderData, setOrderData] = useState<OrderData | null>(null)
-    const [fullSheetData, setFullSheetData] = useState<any>(null)
+    const [_fullSheetData, setFullSheetData] = useState<any>(null)
 
     const [formData, setFormData] = useState<UserInputData>({
         userName: "",
@@ -932,7 +932,6 @@ const InputGroup = ({
     onChange,
     onBlur,
     placeholder,
-    maxLength,
     error,
 }: any) => (
     <div style={{ marginBottom: "20px" }}>
