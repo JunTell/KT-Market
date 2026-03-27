@@ -1,11 +1,11 @@
-import * as React from "react"
-import { useEffect, useState } from "react"
-import { addPropertyControls, ControlType, RenderTarget } from "framer"
+import { addPropertyControls, RenderTarget } from "framer"
 import { motion, AnimatePresence } from "framer-motion"
 import {
     checkAuth,
     userState,
 } from "https://framer.com/m/AuthStore-jiikDX.js@QRzzhL7x0LkccW6oL0Cw"
+import * as React from "react"
+import { useEffect, useState } from "react"
 
 const API_BASE = "https://kt-market-puce.vercel.app"
 
@@ -87,7 +87,7 @@ const DUMMY: any[] = [
     { id: 2, created_at: "2025-02-20T09:30:00+09:00", description: "아이폰 16 Pro 재고 문의입니다.", mobile_carrier: "SKT", is_processed: true },
 ]
 
-function ConsultationHistory({ onBack }: any) {
+function ConsultationHistory() {
     const isCanvas = RenderTarget.current() === RenderTarget.canvas
     const [loading, setLoading] = useState(true)
     const [items, setItems] = useState<any[]>([])
@@ -105,7 +105,7 @@ function ConsultationHistory({ onBack }: any) {
             } catch { setItems([]) }
             finally { setLoading(false) }
         })
-    }, [])
+    }, [isCanvas])
 
     const displayItems = isCanvas ? DUMMY : items
     const displayLoading = isCanvas ? false : loading
@@ -116,11 +116,6 @@ function ConsultationHistory({ onBack }: any) {
             <style>{SKELETON_CSS}</style>
 
             <div style={{ display: "flex", alignItems: "center", padding: "16px 20px", borderBottom: `1px solid ${T.colors.border}`, position: "sticky", top: 0, backgroundColor: T.colors.bg, zIndex: 10 }}>
-                <motion.button whileTap={{ scale: 0.9 }} onClick={() => onBack?.()} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", marginRight: "8px", display: "flex", alignItems: "center" }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M15 18l-6-6 6-6" stroke={T.colors.text} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                </motion.button>
                 <h1 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: T.colors.text, fontFamily: T.font }}>상담 접수 내역</h1>
             </div>
 
@@ -166,6 +161,4 @@ function ConsultationHistory({ onBack }: any) {
 }
 
 export default ConsultationHistory
-addPropertyControls(ConsultationHistory, {
-    onBack: { type: ControlType.EventHandler },
-})
+addPropertyControls(ConsultationHistory, {})

@@ -12,7 +12,7 @@ import type { NextRequest } from 'next/server'
  * {
  *   wishlistCount:  number  // user_wishlists (profile_id 기준)
  *   viewedCount:   number  // user_viewed_devices (profile_id 기준)
- *   orderCount:    number  // online_order + iphone17_order (phone 기준)
+ *   orderCount:    number  // online_order + iphone17_order + call_order + s26_orders (phone 기준)
  *   consultCount:  number  // customer_consultations (phone 기준)
  *   preorderCount: number  // preorder_s26_orders + preorder-galaxy26 + preorder_iphone17e (phone 기준)
  *   restockCount:  number  // restock_notification (phone 기준)
@@ -60,6 +60,8 @@ export async function GET(request: NextRequest) {
     const [
       onlineOrderRes,
       iphone17OrderRes,
+      callOrderRes,
+      s26OrderRes,
       consultRes,
       preorderS26Res,
       preorderGalaxy26Res,
@@ -74,6 +76,14 @@ export async function GET(request: NextRequest) {
             .eq('phone', phone),
           supabase
             .from('iphone17_order')
+            .select('*', { count: 'exact', head: true })
+            .eq('phone', phone),
+          supabase
+            .from('call_order')
+            .select('*', { count: 'exact', head: true })
+            .eq('phone', phone),
+          supabase
+            .from('s26_orders')
             .select('*', { count: 'exact', head: true })
             .eq('phone', phone),
           supabase
@@ -101,13 +111,17 @@ export async function GET(request: NextRequest) {
             .select('*', { count: 'exact', head: true })
             .eq('referrer_phone', phone),
         ])
-      : Array(8).fill({ count: 0 })
+      : Array(10).fill({ count: 0 })
 
     return NextResponse.json(
       {
         wishlistCount: wishlistRes.count ?? 0,
         viewedCount: viewedRes.count ?? 0,
-        orderCount: (onlineOrderRes.count ?? 0) + (iphone17OrderRes.count ?? 0),
+        orderCount:
+          (onlineOrderRes.count ?? 0) +
+          (iphone17OrderRes.count ?? 0) +
+          (callOrderRes.count ?? 0) +
+          (s26OrderRes.count ?? 0),
         consultCount: consultRes.count ?? 0,
         preorderCount:
           (preorderS26Res.count ?? 0) +
