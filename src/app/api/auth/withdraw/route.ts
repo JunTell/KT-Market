@@ -1,9 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
 
 import { getCorsHeaders } from '@/src/shared/lib/cors'
 import { createSupabaseServerClient } from '@/src/shared/lib/supabase/server'
+
+import type { NextRequest } from 'next/server'
 
 /**
  * DELETE /api/auth/withdraw

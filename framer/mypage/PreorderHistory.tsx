@@ -1,11 +1,11 @@
-import * as React from "react"
-import { useEffect, useState } from "react"
-import { addPropertyControls, ControlType, RenderTarget } from "framer"
+import { addPropertyControls, RenderTarget } from "framer"
 import { motion, AnimatePresence } from "framer-motion"
 import {
     checkAuth,
     userState,
 } from "https://framer.com/m/AuthStore-jiikDX.js@QRzzhL7x0LkccW6oL0Cw"
+import * as React from "react"
+import { useEffect, useState } from "react"
 
 const API_BASE = "https://kt-market-puce.vercel.app"
 
@@ -101,7 +101,7 @@ const DUMMY: any[] = [
     { id: "2", datetime: "2025-01-20T14:00:00+09:00", device: "iPhone 17e", model: "iPhone 17e", color: null, capacity: null, carrier: "SKT", is_processed: true, source: "iPhone 17e" },
 ]
 
-function PreorderHistory({ onBack }: any) {
+function PreorderHistory() {
     const isCanvas = RenderTarget.current() === RenderTarget.canvas
     const [loading, setLoading] = useState(true)
     const [items, setItems] = useState<any[]>([])
@@ -119,7 +119,7 @@ function PreorderHistory({ onBack }: any) {
             } catch { setItems([]) }
             finally { setLoading(false) }
         })
-    }, [])
+    }, [isCanvas])
 
     const displayItems = isCanvas ? DUMMY : items
     const displayLoading = isCanvas ? false : loading
@@ -130,11 +130,6 @@ function PreorderHistory({ onBack }: any) {
             <style>{SKELETON_CSS}</style>
 
             <div style={{ display: "flex", alignItems: "center", padding: "16px 20px", borderBottom: `1px solid ${T.colors.border}`, position: "sticky", top: 0, backgroundColor: T.colors.bg, zIndex: 10 }}>
-                <motion.button whileTap={{ scale: 0.9 }} onClick={() => onBack?.()} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", marginRight: "8px", display: "flex", alignItems: "center" }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M15 18l-6-6 6-6" stroke={T.colors.text} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                </motion.button>
                 <h1 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: T.colors.text, fontFamily: T.font }}>사전예약 내역</h1>
             </div>
 
@@ -180,6 +175,4 @@ function PreorderHistory({ onBack }: any) {
 }
 
 export default PreorderHistory
-addPropertyControls(PreorderHistory, {
-    onBack: { type: ControlType.EventHandler },
-})
+addPropertyControls(PreorderHistory, {})

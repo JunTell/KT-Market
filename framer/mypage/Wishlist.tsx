@@ -1,11 +1,11 @@
-import * as React from "react"
-import { useEffect, useState } from "react"
 import { addPropertyControls, ControlType, RenderTarget } from "framer"
 import { motion, AnimatePresence } from "framer-motion"
 import {
     checkAuth,
     userState,
 } from "https://framer.com/m/AuthStore-jiikDX.js@QRzzhL7x0LkccW6oL0Cw"
+import * as React from "react"
+import { useEffect, useState } from "react"
 
 const API_BASE = "https://kt-market-puce.vercel.app"
 
@@ -82,7 +82,7 @@ const DUMMY: any[] = [
     { id: "w3", device_model: "SM-F956N", pet_name: "갤럭시 Z 폴드6", thumbnail: null, price: 2119000, category_kr: "폴더블", created_at: "2025-03-10T09:00:00+09:00" },
 ]
 
-function Wishlist({ onBack, onDeviceClick, deviceBaseUrl = "https://ktmarket.co.kr/product" }: any) {
+function Wishlist({ onDeviceClick, deviceBaseUrl = "https://ktmarket.co.kr/product" }: any) {
     const isCanvas = RenderTarget.current() === RenderTarget.canvas
     const [loading, setLoading] = useState(true)
     const [items, setItems] = useState<any[]>([])
@@ -101,7 +101,7 @@ function Wishlist({ onBack, onDeviceClick, deviceBaseUrl = "https://ktmarket.co.
             } catch { setItems([]) }
             finally { setLoading(false) }
         })
-    }, [])
+    }, [isCanvas])
 
     const handleRemove = async (id: string) => {
         if (isCanvas) return
@@ -126,11 +126,6 @@ function Wishlist({ onBack, onDeviceClick, deviceBaseUrl = "https://ktmarket.co.
 
             {/* 헤더 */}
             <div style={{ display: "flex", alignItems: "center", padding: "16px 20px", borderBottom: `1px solid ${T.colors.border}`, position: "sticky", top: 0, backgroundColor: T.colors.bg, zIndex: 10 }}>
-                <motion.button whileTap={{ scale: 0.9 }} onClick={() => onBack?.()} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", marginRight: "8px", display: "flex", alignItems: "center" }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M15 18l-6-6 6-6" stroke={T.colors.text} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                </motion.button>
                 <h1 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: T.colors.text, fontFamily: T.font }}>찜한 상품</h1>
                 {displayItems.length > 0 && (
                     <span style={{ marginLeft: "6px", fontSize: "15px", fontWeight: 700, color: T.colors.primary }}>{displayItems.length}</span>
@@ -222,7 +217,6 @@ function Wishlist({ onBack, onDeviceClick, deviceBaseUrl = "https://ktmarket.co.
 
 export default Wishlist
 addPropertyControls(Wishlist, {
-    onBack: { type: ControlType.EventHandler },
     onDeviceClick: { type: ControlType.EventHandler },
     deviceBaseUrl: {
         type: ControlType.String,

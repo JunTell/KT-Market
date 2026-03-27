@@ -36,23 +36,39 @@ export async function GET(request: NextRequest) {
 
     const admin = createSupabaseAdminClient()
 
-    const [onlineRes, iphone17Res] = await Promise.all([
+    const [onlineRes, iphone17Res, callRes, s26Res] = await Promise.all([
       admin
         .from('online_order')
-        .select('no, datetime, device, model, petName, capacity, color, plan, register, discount, installment, benefit, is_processed, carrier')
+        .select('no, datetime, device, model, "petName", capacity, color, plan, register, discount, installment, benefit, is_processed, carrier')
         .eq('phone', phone)
         .order('datetime', { ascending: false }),
       admin
         .from('iphone17_order')
-        .select('no, datetime, device, model, petName, capacity, color, plan, register, discount, installment, benefit, is_processed, carrier')
+        .select('no, datetime, model, pet_name, capacity, color, plan, register, discount, installment, benefit, is_processed, carrier')
+        .eq('phone', phone)
+        .order('datetime', { ascending: false }),
+      admin
+        .from('call_order')
+        .select('no, datetime, device, model, "petName", capacity, color, plan, register, discount, installment, benefit, is_processed, carrier')
+        .eq('phone', phone)
+        .order('datetime', { ascending: false }),
+      admin
+        .from('s26_orders')
+        .select('no, datetime, device, model, "petName", capacity, color, plan, register, discount, installment, benefit, is_processed, carrier')
         .eq('phone', phone)
         .order('datetime', { ascending: false }),
     ])
 
     const online = (onlineRes.data ?? []).map((r) => ({ ...r, source: 'online' as const }))
-    const iphone17 = (iphone17Res.data ?? []).map((r) => ({ ...r, source: 'iphone17' as const }))
+    const iphone17 = (iphone17Res.data ?? []).map(({ pet_name, ...r }) => ({
+      ...r,
+      petName: pet_name,
+      source: 'iphone17' as const,
+    }))
+    const call = (callRes.data ?? []).map((r) => ({ ...r, source: 'call' as const }))
+    const s26 = (s26Res.data ?? []).map((r) => ({ ...r, source: 's26' as const }))
 
-    const merged = [...online, ...iphone17].sort(
+    const merged = [...online, ...iphone17, ...call, ...s26].sort(
       (a, b) => new Date(b.datetime ?? 0).getTime() - new Date(a.datetime ?? 0).getTime()
     )
 

@@ -1,11 +1,11 @@
-import * as React from "react"
-import { useEffect, useState } from "react"
-import { addPropertyControls, ControlType, RenderTarget } from "framer"
+import { addPropertyControls, RenderTarget } from "framer"
 import { motion, AnimatePresence } from "framer-motion"
 import {
     checkAuth,
     userState,
 } from "https://framer.com/m/AuthStore-jiikDX.js@QRzzhL7x0LkccW6oL0Cw"
+import * as React from "react"
+import { useEffect, useState } from "react"
 
 const API_BASE = "https://kt-market-puce.vercel.app"
 
@@ -89,7 +89,7 @@ const DUMMY: any[] = [
     { no: 2, datetime: "2025-02-10T15:00:00+09:00", petName: "아이폰 16", model: "MXLM3KH/A", capacity: "128GB", color: "블랙", plan: "5G 슬림", is_processed: true, carrier: "KT" },
 ]
 
-function RestockHistory({ onBack }: any) {
+function RestockHistory() {
     const isCanvas = RenderTarget.current() === RenderTarget.canvas
     const [loading, setLoading] = useState(true)
     const [items, setItems] = useState<any[]>([])
@@ -107,7 +107,7 @@ function RestockHistory({ onBack }: any) {
             } catch { setItems([]) }
             finally { setLoading(false) }
         })
-    }, [])
+    }, [isCanvas])
 
     const displayItems = isCanvas ? DUMMY : items
     const displayLoading = isCanvas ? false : loading
@@ -118,11 +118,6 @@ function RestockHistory({ onBack }: any) {
             <style>{SKELETON_CSS}</style>
 
             <div style={{ display: "flex", alignItems: "center", padding: "16px 20px", borderBottom: `1px solid ${T.colors.border}`, position: "sticky", top: 0, backgroundColor: T.colors.bg, zIndex: 10 }}>
-                <motion.button whileTap={{ scale: 0.9 }} onClick={() => onBack?.()} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", marginRight: "8px", display: "flex", alignItems: "center" }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M15 18l-6-6 6-6" stroke={T.colors.text} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                </motion.button>
                 <h1 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: T.colors.text, fontFamily: T.font }}>재입고 알림 내역</h1>
             </div>
 
@@ -165,6 +160,4 @@ function RestockHistory({ onBack }: any) {
 }
 
 export default RestockHistory
-addPropertyControls(RestockHistory, {
-    onBack: { type: ControlType.EventHandler },
-})
+addPropertyControls(RestockHistory, {})

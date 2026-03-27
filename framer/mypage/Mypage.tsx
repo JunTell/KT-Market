@@ -1,5 +1,3 @@
-import * as React from "react"
-import { useEffect, useState } from "react"
 import { addPropertyControls, ControlType, RenderTarget } from "framer"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -9,6 +7,8 @@ import {
     userState,
     withdraw,
 } from "https://framer.com/m/AuthStore-jiikDX.js@QRzzhL7x0LkccW6oL0Cw"
+import * as React from "react"
+import { useEffect, useState } from "react"
 
 const API_BASE = "https://kt-market-puce.vercel.app"
 
@@ -606,7 +606,7 @@ function MyPage({
                     .finally(() => setSummaryLoading(false))
             }
         })
-    }, [])
+    }, [isCanvas])
 
     const handleLogout = async () => {
         if (isCanvas) {
