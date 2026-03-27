@@ -12,6 +12,11 @@ import { useEffect, useState } from "react"
 
 const API_BASE = "https://kt-market-puce.vercel.app"
 
+function maskPhone(phone: string | null | undefined): string | null {
+    if (!phone) return null
+    return phone.replace(/^(\d{3})\d{4}(\d{4})$/, "$1-****-$2")
+}
+
 // ─── 디자인 토큰 ──────────────────────────────────────
 const T = {
     colors: {
@@ -617,7 +622,7 @@ function MyPage({
     const isLoggedIn = isCanvas ? true : authState.isLoggedIn
     const isLoading = isCanvas ? false : authState.isLoading
     const displayName = isCanvas ? "홍길동" : authState.fullName
-    const displayPhone = isCanvas ? "010-1234-5678" : authState.phoneNumber
+    const displayPhone = isCanvas ? "010-****-5678" : maskPhone(authState.phoneNumber)
     const displayAvatar = isCanvas ? null : authState.avatarUrl
 
     const displaySummary = isCanvas
