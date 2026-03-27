@@ -1,6 +1,6 @@
+import { addPropertyControls, ControlType } from "framer"
 import * as React from "react"
 import { useState, useEffect } from "react"
-import { addPropertyControls, ControlType } from "framer"
 
 // --- Skeleton Components ---
 const SkeletonBox = ({
@@ -457,33 +457,6 @@ export default function ApplicationGatePage(props: Props) {
 
     const isAllAgreed = agreements.every((agreed) => agreed === true)
 
-    useEffect(() => {
-        loadSessionData()
-    }, [])
-
-    useEffect(() => {
-        const handlePopState = () => {
-            if (showCompletionCheck || showReturnMessage || showMustRead) {
-                const dataStr = sessionStorage.getItem("data")
-                if (dataStr) {
-                    try {
-                        const data = JSON.parse(dataStr)
-                        const model =
-                            data.device?.model || data.model || "default"
-                        window.location.href = `/phone/${model}`
-                    } catch (e) {
-                        window.location.href = "/phone"
-                    }
-                } else {
-                    window.location.href = "/phone"
-                }
-            }
-        }
-
-        window.addEventListener("popstate", handlePopState)
-        return () => window.removeEventListener("popstate", handlePopState)
-    }, [showCompletionCheck, showReturnMessage, showMustRead])
-
     const loadSessionData = () => {
         if (typeof window === "undefined") return
 
@@ -573,11 +546,39 @@ export default function ApplicationGatePage(props: Props) {
             setTimeout(() => {
                 setIsInitialLoading(false)
             }, 300)
-        } catch (e) {
-            console.error("Session load error:", e)
+        } catch (error) {
+            console.error("Session load error:", error)
             setIsInitialLoading(false)
         }
     }
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        loadSessionData()
+    }, [])
+
+    useEffect(() => {
+        const handlePopState = () => {
+            if (showCompletionCheck || showReturnMessage || showMustRead) {
+                const dataStr = sessionStorage.getItem("data")
+                if (dataStr) {
+                    try {
+                        const data = JSON.parse(dataStr)
+                        const model =
+                            data.device?.model || data.model || "default"
+                        window.location.href = `/phone/${model}`
+                    } catch (_e) {
+                        window.location.href = "/phone"
+                    }
+                } else {
+                    window.location.href = "/phone"
+                }
+            }
+        }
+
+        window.addEventListener("popstate", handlePopState)
+        return () => window.removeEventListener("popstate", handlePopState)
+    }, [showCompletionCheck, showReturnMessage, showMustRead])
 
     const formatPhoneNumber = (value: string) => {
         const numbers = value.replace(/[^0-9]/g, "")
@@ -1023,7 +1024,7 @@ export default function ApplicationGatePage(props: Props) {
                                     </div>
                                 </div>
 
-                                {isExpanded && <ExpandedDetails />}
+                                {isExpanded && ExpandedDetails()}
 
                                 {!isExpanded && (
                                     <div style={noticeBoxStyle}>
@@ -1178,7 +1179,7 @@ export default function ApplicationGatePage(props: Props) {
                                     </div>
                                 </div>
 
-                                {isExpanded && <ExpandedDetails />}
+                                {isExpanded && ExpandedDetails()}
 
                                 {!isExpanded && (
                                     <div style={noticeBoxStyle}>

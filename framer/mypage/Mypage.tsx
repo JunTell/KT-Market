@@ -1078,42 +1078,42 @@ function MyPage({
                                 label="주문 내역"
                                 count={displaySummary.orderCount}
                                 countLoading={summaryLoading}
-                                onClick={withAuth(onOrderClick)}
+                                onClick={go("https://ktmarket.co.kr/mypage/order-history")}
                             />
                             <MenuItem
                                 emoji="🗂️ "
                                 label="상담 접수 내역"
                                 count={displaySummary.consultCount}
                                 countLoading={summaryLoading}
-                                onClick={withAuth(onConsultClick)}
+                                onClick={go("https://ktmarket.co.kr/mypage/consultation-history")}
                             />
                             <MenuItem
                                 emoji="🔔"
                                 label="사전예약 내역"
                                 count={displaySummary.preorderCount}
                                 countLoading={summaryLoading}
-                                onClick={withAuth(onPreorderClick)}
+                                onClick={go("https://ktmarket.co.kr/mypage/preorder-history")}
                             />
                             <MenuItem
                                 emoji="📢"
                                 label="재입고 알림 내역"
                                 count={displaySummary.restockCount}
                                 countLoading={summaryLoading}
-                                onClick={withAuth(onRestockClick)}
+                                onClick={go("https://ktmarket.co.kr/mypage/restock-history")}
                             />
                             <MenuItem
                                 emoji="🎁"
                                 label="지인 추천 내역"
                                 count={displaySummary.referralCount}
                                 countLoading={summaryLoading}
-                                onClick={withAuth(onReferralClick)}
+                                onClick={go("https://ktmarket.co.kr/mypage/referral-history")}
                             />
                             <MenuItem
                                 emoji="❤️ "
                                 label="찜한 상품"
                                 count={displaySummary.wishlistCount}
                                 countLoading={summaryLoading}
-                                onClick={withAuth(onWishlistClick)}
+                                onClick={go("https://ktmarket.co.kr/mypage/wishlist")}
                             />
 
                             <SectionLabel text="서비스" />
