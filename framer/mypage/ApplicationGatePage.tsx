@@ -567,7 +567,7 @@ export default function ApplicationGatePage(props: Props) {
                         const model =
                             data.device?.model || data.model || "default"
                         window.location.href = `/phone/${model}`
-                    } catch (_e) {
+                    } catch {
                         window.location.href = "/phone"
                     }
                 } else {
