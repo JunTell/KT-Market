@@ -7,20 +7,15 @@ const DEFAULT_ALLOWED_ORIGINS = [
   'https://ktmarket.co.kr',
 ]
 
-function getAllowedOrigins(): string[] {
+// 요청마다 환경변수를 재파싱하지 않도록 모듈 로드 시 1회만 계산
+const ALLOWED_ORIGINS: string[] = (() => {
   const env = process.env.ALLOWED_ORIGINS
-  if (env) {
-    return [
-      ...DEFAULT_ALLOWED_ORIGINS,
-      ...env.split(',').map((o) => o.trim()).filter(Boolean),
-    ]
-  }
-  return DEFAULT_ALLOWED_ORIGINS
-}
+  if (!env) return DEFAULT_ALLOWED_ORIGINS
+  return [...DEFAULT_ALLOWED_ORIGINS, ...env.split(',').map((o) => o.trim()).filter(Boolean)]
+})()
 
 export function getCorsHeaders(requestOrigin: string | null): Record<string, string> {
-  const allowed = getAllowedOrigins()
-  const isAllowed = requestOrigin && allowed.includes(requestOrigin)
+  const isAllowed = requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin)
 
   // 허용되지 않은 origin은 CORS 헤더를 내보내지 않음
   // (브라우저가 차단하더라도 허용 도메인 정보를 응답에 노출하지 않음)

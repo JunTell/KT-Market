@@ -70,37 +70,29 @@ export async function proxy(req: NextRequest) {
     })
   }
 
-  // Supabase 세션 갱신 (쿠키 기반)
-  const { supabase, response } = createMiddlewareClient(req)
-  await supabase.auth.getUser()
-
-  // /api/auth/* 응답에 CORS 헤더 추가
-  if (isAuthApi) {
-    const corsHeaders = getCorsHeaders(req.headers.get('origin'))
-    Object.entries(corsHeaders).forEach(([key, value]) => {
-      response.headers.set(key, value)
-    })
-    return response
+  // /api/* 라우트 — 각 라우트 핸들러가 자체적으로 인증 + 세션 갱신 처리
+  // 미들웨어에서 추가 getUser() 호출 불필요 (중복 네트워크 요청 제거)
+  if (pathname.startsWith('/api')) {
+    return NextResponse.next()
   }
 
   // 공개 경로 — 인증 불필요
-  const publicPaths = ['/login', '/signup', '/']
   const isPublicPath =
-    publicPaths.includes(pathname) || pathname.startsWith('/products')
+    ['/', '/login', '/signup'].includes(pathname) || pathname.startsWith('/products')
 
   if (isPublicPath) {
-    return response
+    return NextResponse.next()
   }
 
-  // 어드민 외 경로 — 인증 불필요
+  // 세션 갱신 — admin 페이지 등 서버 렌더링 경로에만 적용
+  const { supabase, response } = createMiddlewareClient(req)
+  const { data: { user } } = await supabase.auth.getUser()
+
   if (!pathname.startsWith('/admin')) {
     return response
   }
 
   // /admin/* 경로 — 로그인 + 관리자 권한 검증
-  // getUser()는 위에서 이미 호출했으므로 캐시된 결과 재사용
-  const { data: { user } } = await supabase.auth.getUser()
-
   if (!user) {
     const redirectUrl = new URL('/login', req.url)
     redirectUrl.searchParams.set('redirectTo', req.nextUrl.pathname)

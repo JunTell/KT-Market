@@ -498,12 +498,12 @@ const go = (url: string) => () => {
 
 // ─── 메인 컴포넌트 ────────────────────────────────────
 function MyPage({
-    onOrderClick,
-    onConsultClick,
-    onPreorderClick,
-    onRestockClick,
-    onReferralClick,
-    onWishlistClick,
+    onOrderClick: _onOrderClick,
+    onConsultClick: _onConsultClick,
+    onPreorderClick: _onPreorderClick,
+    onRestockClick: _onRestockClick,
+    onReferralClick: _onReferralClick,
+    onWishlistClick: _onWishlistClick,
     onLogoutClick,
     onWithdrawClick,
     loginPageUrl = "/login",
@@ -660,7 +660,7 @@ function MyPage({
         ]
         : viewedDevices
 
-    const withAuth = (callback?: () => void) => () => {
+    const _withAuth = (callback?: () => void) => () => {
         if (isCanvas) {
             callback?.()
             return

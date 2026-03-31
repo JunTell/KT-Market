@@ -8,7 +8,9 @@ import type { NextRequest } from 'next/server'
 
 /**
  * GET /api/my/orders
- * 유저 주문 내역 (online_order + iphone17_order, datetime 최신순)
+ * 유저 주문 내역 (online_order + iphone17_order + s26_orders + call_order, datetime 최신순)
+ * - online_order / iphone17_order / s26_orders: profile_id 기준
+ * - call_order: profile_id 컬럼 없음 → profiles.phone 기준
  */
 export async function GET(request: NextRequest) {
   const cors = getCorsHeaders(request.headers.get('origin'))
@@ -23,41 +25,37 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: '인증 필요' }, { status: 401, headers: cors })
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('phone')
-      .eq('id', user.id)
-      .single()
-
-    const phone = profile?.phone
-    if (!phone) {
-      return NextResponse.json([], { headers: cors })
-    }
-
     const admin = createSupabaseAdminClient()
 
-    const [onlineRes, iphone17Res, callRes, s26Res] = await Promise.all([
+    // phone 조회와 profile_id 기반 쿼리를 병렬 실행
+    const [profileRes, onlineRes, iphone17Res, s26Res] = await Promise.all([
+      supabase.from('profiles').select('phone').eq('id', user.id).single(),
       admin
         .from('online_order')
         .select('no, datetime, device, model, "petName", capacity, color, plan, register, discount, installment, benefit, is_processed, carrier')
-        .eq('phone', phone)
+        .eq('profile_id', user.id)
         .order('datetime', { ascending: false }),
       admin
         .from('iphone17_order')
         .select('no, datetime, model, pet_name, capacity, color, plan, register, discount, installment, benefit, is_processed, carrier')
-        .eq('phone', phone)
-        .order('datetime', { ascending: false }),
-      admin
-        .from('call_order')
-        .select('no, datetime, device, model, "petName", capacity, color, plan, register, discount, installment, benefit, is_processed, carrier')
-        .eq('phone', phone)
+        .eq('profile_id', user.id)
         .order('datetime', { ascending: false }),
       admin
         .from('s26_orders')
         .select('no, datetime, device, model, "petName", capacity, color, plan, register, discount, installment, benefit, is_processed, carrier')
-        .eq('phone', phone)
+        .eq('profile_id', user.id)
         .order('datetime', { ascending: false }),
     ])
+
+    // call_order는 phone 기준 (profile_id 컬럼 없음)
+    const phone = profileRes.data?.phone ?? null
+    const callRes = phone
+      ? await admin
+          .from('call_order')
+          .select('no, datetime, device, model, "petName", capacity, color, plan, register, discount, installment, benefit, is_processed, carrier')
+          .eq('phone', phone)
+          .order('datetime', { ascending: false })
+      : { data: [] }
 
     const online = (onlineRes.data ?? []).map((r) => ({ ...r, source: 'online' as const }))
     const iphone17 = (iphone17Res.data ?? []).map(({ pet_name, ...r }) => ({

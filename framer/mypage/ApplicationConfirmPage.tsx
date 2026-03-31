@@ -1,7 +1,7 @@
 import { addPropertyControls, ControlType } from "framer"
+import { checkAuth, userState } from "https://framer.com/m/AuthStore-jiikDX.js@QRzzhL7x0LkccW6oL0Cw"
 import * as React from "react"
 import { useState, useEffect } from "react"
-import { checkAuth, userState } from "https://framer.com/m/AuthStore-jiikDX.js@QRzzhL7x0LkccW6oL0Cw"
 
 // --- Skeleton Components ---
 const SkeletonBox = ({
@@ -400,7 +400,7 @@ export default function ApplicationConfirmPage(props: Props) {
                 setKakaoStatus("NONE")
                 setSyncMessage(result.error || "확인 중 오류가 발생했습니다.")
             }
-        } catch (_err) {
+        } catch {
             setKakaoStatus("NONE")
             setSyncMessage("네트워크 오류가 발생했습니다.")
         }
