@@ -783,6 +783,7 @@ export function withOrderSheet(Component): ComponentType {
         const [devicePrice, setDevicePrice] = useState(0)
         const [ktmarketSubsidy, setKtmarketSubsidy] = useState(0)
         const [disclosureSubsidy, setDisclosureSubsidy] = useState(0)
+        // 추가할인 합계 (KT마켓지원금 + 프로모션 + 디바이스 추가지원금 + 미리보상 등)
         const [additionalSubsidy, setAdditionalSubsidy] = useState(0)
         const [migrationSubsidy, setMigrationSubsidy] = useState(0)
         const [totalDeviceDiscountAmount, setTotalDeviceDiscountAmount] =
@@ -999,6 +1000,15 @@ export function withOrderSheet(Component): ComponentType {
             const freebie = store.freebie?.title ?? ""
             const monthlyPriceFreebie = store.freebie?.monthly_price ?? 0
 
+            // 추가할인 합계: KT마켓지원금 + 프로모션 + 디바이스 추가지원금 + 미리보상 + 더블스토리지
+            const additionalSubsidy =
+                ktmarketSubsidy +
+                promotionDiscount +
+                selected +
+                guaranteedReturnPrice +
+                preorderDiscount +
+                doubleStorageDiscountValue
+
             return {
                 planName: selectedPlan?.name ?? "",
                 benefit,
@@ -1014,6 +1024,7 @@ export function withOrderSheet(Component): ComponentType {
                 ktmarketSubsidy,
                 disclosureSubsidy,
                 migrationSubsidy,
+                additionalSubsidy,
                 totalDeviceDiscountAmount,
                 promotionDiscount,
                 freebie,
@@ -1059,6 +1070,7 @@ export function withOrderSheet(Component): ComponentType {
             setKtmarketSubsidy(result.ktmarketSubsidy)
             setDisclosureSubsidy(result.disclosureSubsidy)
             setMigrationSubsidy(result.migrationSubsidy)
+            setAdditionalSubsidy(result.additionalSubsidy)
             setTotalDeviceDiscountAmount(result.totalDeviceDiscountAmount)
             setGuaranteedReturnPrice(result.guaranteedReturnPrice)
             setPreorderDiscount(result.preorderDiscount)
@@ -2130,7 +2142,15 @@ export function withFreebiesSection(Component): ComponentType {
 
         if (!pid || !sections.includes(pid)) return null
 
-        return <Component {...props} />
+        return (
+            <Component
+                {...props}
+                plan={pid}
+                store={store}
+                setStore={setStore}
+                isLoading={store.isLoading}
+            />
+        )
     }
 }
 
@@ -2460,7 +2480,15 @@ export function withInstallmentSection(Component): ComponentType {
         const [store, setStore] = useStore()
 
         if (store.isGuaranteedReturn) return null
-        return <Component {...props} isVisible={store.installment == 0} />
+        return (
+            <Component
+                {...props}
+                installment={store.installment}
+                isGuaranteedReturn={store.isGuaranteedReturn}
+                onInstallmentChange={(v: number) => setStore({ installment: v })}
+                isLoading={store.isLoading}
+            />
+        )
     }
 }
 
@@ -3352,5 +3380,86 @@ export function withYoutubePremiumCondition(Component): ComponentType {
         // 3. 대상 요금제면 컴포넌트 보여줌
 
         return <Component {...props} />
+    }
+}
+
+// ─── withPlanGrid ─────────────────────────────────────────────────────
+// PlanSelectorComponent 전용 Override
+// store의 planInfo / selectedPlanInfo 연동 + 카드별 할인 금액 계산
+// ──────────────────────────────────────────────────────────────────────
+export function withPlanGrid(Component): ComponentType {
+    return (props) => {
+        const [store, setStore] = useStore()
+
+        const handlePlanSelect = (plan: { pid: string; title: string; price: number; description?: string; data?: string; tethering?: string; roaming?: string; voiceText?: string }) => {
+            const isBenefit =
+                plan.price >= 61000 ||
+                ["ppllistobj_0778", "ppllistobj_0844", "ppllistobj_0893"].includes(plan.pid)
+
+            const planInfo: PlanInfo = {
+                pid: plan.pid,
+                title: plan.title,
+                price: plan.price,
+                description: plan.description ?? "",
+                data: plan.data ?? "",
+                tethering: plan.tethering ?? "",
+                roaming: plan.roaming ?? "",
+                voiceText: plan.voiceText ?? "",
+                isBenefit,
+            }
+
+            setStore({ planInfo, selectedPlanInfo: planInfo })
+        }
+
+        // 고정 3개 + 커스텀 요금제에 대해 예상 할인 금액 계산
+        // 공통지원금은 DB에서 가져와야 하므로 KT마켓지원금만 계산
+        const calcDiscountForPrice = (planPrice: number, pid: string): number => {
+            if (!store.ktmarketSubsidies) return 0
+            const discount = store.discount === "선택약정할인" ? "plan" : "device"
+            const register = store.register === "번호이동" ? "mnp" : store.register === "신규가입" ? "new" : "chg"
+
+            const forceTierByPlanId: Record<string, number> = {
+                ppllistobj_0893: 61000, ppllistobj_0778: 61000, ppllistobj_0844: 61000,
+                ppllistobj_0845: 37000, ppllistobj_0535: 37000, ppllistobj_0765: 37000, ppllistobj_0775: 37000,
+            }
+            const forcedTier = forceTierByPlanId[pid]
+            const priceTiers = [110000, 100000, 90000, 61000, 37000]
+
+            let key = ""
+            if (forcedTier) {
+                key = `${discount}_discount_${register}_gte_${forcedTier}`
+            } else {
+                for (const tier of priceTiers) {
+                    if (planPrice >= tier) { key = `${discount}_discount_${register}_gte_${tier}`; break }
+                }
+                if (!key) key = `${discount}_discount_${register}_lt_37000`
+            }
+            return store.ktmarketSubsidies[key] ?? 0
+        }
+
+        // 고정 3개 PID + 선택된 요금제에 대한 할인 금액 맵
+        const GRID_PIDS = ["ppllistobj_0865", "ppllistobj_0808", "ppllistobj_0925"]
+        const planPriceMap: Record<string, number> = {
+            "ppllistobj_0865": 90000, "ppllistobj_0808": 69000, "ppllistobj_0925": 37000,
+        }
+        const discountAmounts: Record<string, number> = {}
+        for (const pid of GRID_PIDS) {
+            discountAmounts[pid] = calcDiscountForPrice(planPriceMap[pid], pid)
+        }
+        // 현재 선택된 요금제 할인 금액도 포함
+        if (store.selectedPlanInfo?.pid && !discountAmounts[store.selectedPlanInfo.pid]) {
+            discountAmounts[store.selectedPlanInfo.pid] =
+                calcDiscountForPrice(store.selectedPlanInfo.price, store.selectedPlanInfo.pid)
+        }
+
+        return (
+            <Component
+                {...props}
+                isLoading={store.isLoading ?? false}
+                selectedPlanPid={store.selectedPlanInfo?.pid ?? ""}
+                discountAmounts={discountAmounts}
+                onPlanSelect={handlePlanSelect}
+            />
+        )
     }
 }

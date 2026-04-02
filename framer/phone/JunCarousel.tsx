@@ -48,13 +48,16 @@ const SoldOutOverlay = () => (
     </svg>
 )
 
-// 스켈레톤: 이미지 영역 + 컬러 서클 영역
+const COLOR_BAR = 56 // 색상 서클 영역 고정 높이 (px)
+
+// 스켈레톤: 이미지 영역 + 컬러 서클 영역 (단일 컨테이너)
 const SkeletonView = ({ imageHeight }: { imageHeight: number }) => (
-    <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
+    <div style={{ width: "100%", position: "relative", height: `${imageHeight + COLOR_BAR}px` }}>
         {/* 이미지 영역 스켈레톤 */}
         <motion.div
             style={{
-                width: "100%",
+                position: "absolute",
+                top: 0, left: 0, right: 0,
                 height: `${imageHeight}px`,
                 backgroundColor: "#E5E7EB",
                 borderRadius: "12px",
@@ -63,11 +66,11 @@ const SkeletonView = ({ imageHeight }: { imageHeight: number }) => (
             transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
         />
         {/* 컬러 서클 스켈레톤 (3개) */}
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: `${COLOR_BAR}px`, display: "flex", gap: "12px", justifyContent: "center", alignItems: "center" }}>
             {[0, 1, 2].map((i) => (
                 <motion.div
                     key={i}
-                    style={{ width: "28px", height: "28px", borderRadius: "50%", backgroundColor: "#E5E7EB" }}
+                    style={{ width: "36px", height: "36px", borderRadius: "50%", backgroundColor: "#E5E7EB", flexShrink: 0 }}
                     animate={{ opacity: [0.4, 1, 0.4] }}
                     transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: i * 0.15 }}
                 />
@@ -148,7 +151,10 @@ export default function JunCarousel(props) {
         if (onColorChange) onColorChange(color)
     }
 
-    if (!isMounted) return <div style={{ width: "100%", height: `${imageHeight + 60}px` }} />
+    // 색상 서클이 있을 때 하단에 확보할 공간
+    const colorBarHeight = colors.length > 0 ? COLOR_BAR : 0
+
+    if (!isMounted) return <div style={{ width: "100%", height: `${imageHeight + colorBarHeight}px` }} />
 
     // 로딩 중: 스켈레톤
     if (isLoading) return <SkeletonView imageHeight={imageHeight} />
@@ -163,24 +169,34 @@ export default function JunCarousel(props) {
     }
 
     return (
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
-            {/* ── 캐러셀 이미지 영역 ── */}
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+            {/* ── 캐러셀 전체 컨테이너 (이미지 + 색상 서클 포함) ── */}
             <div
                 style={{
                     position: "relative",
                     width: "100%",
-                    height: `${imageHeight}px`,
-                    overflow: "hidden",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
+                    // 색상 서클 공간을 포함한 전체 높이
+                    height: `${imageHeight + colorBarHeight}px`,
                     touchAction: "pan-y",
                 }}
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
             >
-                {/* 슬라이드 뷰포트 */}
+                {/* 슬라이드 뷰포트 — 이미지 높이만큼만, 하단은 색상 서클 여백 */}
+                <div
+                    style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: `${imageHeight}px`,
+                        overflow: "hidden",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
                 <div
                     style={{
                         display: "flex",
@@ -294,41 +310,55 @@ export default function JunCarousel(props) {
                         />
                     ))}
                 </div>
-            </div>
+                </div>{/* ← 이미지 슬라이드 뷰포트 닫기 */}
 
-            {/* ── 색상 선택 서클 ── */}
-            {colors.length > 0 && (
-                <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
-                    {colors.map((color, index) => {
-                        const isActive = activeColor ? activeColor.code === color.code : index === 0
-                        return (
-                            <motion.div
-                                key={index}
-                                onClick={() => handleColorClick(color)}
-                                title={color.kr}
-                                whileTap={color.isSoldOut ? {} : { scale: 0.9 }}
-                                style={{
-                                    position: "relative",
-                                    width: "28px",
-                                    height: "28px",
-                                    borderRadius: "50%",
-                                    backgroundColor: color.code || "#E5E7EB",
-                                    cursor: color.isSoldOut ? "not-allowed" : "pointer",
-                                    // active: 흰 틈 + 파란 외곽선
-                                    boxShadow: isActive
-                                        ? "0 0 0 2px #ffffff, 0 0 0 4px #0055FF"
-                                        : "0 0 0 1px rgba(0,0,0,0.1)",
-                                    opacity: color.isSoldOut ? 0.45 : 1,
-                                    transition: "box-shadow 0.15s ease",
-                                    flexShrink: 0,
-                                }}
-                            >
-                                {color.isSoldOut && <SoldOutOverlay />}
-                            </motion.div>
-                        )
-                    })}
-                </div>
-            )}
+                {/* ── 색상 선택 서클 (컨테이너 내부 하단 절대 위치) ── */}
+                {colors.length > 0 && (
+                    <div
+                        style={{
+                            position: "absolute",
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            height: `${colorBarHeight}px`,
+                            display: "flex",
+                            gap: "12px",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            flexWrap: "wrap",
+                            zIndex: 3,
+                        }}
+                    >
+                        {colors.map((color, index) => {
+                            const isActive = activeColor ? activeColor.code === color.code : index === 0
+                            return (
+                                <motion.div
+                                    key={index}
+                                    onClick={() => handleColorClick(color)}
+                                    title={color.kr}
+                                    whileTap={color.isSoldOut ? {} : { scale: 0.88 }}
+                                    style={{
+                                        position: "relative",
+                                        width: "36px",
+                                        height: "36px",
+                                        borderRadius: "50%",
+                                        backgroundColor: color.code || "#E5E7EB",
+                                        cursor: color.isSoldOut ? "not-allowed" : "pointer",
+                                        boxShadow: isActive
+                                            ? "0 0 0 2.5px #ffffff, 0 0 0 5px #0055FF"
+                                            : "0 0 0 1.5px rgba(0,0,0,0.12)",
+                                        opacity: color.isSoldOut ? 0.4 : 1,
+                                        transition: "box-shadow 0.18s ease",
+                                        flexShrink: 0,
+                                    }}
+                                >
+                                    {color.isSoldOut && <SoldOutOverlay />}
+                                </motion.div>
+                            )
+                        })}
+                    </div>
+                )}
+            </div>{/* ← 전체 컨테이너 닫기 */}
         </div>
     )
 }
