@@ -252,6 +252,7 @@ export default function PlanSelectorComponent(props) {
         stepNumber = 4,
         title = "원하시는 요금제",
         onPlanSelect,
+        onTabChange,
         discountAmounts = {} as Record<string, number>,
     } = props
 
@@ -336,7 +337,7 @@ export default function PlanSelectorComponent(props) {
             {/* 기기할인 / 요금할인 탭 */}
             <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", border: "1px solid #E5E7EB", backgroundColor: "#F9FAFB" }}>
                 {(["기기 할인", "요금할인"] as const).map((tab) => (
-                    <button key={tab} onClick={() => setActiveTab(tab)} style={{
+                    <button key={tab} onClick={() => { setActiveTab(tab); onTabChange?.(tab) }} style={{
                         flex: 1, height: 34, border: "none",
                         backgroundColor: activeTab === tab ? "#FFFFFF" : "transparent",
                         color: activeTab === tab ? "#111827" : "#9CA3AF",
@@ -351,12 +352,12 @@ export default function PlanSelectorComponent(props) {
             {/* 현재 선택 요금제 설명 */}
             {(() => {
                 const selected = ALL_PLANS.find((p) => p.pid === selectedPlanPid)
-                if (!selected?.description) return null
+                if (!selected?.title) return null
                 return (
                     <div style={{ display: "flex", alignItems: "flex-start", gap: 5, marginTop: -4 }}>
                         <span style={{ fontSize: 12, color: "#6B7280", flexShrink: 0 }}>ⓘ</span>
                         <span style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>
-                            {selected.description}
+                            {selected.title} 요금제 입니다.
                         </span>
                     </div>
                 )

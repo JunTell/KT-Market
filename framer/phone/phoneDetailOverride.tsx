@@ -3480,6 +3480,11 @@ export function withPlanGrid(Component): ComponentType {
                 calcDiscountForPrice(store.selectedPlanInfo.price, store.selectedPlanInfo.pid)
         }
 
+        const handleTabChange = (tab: "기기 할인" | "요금할인") => {
+            const discount = tab === "요금할인" ? "선택약정할인" : "공통지원금"
+            setStore({ discount })
+        }
+
         return (
             <Component
                 {...props}
@@ -3487,6 +3492,7 @@ export function withPlanGrid(Component): ComponentType {
                 selectedPlanPid={store.selectedPlanInfo?.pid ?? ""}
                 discountAmounts={discountAmounts}
                 onPlanSelect={handlePlanSelect}
+                onTabChange={handleTabChange}
             />
         )
     }

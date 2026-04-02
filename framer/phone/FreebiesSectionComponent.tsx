@@ -66,15 +66,12 @@ const FreebieCard = ({
                 transition: "border-color 0.15s",
             }}
         >
-            {freebie.image_url ? (
-                <img
-                    src={freebie.image_url}
+            <img
+                    src={`https://juntell.s3.ap-northeast-2.amazonaws.com/freebie/${freebie.no}.png`}
                     alt={freebie.title}
                     style={{ width: "75%", height: "75%", objectFit: "contain" }}
+                    onError={(e) => { e.currentTarget.style.display = "none" }}
                 />
-            ) : (
-                <div style={{ fontSize: 28, color: "#D1D5DB" }}>🎁</div>
-            )}
         </div>
 
         {/* 상품명 */}

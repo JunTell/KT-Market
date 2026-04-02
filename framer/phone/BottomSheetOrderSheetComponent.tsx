@@ -1,7 +1,6 @@
 // withOrderSheet override와 함께 사용
-// 하단 고정 BottomSheet
-// 닫힌 상태: 월 예상 금액 요약 + 카카오 간편주문 CTA
-// 열린 상태: 기기 카드(Image #3) + 주문서(OrderSheetComponent UI) + CTA 버튼
+// 하단 고정 BottomSheet (440px 고정, flex 2버튼)
+// 카카오톡으로 10초 간편 주문 + 주문하기
 
 import { addPropertyControls, ControlType } from "framer"
 import React, { useState, useEffect } from "react"
@@ -219,48 +218,23 @@ export default function BottomSheetOrderSheetComponent(props) {
         onKakaoOrderClick,
     } = props
 
-    const [isOpen, setIsOpen] = useState(false)
     const [mounted, setMounted] = useState(false)
 
     useEffect(() => {
         setMounted(true)
     }, [])
 
-    const planAfterDiscount = totalMonthPlanPrice > 0 ? totalMonthPlanPrice : planPrice - planDiscountAmount
-
-    const planDiscountLabel = discount === "선택약정할인"
-        ? `요금할인 25%${installment > 0 ? ` (${installment}개월)` : ""}`
-        : ""
-
-    const planTooltip = discount === "선택약정할인"
-        ? `월 요금제(${planPrice.toLocaleString()}원) × 25% 선택약정 할인 적용`
-        : `공통지원금 선택 시 요금제 할인 없음`
-
-    const installmentPaymentStr = typeof installmentPayment === "number"
-        ? `${installmentPayment.toLocaleString()}원`
-        : installmentPayment
-
     // 카카오 간편주문 버튼 클릭
-    // override에서 handleKakaoOrder 주입 → sessionStorage 저장 후 /phone/user-info 이동
     const handleKakaoOrder = () => {
         if (typeof onKakaoOrderClick === "function") {
             onKakaoOrderClick()
         } else {
-            // fallback: override 미사용 시
             window.location.href = "/phone/user-info"
         }
     }
 
-    const handlePhoneOrder = () => {
-        window.location.href = phoneOrderLink
-    }
-
     const handleFormLink = () => {
         if (formLink) window.open(formLink, "_blank")
-    }
-
-    const handleKakaoTalk = () => {
-        if (kakaoTalkLink) window.open(kakaoTalkLink, "_blank")
     }
 
     if (!mounted) return <div style={{ height: 80 }} />
@@ -268,273 +242,69 @@ export default function BottomSheetOrderSheetComponent(props) {
     const FONT = '"Pretendard", "Inter", sans-serif'
 
     const sheet = (
-        <>
-            {/* 배경 오버레이 */}
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        key="backdrop"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        onClick={() => setIsOpen(false)}
-                        style={{
-                            position: "fixed", inset: 0, zIndex: 110,
-                            backgroundColor: "rgba(0,0,0,0.45)",
-                        }}
-                    />
-                )}
-            </AnimatePresence>
-
-            {/* ── 바텀시트 패널 ── */}
+        <div style={{
+            position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
+            width: "100%", maxWidth: 440,
+            zIndex: 120,
+            backgroundColor: "#FFFFFF",
+            borderRadius: "20px 20px 0 0",
+            boxShadow: "0 -4px 28px rgba(0,0,0,0.13)",
+            fontFamily: FONT,
+        }}>
+            {/* 월 예상 금액 행 */}
             <div style={{
-                position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 120,
-                backgroundColor: "#FFFFFF",
-                borderRadius: "20px 20px 0 0",
-                boxShadow: "0 -4px 28px rgba(0,0,0,0.13)",
-                display: "flex", flexDirection: "column",
-                maxHeight: "92vh",
-                fontFamily: FONT,
+                display: "flex", justifyContent: "space-between",
+                alignItems: "flex-end",
+                padding: "14px 16px 10px",
+                borderBottom: "1px solid #F3F4F6",
             }}>
-
-                {/* 핸들 영역 */}
-                <div
-                    onClick={() => setIsOpen((v) => !v)}
-                    style={{
-                        padding: "12px 0 8px",
-                        display: "flex", justifyContent: "center",
-                        cursor: "pointer", flexShrink: 0,
-                    }}
-                >
-                    <div style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: "#D1D5DB" }} />
-                </div>
-
-                {/* ── 확장 콘텐츠 (열렸을 때만) ── */}
-                <AnimatePresence initial={false}>
-                    {isOpen && (
-                        <motion.div
-                            key="content"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.28, ease: "easeInOut" }}
-                            style={{ overflow: "hidden", flexShrink: 1, minHeight: 0 }}
-                        >
-                            <div style={{
-                                overflowY: "auto",
-                                maxHeight: "58vh",
-                                padding: "4px 16px 12px",
-                            }}>
-                                {/* 기기 정보 카드 */}
-                                <DeviceCard
-                                    image={deviceImage}
-                                    petName={devicePetName}
-                                    color={deviceColor}
-                                    capacity={deviceCapacity}
-                                    plan={plan}
-                                />
-
-                                {isLoading ? (
-                                    <Card>
-                                        <SkeletonRow delay={0} />
-                                        <SkeletonRow delay={0.1} />
-                                        <SkeletonRow delay={0.2} />
-                                        <SkeletonRow delay={0.3} width="35%" />
-                                    </Card>
-                                ) : (
-                                    <>
-                                        {/* 카드 1: 월 할부원금 */}
-                                        <Card>
-                                            <SectionHeader
-                                                label={installmentPaymentTitle}
-                                                value={installmentPaymentStr}
-                                                description={installmentPaymentDescription}
-                                            />
-                                            <Row label="출고가" value={`${devicePrice.toLocaleString()}원`} />
-                                            {disclosureSubsidy > 0 && (
-                                                <RedRow
-                                                    label="└ 단말할인(공통)"
-                                                    value={`-${disclosureSubsidy.toLocaleString()}원`}
-                                                    tooltip="이동통신사가 공시한 단말기 지원금"
-                                                />
-                                            )}
-                                            {ktmarketSubsidy > 0 && (
-                                                <RedRow
-                                                    label="└ KT마켓 특가 (번호이동 전용)"
-                                                    value={`-${ktmarketSubsidy.toLocaleString()}원`}
-                                                    tooltip="KT마켓에서만 제공하는 단독 지원금"
-                                                />
-                                            )}
-                                            {promotionDiscount > 0 && (
-                                                <RedRow
-                                                    label="└ 디바이스 추가지원금"
-                                                    value={`-${promotionDiscount.toLocaleString()}원`}
-                                                    tooltip="KT마켓 단독 프로모션 추가 지원금"
-                                                />
-                                            )}
-                                            {migrationSubsidy > 0 && (
-                                                <RedRow label="└ 번호이동 지원금" value={`-${migrationSubsidy.toLocaleString()}원`} />
-                                            )}
-                                            {guaranteedReturnPrice > 0 && (
-                                                <RedRow
-                                                    label="└ 미리보상 할인"
-                                                    value={`-${guaranteedReturnPrice.toLocaleString()}원`}
-                                                    tooltip="미리보상 프로그램 적용 시 단말기 가격의 50% 할인"
-                                                />
-                                            )}
-                                            {specialPrice > 0 && (
-                                                <RedRow label="└ 스페셜 할인" value={`-${specialPrice.toLocaleString()}원`} />
-                                            )}
-                                            {doubleStorageDiscount > 0 && (
-                                                <RedRow label="└ 더블스토리지 할인" value={`-${doubleStorageDiscount.toLocaleString()}원`} />
-                                            )}
-                                            <Dashed />
-                                            <Row label="할부원금" value={`${installmentPrincipal.toLocaleString()}원`} bold large />
-                                        </Card>
-
-                                        {/* 카드 2: 월 통신요금 */}
-                                        <Card>
-                                            <SectionHeader
-                                                label="월 통신요금"
-                                                description="결합 할인 또는 복지할인은 제외된 금액"
-                                            />
-                                            {plan && (
-                                                <Row label={plan} value={`월 ${planPrice.toLocaleString()}원`} />
-                                            )}
-                                            {discount === "선택약정할인" && planDiscountAmount > 0 && (
-                                                <RedRow
-                                                    label={planDiscountLabel}
-                                                    value={`-${planDiscountAmount.toLocaleString()}원`}
-                                                    tooltip={planTooltip}
-                                                />
-                                            )}
-                                            <Dashed />
-                                            <Row
-                                                label="월 통신요금"
-                                                value={`${planAfterDiscount.toLocaleString()}원`}
-                                                bold large
-                                            />
-                                        </Card>
-                                    </>
-                                )}
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                {/* ── 하단 고정 바 ── */}
-                <div style={{
-                    borderTop: "1px solid #F3F4F6",
-                    padding: "12px 16px",
-                    paddingBottom: "calc(12px + env(safe-area-inset-bottom, 10px))",
-                    flexShrink: 0,
-                }}>
-                    {/* 월 예상 금액 행 */}
-                    <div style={{
-                        display: "flex", justifyContent: "space-between",
-                        alignItems: "flex-end", marginBottom: 10,
-                    }}>
-                        <span style={{ fontSize: 14, fontWeight: 500, color: "#374151" }}>월 예상 금액</span>
-                        <div style={{ textAlign: "right" }}>
-                            <div style={{ fontSize: 20, fontWeight: 700, color: "#111827", lineHeight: 1.2 }}>
-                                {Math.round(totalMonthPayment).toLocaleString()}원
-                            </div>
-                            <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>
-                                {isOpen ? "부가세 포함, 추가 청구액 미포함" : "부가세 포함"}
-                            </div>
-                        </div>
+                <span style={{ fontSize: 14, fontWeight: 500, color: "#374151" }}>월 예상 금액</span>
+                <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: "#111827", lineHeight: 1.2 }}>
+                        {Math.round(totalMonthPayment).toLocaleString()}원
                     </div>
-
-                    {isOpen ? (
-                        /* ── 열린 상태 CTA ── */
-                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-
-                            {/* ① 카카오 간편주문 (메인 CTA) */}
-                            <button
-                                onClick={handleKakaoOrder}
-                                style={{
-                                    width: "100%", height: 52, borderRadius: 14,
-                                    border: "none", backgroundColor: "#FAE100",
-                                    cursor: "pointer", display: "flex",
-                                    alignItems: "center", justifyContent: "center",
-                                    gap: 8, fontFamily: FONT,
-                                }}
-                            >
-                                <KakaoBadge size={26} />
-                                <span style={{
-                                    fontSize: 15, fontWeight: 700, color: "#3A1D1D",
-                                    letterSpacing: "-0.2px",
-                                }}>
-                                    카카오 간편가입으로 10초안에 주문하기
-                                </span>
-                            </button>
-
-                            {/* ② 보조 버튼: 전화 주문 + 신청서 작성 */}
-                            <div style={{ display: "flex", gap: 8 }}>
-                                <button
-                                    onClick={handlePhoneOrder}
-                                    style={{
-                                        flex: 1, height: 48, borderRadius: 12,
-                                        border: "1.5px solid #D1D5DB",
-                                        backgroundColor: "#FFFFFF", color: "#374151",
-                                        fontSize: 14, fontWeight: 600, cursor: "pointer",
-                                        fontFamily: FONT,
-                                    }}
-                                >
-                                    전화 주문
-                                </button>
-                                <button
-                                    onClick={handleFormLink}
-                                    style={{
-                                        flex: 2, height: 48, borderRadius: 12,
-                                        border: "none", backgroundColor: "#0055FF",
-                                        color: "#FFFFFF", fontSize: 14, fontWeight: 700,
-                                        cursor: "pointer", fontFamily: FONT,
-                                    }}
-                                >
-                                    신청서 작성
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        /* ── 닫힌 상태 CTA ── */
-                        <div style={{ display: "flex", gap: 8 }}>
-                            {/* 카카오톡 채널 아이콘 버튼 */}
-                            <button
-                                onClick={handleKakaoTalk}
-                                style={{
-                                    width: 48, height: 48, borderRadius: 12,
-                                    border: "none", backgroundColor: "#FAE100",
-                                    cursor: "pointer", flexShrink: 0,
-                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                }}
-                            >
-                                <KakaoBadge size={24} />
-                            </button>
-
-                            {/* 시트 열기 = 카카오 간편주문으로 안내 */}
-                            <button
-                                onClick={() => setIsOpen(true)}
-                                style={{
-                                    flex: 1, height: 48, borderRadius: 12,
-                                    border: "none", backgroundColor: "#0055FF",
-                                    color: "#FFFFFF", fontSize: 14, fontWeight: 700,
-                                    cursor: "pointer", fontFamily: FONT,
-                                    display: "flex", alignItems: "center",
-                                    justifyContent: "center", gap: 6,
-                                }}
-                            >
-                                <span>10초 간편주문</span>
-                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                    <path d="M3 5.5L7 9.5L11 5.5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                            </button>
-                        </div>
-                    )}
+                    <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>부가세 포함</div>
                 </div>
             </div>
-        </>
+
+            {/* CTA 버튼 2종 */}
+            <div style={{
+                display: "flex", gap: 8,
+                padding: "10px 16px",
+                paddingBottom: "calc(10px + env(safe-area-inset-bottom, 10px))",
+            }}>
+                {/* ① 카카오톡으로 10초 간편 주문 */}
+                <button
+                    onClick={handleKakaoOrder}
+                    style={{
+                        flex: 1, height: 52, borderRadius: 14,
+                        border: "none", backgroundColor: "#FAE100",
+                        cursor: "pointer", display: "flex",
+                        alignItems: "center", justifyContent: "center",
+                        gap: 6, fontFamily: FONT,
+                    }}
+                >
+                    <KakaoBadge size={22} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#3A1D1D", letterSpacing: "-0.2px" }}>
+                        카카오톡으로 10초 간편 주문
+                    </span>
+                </button>
+
+                {/* ② 주문하기 */}
+                <button
+                    onClick={handleFormLink}
+                    style={{
+                        flex: 1, height: 52, borderRadius: 14,
+                        border: "none", backgroundColor: "#0055FF",
+                        color: "#FFFFFF", fontSize: 14, fontWeight: 700,
+                        cursor: "pointer", fontFamily: FONT,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
+                >
+                    주문하기
+                </button>
+            </div>
+        </div>
     )
 
     return createPortal(sheet, document.body)
