@@ -308,70 +308,77 @@ export default function ApplicationConfirmPage(props: Props) {
     const [syncMessage, setSyncMessage] = useState("")
 
     useEffect(() => {
-        checkAuth() // Ensure AuthStore knows login state
-        if (typeof window === "undefined") return
+        const load = async () => {
+            if (typeof window === "undefined") return
+            try {
+                await checkAuth() // 카카오 로그인 상태 동기화 완료 후 진행
 
-        try {
-            const sheetStr = sessionStorage.getItem("sheet")
-            const dataStr = sessionStorage.getItem("data")
-            const userStr = sessionStorage.getItem("user-info")
+                const sheetStr = sessionStorage.getItem("sheet")
+                const dataStr = sessionStorage.getItem("data")
+                const userStr = sessionStorage.getItem("user-info")
 
-            const parsedSheet = sheetStr ? JSON.parse(sheetStr) : {}
-            const parsedData = dataStr ? JSON.parse(dataStr) : {}
-            const parsedUser = userStr ? JSON.parse(userStr) : {}
+                const parsedSheet = sheetStr ? JSON.parse(sheetStr) : {}
+                const parsedData = dataStr ? JSON.parse(dataStr) : {}
+                const parsedUser = userStr ? JSON.parse(userStr) : {}
 
-            const devicePrice = parsedSheet.devicePrice || 0
-            const installmentPrincipal = parsedSheet.installmentPrincipal || 0
-            const marketSubsidy = parsedSheet.ktmarketSubsidy || 0
-            // ✨ 더블스토리지 값 가져오기
-            const doubleStorageDiscount = parsedSheet.doubleStorageDiscount || 0
-            // ✨ 프로모션 할인 값 가져오기
-            const promotionDiscount = parsedSheet.promotionDiscount || 0
+                const devicePrice = parsedSheet.devicePrice || 0
+                const installmentPrincipal = parsedSheet.installmentPrincipal || 0
+                const marketSubsidy = parsedSheet.ktmarketSubsidy || 0
+                const doubleStorageDiscount = parsedSheet.doubleStorageDiscount || 0
+                const promotionDiscount = parsedSheet.promotionDiscount || 0
 
-            const totalDiscount = devicePrice - installmentPrincipal
-            // 💡 공시지원금 = 총 할인 - KT마켓지원금 - 더블스토리지할인 - 프로모션할인
-            const publicSubsidy =
-                totalDiscount -
-                marketSubsidy -
-                doubleStorageDiscount -
-                promotionDiscount
+                const totalDiscount = devicePrice - installmentPrincipal
+                const publicSubsidy =
+                    totalDiscount -
+                    marketSubsidy -
+                    doubleStorageDiscount -
+                    promotionDiscount
 
-            const registerType = parsedData.register || "기기변경"
-            const telecomStr =
-                registerType === "번호이동" ? "타사 -> KT" : "기기변경 (KT)"
+                const registerType = parsedData.register || "기기변경"
+                const telecomStr =
+                    registerType === "번호이동" ? "타사 -> KT" : "기기변경 (KT)"
 
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setData({
-                petName: parsedData.device?.pet_name || "기기명 없음",
-                capacity: parsedData.device?.capacity || "",
-                color: parsedData.color?.kr || "",
-                imageUrl: parsedData.color?.urls?.[0] || "",
-                userName: parsedUser.userName || "-",
-                userDob: parsedUser.userDob || "-",
-                userPhone: parsedUser.userPhone || "-",
-                telecom: telecomStr,
-                discountType: parsedSheet.discount || "공시지원금",
-                contract: parsedSheet.installment || 24,
-                planName: parsedSheet.planName || "요금제 정보 없음",
-                planData: "무제한",
-                monthlyPayment: parsedSheet.planPrice || 0,
-                devicePrice: devicePrice,
-                publicSubsidy: publicSubsidy > 0 ? publicSubsidy : 0,
-                marketSubsidy: marketSubsidy,
-                finalPrice: installmentPrincipal,
-                totalMonthPayment: parsedSheet.totalMonthPayment || 0,
-                doubleStorageDiscount: doubleStorageDiscount, // ✨ 데이터 객체에 추가
-                promotionDiscount: promotionDiscount, // ✨ 데이터 객체에 추가
-            })
+                // 카카오 로그인 이용자: sessionStorage 미설정 시 userState 값으로 보완
+                const resolvedName =
+                    parsedUser.userName ||
+                    (userState.isLoggedIn ? userState.fullName : "") ||
+                    "-"
+                const resolvedPhone =
+                    parsedUser.userPhone ||
+                    (userState.isLoggedIn ? userState.phoneNumber : "") ||
+                    "-"
+                const resolvedDob = parsedUser.userDob || "-"
 
-            // 로딩 완료 (자연스러운 전환을 위해 0.3초 딜레이)
-            setTimeout(() => {
+                setData({
+                    petName: parsedData.device?.pet_name || "기기명 없음",
+                    capacity: parsedData.device?.capacity || "",
+                    color: parsedData.color?.kr || "",
+                    imageUrl: parsedData.color?.urls?.[0] || "",
+                    userName: resolvedName,
+                    userDob: resolvedDob,
+                    userPhone: resolvedPhone,
+                    telecom: telecomStr,
+                    discountType: parsedSheet.discount || "공시지원금",
+                    contract: parsedSheet.installment || 24,
+                    planName: parsedSheet.planName || "요금제 정보 없음",
+                    planData: "무제한",
+                    monthlyPayment: parsedSheet.planPrice || 0,
+                    devicePrice: devicePrice,
+                    publicSubsidy: publicSubsidy > 0 ? publicSubsidy : 0,
+                    marketSubsidy: marketSubsidy,
+                    finalPrice: installmentPrincipal,
+                    totalMonthPayment: parsedSheet.totalMonthPayment || 0,
+                    doubleStorageDiscount: doubleStorageDiscount,
+                    promotionDiscount: promotionDiscount,
+                })
+
+                setTimeout(() => setIsLoading(false), 300)
+            } catch (e) {
+                console.error("Data load error", e)
                 setIsLoading(false)
-            }, 300)
-        } catch (e) {
-            console.error("Data load error", e)
-            setIsLoading(false)
+            }
         }
+        load()
     }, [])
 
     const handleKakaoSync = async () => {

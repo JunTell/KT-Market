@@ -625,6 +625,7 @@ export function withPriceCard(Component): ComponentType {
                 installment={installment}
                 planPrice={planPrice}
                 planDiscountAmount={planDiscountAmount}
+                discount={store.discount ?? "공통지원금"}
                 isLoading={store.isLoading ?? false}
                 formLink={store.device?.form_link ?? ""}
             />
@@ -769,6 +770,7 @@ export function withOrderSheetFreebie(Component): ComponentType {
 export function withOrderSheet(Component): ComponentType {
     return (props) => {
         const [store, setStore] = useStore()
+        const { navigate, routes } = useRouter()
         const [formLink, setFormLink] = useState(props.formLink)
         const [hydrated, setHydrated] = useState(false)
 
@@ -1106,6 +1108,26 @@ export function withOrderSheet(Component): ComponentType {
             }
         }, [installmentPrincipal])
 
+        // /phone/user-info 라우트 ID 조회
+        const getUserInfoRouteId = () => {
+            for (const [key, value] of Object.entries(routes)) {
+                if ((value as any)?.path === "/phone/user-info") return key
+            }
+            return null
+        }
+
+        // 카카오 간편주문: sessionStorage 보존 후 user-info 페이지로 이동
+        const handleKakaoOrder = () => {
+            sessionStorage.setItem("data", JSON.stringify(store))
+            // sheet는 withOrderSheet useEffect에서 이미 지속 저장됨
+            const routeId = getUserInfoRouteId()
+            if (routeId) {
+                navigate(routeId, "")
+            } else {
+                window.location.href = "/phone/user-info"
+            }
+        }
+
         if (!hydrated) return null
         return (
             <Component
@@ -1149,6 +1171,12 @@ export function withOrderSheet(Component): ComponentType {
                 specialPriceMnp={specialPriceMnp}
                 specialPriceChg={specialPriceChg}
                 doubleStorageDiscount={doubleStorageDiscount}
+                devicePetName={store.device?.pet_name ?? ""}
+                deviceImage={store.color?.urls?.[0] ?? store.device?.thumbnail ?? ""}
+                deviceColor={store.color?.kr ?? ""}
+                deviceCapacity={store.device?.capacity ?? ""}
+                formLink={formLink}
+                onKakaoOrderClick={handleKakaoOrder}
             />
         )
     }

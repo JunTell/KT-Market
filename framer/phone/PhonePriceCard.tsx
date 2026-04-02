@@ -64,7 +64,7 @@ const Skeleton = ({ width, height, style = {} }: { width: string | number; heigh
 )
 
 // ─────────────────────────────────────────
-// 월 할부 팝업 (바텀시트)
+// 월 납부금 팝업 (바텀시트)
 // ─────────────────────────────────────────
 function MonthlyPopup({
     finalPrice,
@@ -72,6 +72,7 @@ function MonthlyPopup({
     installment,
     planPrice,
     planDiscountAmount,
+    discount,
     onClose,
 }: {
     finalPrice: number
@@ -79,23 +80,15 @@ function MonthlyPopup({
     installment: number
     planPrice: number
     planDiscountAmount: number
+    discount: string
     onClose: () => void
 }) {
-    const totalMonthly = monthlyPayment + (planPrice - planDiscountAmount)
+    // 선택약정할인 여부 ("선택약정할인" 또는 "선택약정" 모두 처리)
+    const isYakjeong =
+        discount === "선택약정할인" || discount === "선택약정"
 
-    const rows = [
-        { label: "할부원금", value: `${finalPrice.toLocaleString()}원`, bold: false },
-        {
-            label: `월 단말 할부금 (${installment}개월, 5.9%)`,
-            value: `${monthlyPayment.toLocaleString()}원`,
-            bold: true,
-        },
-        {
-            label: `월 요금제 (할인 후)`,
-            value: `${(planPrice - planDiscountAmount).toLocaleString()}원`,
-            bold: false,
-        },
-    ]
+    const planAfterDiscount = planPrice - planDiscountAmount
+    const totalMonthly = monthlyPayment + planAfterDiscount
 
     return (
         <AnimatePresence>
@@ -136,6 +129,7 @@ function MonthlyPopup({
                     padding: "28px 20px 36px",
                     zIndex: 9999,
                     boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
+                    fontFamily: '"Pretendard", "Inter", sans-serif',
                 }}
             >
                 {/* 핸들 */}
@@ -149,20 +143,77 @@ function MonthlyPopup({
                     }}
                 />
 
-                <p style={{ fontSize: "18px", fontWeight: 700, color: "#111827", marginBottom: "20px" }}>
-                    월 납부금 안내
+                <p style={{ fontSize: "18px", fontWeight: 700, color: "#111827", marginBottom: "4px", margin: "0 0 4px" }}>
+                    월 납부금액 안내
                 </p>
+
+                {/* 할인 유형 뱃지 */}
+                <div style={{ marginBottom: "20px" }}>
+                    <span style={{
+                        display: "inline-block",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        color: isYakjeong ? "#7C3AED" : "#0055FF",
+                        backgroundColor: isYakjeong ? "#F5F3FF" : "#EFF6FF",
+                        padding: "3px 8px",
+                        borderRadius: "6px",
+                    }}>
+                        {isYakjeong ? "선택약정할인 (25%)" : "공통지원금"}
+                    </span>
+                </div>
 
                 {/* 행 목록 */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginBottom: "20px" }}>
-                    {rows.map((row) => (
-                        <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <span style={{ fontSize: "14px", color: "#6B7280" }}>{row.label}</span>
-                            <span style={{ fontSize: "14px", fontWeight: row.bold ? 700 : 400, color: "#111827" }}>
-                                {row.value}
+                    {/* 할부원금 */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: "14px", color: "#6B7280" }}>할부원금</span>
+                        <span style={{ fontSize: "14px", color: "#111827" }}>
+                            {finalPrice.toLocaleString()}원
+                        </span>
+                    </div>
+
+                    {/* 월 단말 할부금 */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: "14px", color: "#6B7280" }}>
+                            월 단말 할부금 ({installment}개월, 5.9%)
+                        </span>
+                        <span style={{ fontSize: "14px", fontWeight: 700, color: "#111827" }}>
+                            {monthlyPayment.toLocaleString()}원
+                        </span>
+                    </div>
+
+                    {/* 월 요금제 원가 */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: "14px", color: "#6B7280" }}>월 요금제</span>
+                        <span style={{ fontSize: "14px", color: "#111827" }}>
+                            {planPrice.toLocaleString()}원
+                        </span>
+                    </div>
+
+                    {/* 선택약정할인: 25% 할인 행 표시 */}
+                    {isYakjeong && planDiscountAmount > 0 && (
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span style={{ fontSize: "14px", color: "#7C3AED" }}>
+                                └ 선택약정 25% 할인
+                            </span>
+                            <span style={{ fontSize: "14px", fontWeight: 600, color: "#7C3AED" }}>
+                                -{planDiscountAmount.toLocaleString()}원
                             </span>
                         </div>
-                    ))}
+                    )}
+
+                    {/* 공통지원금: 요금제 할인 없음 안내 */}
+                    {!isYakjeong && (
+                        <div style={{
+                            fontSize: "12px",
+                            color: "#9CA3AF",
+                            backgroundColor: "#F9FAFB",
+                            borderRadius: "8px",
+                            padding: "8px 10px",
+                        }}>
+                            공통지원금 선택 시 요금제 별도 할인 없음
+                        </div>
+                    )}
                 </div>
 
                 {/* 구분선 */}
@@ -170,8 +221,13 @@ function MonthlyPopup({
 
                 {/* 합계 */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-                    <span style={{ fontSize: "15px", fontWeight: 600, color: "#111827" }}>월 예상 납부금</span>
-                    <span style={{ fontSize: "18px", fontWeight: 800, color: "#0055FF" }}>
+                    <div>
+                        <span style={{ fontSize: "15px", fontWeight: 600, color: "#111827" }}>월 예상 납부금</span>
+                        <div style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "2px" }}>
+                            부가세 포함, 결합할인 미적용 기준
+                        </div>
+                    </div>
+                    <span style={{ fontSize: "20px", fontWeight: 800, color: "#0055FF" }}>
                         {totalMonthly.toLocaleString()}원
                     </span>
                 </div>
@@ -188,6 +244,7 @@ function MonthlyPopup({
                         fontSize: "15px",
                         fontWeight: 600,
                         cursor: "pointer",
+                        fontFamily: '"Pretendard", "Inter", sans-serif',
                     }}
                 >
                     확인
@@ -214,6 +271,7 @@ export default function PhonePriceCard(props) {
         installment = 24,
         planPrice = 0,
         planDiscountAmount = 0,
+        discount = "공통지원금",
         isLoading = false,
         formLink = "",
     } = props
@@ -287,7 +345,7 @@ export default function PhonePriceCard(props) {
                         <span style={{ fontSize: "15px", fontWeight: 500, color: "#374151" }}>원</span>
                     </div>
 
-                    {/* 월 > 버튼 */}
+                    {/* 월 납부금액 > 버튼 */}
                     <button
                         onClick={() => setShowPopup(true)}
                         style={{
@@ -303,7 +361,7 @@ export default function PhonePriceCard(props) {
                             fontWeight: 500,
                         }}
                     >
-                        월
+                        월 납부금액
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="9 18 15 12 9 6" />
                         </svg>
@@ -319,6 +377,7 @@ export default function PhonePriceCard(props) {
                     installment={installment}
                     planPrice={planPrice}
                     planDiscountAmount={planDiscountAmount}
+                    discount={discount}
                     onClose={() => setShowPopup(false)}
                 />
             )}
@@ -376,6 +435,12 @@ addPropertyControls(PhonePriceCard, {
         type: ControlType.Number,
         title: "요금제 할인 (원)",
         defaultValue: 0,
+    },
+    discount: {
+        type: ControlType.Enum,
+        title: "할인 유형",
+        options: ["공통지원금", "선택약정할인"],
+        defaultValue: "공통지원금",
     },
     formLink: {
         type: ControlType.String,
