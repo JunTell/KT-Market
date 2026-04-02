@@ -473,6 +473,8 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 const useStore = createStore({
     capacity: null,
+    currentModelId: null as string | null,
+    isLoading: true,
     device: null,
     colors: [],
     // pid: "ppllistobj_0808",
@@ -576,6 +578,55 @@ export function withPriceComponent(Component): ComponentType {
                 discountRate={discountRate()}
                 originPrice={store.device?.price ?? 0}
                 finalPrice={store.installmentPrincipal}
+            />
+        )
+    }
+}
+
+// PhonePriceCard 전용 override
+// finalPrice 카운트 애니메이션 + 월 할부 팝업 + 스켈레톤 통합
+export function withPriceCard(Component): ComponentType {
+    return (props) => {
+        const [store] = useStore()
+
+        function calcInstallment(principal: number, months: number) {
+            if (months === 0) return principal
+            const r = 5.9 / 100 / 12
+            const n = months
+            return Math.floor(
+                (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1)
+            )
+        }
+
+        const finalPrice = store.installmentPrincipal ?? 0
+        const originPrice = store.device?.price ?? 0
+        const installment = store.installment ?? 24
+        const monthlyPayment = calcInstallment(finalPrice, installment)
+
+        const planPrice = store.selectedPlan?.price ?? 0
+        const planDiscountAmount =
+            store.discount === "선택약정"
+                ? Math.round(planPrice * 0.25)
+                : 0
+
+        const discountRate = (() => {
+            if (originPrice <= 0) return 0
+            const rate = ((originPrice - finalPrice) / originPrice) * 100
+            return Math.round(Math.min(Math.max(rate, 0), 100))
+        })()
+
+        return (
+            <Component
+                {...props}
+                finalPrice={finalPrice}
+                originPrice={originPrice}
+                discountRate={discountRate}
+                monthlyPayment={monthlyPayment}
+                installment={installment}
+                planPrice={planPrice}
+                planDiscountAmount={planDiscountAmount}
+                isLoading={store.isLoading ?? false}
+                formLink={store.device?.form_link ?? ""}
             />
         )
     }
@@ -1113,11 +1164,6 @@ export function withPhoneDetail(Component): ComponentType {
             KTMARKET_SUBSIDY: "ktmarket_subsidy",
         }
 
-        const lastSegment =
-            typeof window !== "undefined"
-                ? window.location.pathname.split("/").filter(Boolean).pop()
-                : ""
-
         const createColors = ({
             category,
             colors_kr,
@@ -1143,12 +1189,12 @@ export function withPhoneDetail(Component): ComponentType {
                 }
             })
 
-        const fetchKTmarketSubsidy = async () => {
+        const fetchKTmarketSubsidy = async (modelId: string) => {
             try {
                 const { data, error } = await supabase
                     .from(DB.KTMARKET_SUBSIDY)
                     .select("*")
-                    .eq("model", lastSegment)
+                    .eq("model", modelId)
 
                 if (error) throw error
                 setStore({
@@ -1174,16 +1220,16 @@ export function withPhoneDetail(Component): ComponentType {
             }
         }
 
-        const fetchInitPlanData = async (planId: string, planType: string) => {
+        const fetchInitPlanData = async (planId: string, planType: string, modelId: string) => {
             try {
                 const { data, error } = await supabase
                     .from(getPlanDB(planType))
                     .select("*")
                     .eq("plan_id", planId)
-                    .eq("model", lastSegment)
+                    .eq("model", modelId)
 
                 if (error) throw error
-                await fetchKTmarketSubsidy()
+                await fetchKTmarketSubsidy(modelId)
                 const planInfo = getPlanInfoByPid(data[0].plan_id)
                 setStore({
                     plan: data[0],
@@ -1193,18 +1239,16 @@ export function withPhoneDetail(Component): ComponentType {
                 })
             } catch (err) {
                 setError(err.message)
-            } finally {
-                // setLoading(false)
             }
         }
 
-        const fetchMainPlanData = async (planId: string, planType: string) => {
+        const fetchMainPlanData = async (planId: string, planType: string, modelId: string) => {
             try {
                 const { data, error } = await supabase
                     .from(getPlanDB(planType))
                     .select("*")
                     .eq("plan_id", planId)
-                    .eq("model", lastSegment)
+                    .eq("model", modelId)
 
                 if (error) throw error
                 setStore({
@@ -1214,31 +1258,27 @@ export function withPhoneDetail(Component): ComponentType {
                 })
             } catch (err) {
                 setError(err.message)
-            } finally {
-                // setLoading(false)
             }
         }
 
         const fetchSelectedPlanData = async (
             plan_id: string,
-            planType: string
+            planType: string,
+            modelId: string
         ) => {
             try {
                 const { data, error } = await supabase
                     .from(getPlanDB(planType))
                     .select("*")
                     .eq("plan_id", plan_id)
-                    .eq("model", lastSegment)
+                    .eq("model", modelId)
 
                 if (error) throw error
-                const planInfo = getPlanInfoByPid(data[0].plan_id)
                 setStore({
                     selectedPlan: data[0],
                 })
             } catch (err) {
                 setError(err.message)
-            } finally {
-                // setLoading(false)
             }
         }
 
@@ -1246,12 +1286,13 @@ export function withPhoneDetail(Component): ComponentType {
             return ["aip16e-128", "aip16e-256", "aip16e-512"].includes(model)
         }
 
-        const fetchDeviceData = async () => {
+        const fetchDeviceData = async (modelId: string) => {
+            setStore({ isLoading: true })
             try {
                 const { data, error } = await supabase
                     .from(DB.DEVICES)
                     .select("*")
-                    .eq("model", lastSegment)
+                    .eq("model", modelId)
 
                 if (error) throw error
 
@@ -1271,7 +1312,7 @@ export function withPhoneDetail(Component): ComponentType {
                     initialPlanId = device.plan_id
                 }
 
-                await fetchInitPlanData(initialPlanId, store.register)
+                await fetchInitPlanData(initialPlanId, store.register, modelId)
 
                 setStore({
                     device,
@@ -1282,46 +1323,46 @@ export function withPhoneDetail(Component): ComponentType {
                 setError(err.message)
             } finally {
                 setLoading(false)
+                setStore({ isLoading: false })
             }
         }
 
-        // ✅ 단종 팝업 강제 이동 핸들러
+        // ✅ 단종 팝업 → SPA 방식으로 모델 이동
         const handleDiscontinuedRedirect = () => {
             if (!discontinuedInfo) return
-            const currentPath = window.location.pathname
-            const newPath = currentPath.replace(
-                lastSegment,
-                discontinuedInfo.targetModel
-            )
-            window.location.href = newPath
+            window.history.pushState({}, "", `/phone/${discontinuedInfo.targetModel}`)
+            setStore({ currentModelId: discontinuedInfo.targetModel })
         }
 
+        // currentModelId 초기화: URL에서 파싱 후 store에 저장
         useEffect(() => {
-            if (
-                lastSegment == "sm-f966nk512" ||
-                lastSegment == "sm-f766nk512"
-            ) {
-                const params = new URLSearchParams(window.location.search)
+            if (typeof window === "undefined") return
+            if (!store.currentModelId) {
+                const pathSegment =
+                    window.location.pathname.split("/").filter(Boolean).pop() || ""
+                setStore({ currentModelId: pathSegment })
+            }
+        }, [])
 
+        // currentModelId 변경 시: 팝업/단종 체크 + 데이터 재호출 (SPA 핵심)
+        useEffect(() => {
+            if (!store.currentModelId) return
+            const modelId = store.currentModelId
+
+            // isGuaranteedReturn 초기화 (해당 모델만)
+            if (modelId === "sm-f966nk512" || modelId === "sm-f766nk512") {
+                const params = new URLSearchParams(window.location.search)
                 const isGuaranteedReturnValue =
                     params.get("isGuaranteedReturn") ?? "0"
-                if (isGuaranteedReturnValue == "1") {
+                if (isGuaranteedReturnValue === "1") {
                     setStore({ isGuaranteedReturn: true })
                 }
             }
 
-            if (!store.device) fetchDeviceData()
-
-            if (typeof window === "undefined") return
-
-            const pathname = window.location.pathname
-
             // ✅ 오직 이 경로에서만 16e 팝업 ON
-            if (pathname === TARGET_POPUP_PATH) {
-                setShowPopup(true)
-            }
+            setShowPopup(modelId === "aip16e-128")
 
-            // ✅ 단종 모델 체크 및 텍스트 고도화 반영
+            // ✅ 단종 모델 체크
             const obsoleteIphones = [
                 "aip16-128",
                 "aip16-256",
@@ -1351,7 +1392,7 @@ export function withPhoneDetail(Component): ComponentType {
                 "sm-s928nk",
             ]
 
-            if (obsoleteIphones.includes(lastSegment)) {
+            if (obsoleteIphones.includes(modelId)) {
                 setDiscontinuedInfo({
                     title: "단종된 모델입니다",
                     description:
@@ -1359,7 +1400,7 @@ export function withPhoneDetail(Component): ComponentType {
                     targetModel: "aip17-256",
                     buttonText: "아이폰17 보러가기",
                 })
-            } else if (obsoleteGalaxys.includes(lastSegment)) {
+            } else if (obsoleteGalaxys.includes(modelId)) {
                 setDiscontinuedInfo({
                     title: "단종된 모델입니다",
                     description:
@@ -1367,30 +1408,39 @@ export function withPhoneDetail(Component): ComponentType {
                     targetModel: "sm-s942nk",
                     buttonText: "최신 기종 보러가기",
                 })
+            } else {
+                setDiscontinuedInfo(null)
             }
-        }, [])
+
+            // 디바이스 데이터 재호출 (스켈레톤 ON → fetch → OFF)
+            fetchDeviceData(modelId)
+        }, [store.currentModelId])
 
         useEffect(() => {
             if (!isFirst) {
+                const modelId = store.currentModelId || ""
                 if (store.selectedPlanInfo)
                     fetchSelectedPlanData(
                         store.selectedPlanInfo.pid,
-                        store.register
+                        store.register,
+                        modelId
                     )
             }
         }, [store.selectedPlanInfo])
 
         useEffect(() => {
             if (!isFirst) {
+                const modelId = store.currentModelId || ""
                 if (store.planInfo)
-                    fetchMainPlanData(store.planInfo.pid, store.register)
+                    fetchMainPlanData(store.planInfo.pid, store.register, modelId)
             }
         }, [store.planInfo])
 
         useEffect(() => {
             if (!isFirst) {
+                const modelId = store.currentModelId || ""
                 if (store.planInfo)
-                    fetchMainPlanData(store.planInfo.pid, store.register)
+                    fetchMainPlanData(store.planInfo.pid, store.register, modelId)
             }
         }, [store.register])
 
@@ -1612,9 +1662,47 @@ export function withThumbnail(Component): ComponentType {
             if (store.color) {
                 setUrls(store.color.urls)
             }
-        }, [store.color]) // store.device를 의존성으로 설정
+        }, [store.color])
 
         return <Component {...props} urls={urls} />
+    }
+}
+
+// JunCarousel 전용: 이미지 + 색상 선택 + 스켈레톤 통합
+export function withCarousel(Component): ComponentType {
+    return (props) => {
+        const [store, setStore] = useStore()
+        const [urls, setUrls] = useState([])
+        const [colors, setColors] = useState([])
+
+        // 색상 변경 시 이미지 업데이트
+        useEffect(() => {
+            if (store.color) {
+                setUrls(store.color.urls)
+            }
+        }, [store.color])
+
+        // store.colors 초기화 및 첫 번째 색상 선택
+        useEffect(() => {
+            if (store.colors && store.colors.length > 0) {
+                setColors(store.colors)
+            }
+        }, [store.colors])
+
+        const handleColorChange = (color) => {
+            setStore({ color })
+        }
+
+        return (
+            <Component
+                {...props}
+                urls={urls}
+                colors={colors}
+                activeColor={store.color}
+                isLoading={store.isLoading}
+                onColorChange={handleColorChange}
+            />
+        )
     }
 }
 
@@ -1659,7 +1747,6 @@ export function withThumbnail(Component): ComponentType {
 
 export function withCapacity(Component): ComponentType {
     return (props) => {
-        // Framer Data 또는 Context API를 통한 상태 관리 (가정된 useStore 훅 사용)
         const [store, setStore] = useStore()
         const [capacities, setCapacities] = useState([])
 
@@ -1675,7 +1762,20 @@ export function withCapacity(Component): ComponentType {
             }
         }, [store.device])
 
-        return <Component {...props} capacities={capacities} />
+        const handleCapacitySelect = (path: string) => {
+            window.history.pushState({}, "", `/phone/${path}`)
+            setStore({ currentModelId: path })
+        }
+
+        return (
+            <Component
+                {...props}
+                capacities={capacities}
+                currentModelId={store.currentModelId}
+                isLoading={store.isLoading}
+                onCapacitySelect={handleCapacitySelect}
+            />
+        )
     }
 }
 
@@ -1740,7 +1840,9 @@ export function withColor(Component): ComponentType {
             <Component
                 {...props}
                 colors={colors}
+                activeColor={store.color}
                 onColorChange={handleColorChange}
+                isLoading={store.isLoading ?? false}
             />
         )
     }
@@ -1949,6 +2051,7 @@ export function withRegister(Component): ComponentType {
                 defaultCarrier={getActiveCarrier()}
                 onValueChange={handleValueChange}
                 showNewSubscription={showNewSub}
+                isLoading={store.isLoading ?? false}
             />
         )
     }
