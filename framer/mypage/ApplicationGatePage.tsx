@@ -1,6 +1,6 @@
-import { addPropertyControls, ControlType } from "framer"
 import * as React from "react"
 import { useState, useEffect } from "react"
+import { addPropertyControls, ControlType } from "framer"
 
 // --- Skeleton Components ---
 const SkeletonBox = ({
@@ -246,7 +246,6 @@ interface OrderSummary {
     ktMarketSubsidy: number
     commonDiscount: number
     doubleStorageDiscount: number
-    // ✨ 프로모션 할인 속성 추가
     promotionDiscount: number
 
     planName: string
@@ -358,7 +357,6 @@ const PriceInfoSection = ({
                 isHighlight
             />
         )}
-        {/* ✨ 초이스 요금제 프로모션 할인 렌더링 추가 */}
         {orderInfo.promotionDiscount > 0 && (
             <PriceRow
                 label="디바이스 추가지원금(단독)"
@@ -366,7 +364,6 @@ const PriceInfoSection = ({
                 isHighlight
             />
         )}
-        {/* ✨ 명칭이 512GB 추가지원금(단독)으로 수정되었습니다 */}
         {orderInfo.doubleStorageDiscount > 0 && (
             <PriceRow
                 label="512GB 추가지원금(단독)"
@@ -457,6 +454,33 @@ export default function ApplicationGatePage(props: Props) {
 
     const isAllAgreed = agreements.every((agreed) => agreed === true)
 
+    useEffect(() => {
+        loadSessionData()
+    }, [])
+
+    useEffect(() => {
+        const handlePopState = () => {
+            if (showCompletionCheck || showReturnMessage || showMustRead) {
+                const dataStr = sessionStorage.getItem("data")
+                if (dataStr) {
+                    try {
+                        const data = JSON.parse(dataStr)
+                        const model =
+                            data.device?.model || data.model || "default"
+                        window.location.href = `/phone/${model}`
+                    } catch (e) {
+                        window.location.href = "/phone"
+                    }
+                } else {
+                    window.location.href = "/phone"
+                }
+            }
+        }
+
+        window.addEventListener("popstate", handlePopState)
+        return () => window.removeEventListener("popstate", handlePopState)
+    }, [showCompletionCheck, showReturnMessage, showMustRead])
+
     const loadSessionData = () => {
         if (typeof window === "undefined") return
 
@@ -486,7 +510,6 @@ export default function ApplicationGatePage(props: Props) {
                 const ktMarketSubsidy = parsedSheet.ktmarketSubsidy || 0
                 const doubleStorageDiscount =
                     parsedSheet.doubleStorageDiscount || 0
-                // ✨ 프로모션 할인 데이터 파싱 추가
                 const promotionDiscount = parsedSheet.promotionDiscount || 0
 
                 const totalDiscount = devicePrice - installmentPrincipal
@@ -508,7 +531,7 @@ export default function ApplicationGatePage(props: Props) {
                     ktMarketSubsidy,
                     commonDiscount: commonDiscount > 0 ? commonDiscount : 0,
                     doubleStorageDiscount,
-                    promotionDiscount, // ✨ 데이터 매핑 추가
+                    promotionDiscount,
                     planName: parsedSheet.planName || "",
                     joinType: parsedData.register || "기기변경",
                     discountType: parsedSheet.discount || "공통지원금",
@@ -531,7 +554,7 @@ export default function ApplicationGatePage(props: Props) {
                     ktMarketSubsidy: 420000,
                     commonDiscount: 450000,
                     doubleStorageDiscount: 0,
-                    promotionDiscount: 0, // ✨ 기본값 처리
+                    promotionDiscount: 0,
                     planName: "5G 초이스 베이직",
                     joinType: "기기변경",
                     discountType: "공시지원금",
@@ -546,12 +569,13 @@ export default function ApplicationGatePage(props: Props) {
             setTimeout(() => {
                 setIsInitialLoading(false)
             }, 300)
-        } catch (error) {
-            console.error("Session load error:", error)
+        } catch (e) {
+            console.error("Session load error:", e)
             setIsInitialLoading(false)
         }
     }
 
+<<<<<<< HEAD
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         loadSessionData()
@@ -580,6 +604,8 @@ export default function ApplicationGatePage(props: Props) {
         return () => window.removeEventListener("popstate", handlePopState)
     }, [showCompletionCheck, showReturnMessage, showMustRead])
 
+=======
+>>>>>>> 1a7b32b (feat: 신청경로 코드 수정)
     const formatPhoneNumber = (value: string) => {
         const numbers = value.replace(/[^0-9]/g, "")
         if (numbers.length <= 3) return numbers
@@ -1024,7 +1050,7 @@ export default function ApplicationGatePage(props: Props) {
                                     </div>
                                 </div>
 
-                                {isExpanded && ExpandedDetails()}
+                                {isExpanded && <ExpandedDetails />}
 
                                 {!isExpanded && (
                                     <div style={noticeBoxStyle}>
@@ -1128,7 +1154,40 @@ export default function ApplicationGatePage(props: Props) {
                                 zIndex: 2,
                             }}
                         >
-                            <div style={subTitleStyle}>내 신청 정보</div>
+                            {/* ✅ 공지 박스 — 내 신청 정보 위로 이동 + 내용 업데이트 */}
+                            <div style={priceAlertContainerStyle}>
+                                <div style={priceAlertHeaderStyle}>
+                                    📋 신청서 작성 전 꼭 읽어주세요
+                                </div>
+                                <div style={priceAlertWarningTextStyle}>
+                                    <strong>
+                                        KT 공식 신청서에는
+                                        <br />
+                                        추가지원금이 반영되지 않아
+                                        <br />
+                                        월요금이 높게 보일 수 있어요.
+                                    </strong>
+                                </div>
+                                <div style={priceAlertCheckTextStyle}>
+                                    ✔ 실제 개통은
+                                    <br />
+                                    지금 안내받으신 조건 그대로
+                                    <br />
+                                    진행됩니다.
+                                </div>
+                                <div style={priceAlertReassureTextStyle}>
+                                    <strong>걱정하지 마시고 작성해주세요!</strong>
+                                </div>
+                                <div style={priceAlertDisclaimerStyle}>
+                                    *개통 완료 후에는 할부원금·요금제·결합할인 등 모든 정보가 고객센터
+                                    앱에서 확인 가능합니다.
+                                </div>
+                            </div>
+
+                            {/* ✅ 내 신청 정보 — 공지 박스 아래로 */}
+                            <div style={{ ...subTitleStyle, marginTop: "28px" }}>
+                                내 신청 정보
+                            </div>
                             <div
                                 style={cardStyle}
                                 onClick={() => setIsExpanded(!isExpanded)}
@@ -1179,7 +1238,7 @@ export default function ApplicationGatePage(props: Props) {
                                     </div>
                                 </div>
 
-                                {isExpanded && ExpandedDetails()}
+                                {isExpanded && <ExpandedDetails />}
 
                                 {!isExpanded && (
                                     <div style={noticeBoxStyle}>
@@ -1190,29 +1249,6 @@ export default function ApplicationGatePage(props: Props) {
                                         </span>
                                     </div>
                                 )}
-                            </div>
-
-                            <div style={priceAlertContainerStyle}>
-                                <div style={priceAlertLabelStyle}>
-                                    금액 안내
-                                </div>
-                                <div style={priceAlertMainTextStyle}>
-                                    지금 선택하신 요금제/옵션을
-                                    <br />
-                                    공식신청서에서도 동일하게 선택하시면,
-                                    <br />
-                                    <span style={priceAlertHighlightStyle}>
-                                        최종 개통은 KT마켓 가격표 기준으로
-                                        진행됩니다.
-                                    </span>
-                                </div>
-                                <div style={priceAlertSubTextStyle}>
-                                    <br />
-                                    공식신청서 화면 지원금 표시는 다르게 보일 수
-                                    있으나,
-                                    <br />
-                                    개통 시 가격표 기준으로 적용됩니다.
-                                </div>
                             </div>
 
                             <div
@@ -1283,7 +1319,6 @@ const containerStyle: React.CSSProperties = {
     backgroundColor: "#FFFFFF",
     display: "flex",
     flexDirection: "column",
-    // ❌ fontFamily 선언 삭제됨
     position: "relative",
     maxWidth: "440px",
     margin: "0 auto",
@@ -1418,42 +1453,57 @@ const noticeBoxStyle: React.CSSProperties = {
     marginTop: "10px",
 }
 
+// ✅ 공지 박스 컨테이너
 const priceAlertContainerStyle: React.CSSProperties = {
-    backgroundColor: "#F5F7FF",
+    backgroundColor: "#EEF3FF",
     borderRadius: "20px",
-    padding: "30px 20px",
-    marginTop: "24px",
+    padding: "28px 24px",
     textAlign: "center",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
 }
 
-const priceAlertLabelStyle: React.CSSProperties = {
-    fontSize: "14px",
-    fontWeight: 600,
+// ✅ "📋 신청서 작성 전 꼭 읽어주세요" 헤더
+const priceAlertHeaderStyle: React.CSSProperties = {
+    fontSize: "13px",
     color: "#8B95A1",
-    marginBottom: "16px",
+    fontWeight: 500,
+    marginBottom: "20px",
 }
 
-const priceAlertMainTextStyle: React.CSSProperties = {
+// ✅ KT 공식 신청서 경고 텍스트 (굵음, 어두운 색)
+const priceAlertWarningTextStyle: React.CSSProperties = {
+    fontSize: "16px",
+    fontWeight: 400,
+    color: "#191F28",
+    lineHeight: "1.7",
+    marginBottom: "20px",
+}
+
+// ✅ ✔ 실제 개통은 ... 파란색 텍스트
+const priceAlertCheckTextStyle: React.CSSProperties = {
     fontSize: "16px",
     fontWeight: 700,
-    color: "#191F28",
-    lineHeight: "1.5",
-    marginBottom: "16px",
-}
-
-const priceAlertHighlightStyle: React.CSSProperties = {
     color: "#446DF6",
+    lineHeight: "1.7",
+    marginBottom: "20px",
 }
 
-const priceAlertSubTextStyle: React.CSSProperties = {
+// ✅ 걱정하지 마시고 작성해주세요!
+const priceAlertReassureTextStyle: React.CSSProperties = {
+    fontSize: "16px",
+    fontWeight: 400,
+    color: "#191F28",
+    marginBottom: "20px",
+}
+
+// ✅ 작은 주석 텍스트
+const priceAlertDisclaimerStyle: React.CSSProperties = {
     fontSize: "12px",
-    fontWeight: 500,
-    color: "#4E5968",
+    color: "#8B95A1",
     lineHeight: "1.6",
+    textAlign: "center",
     wordBreak: "keep-all",
 }
 
@@ -1568,7 +1618,6 @@ const buttonStyle: React.CSSProperties = {
     borderRadius: "16px",
     cursor: "pointer",
     transition: "background 0.2s",
-    // ❌ fontFamily 선언 삭제됨
 }
 
 const mustReadContainerStyle: React.CSSProperties = {
@@ -1659,7 +1708,6 @@ const stepConfirmButtonStyle: React.CSSProperties = {
     fontWeight: 700,
     cursor: "pointer",
     transition: "all 0.2s",
-    // ❌ fontFamily 선언 삭제됨
 }
 
 const mustReadBottomStyle: React.CSSProperties = {
@@ -1676,7 +1724,6 @@ const bottomSubmitButtonStyle: React.CSSProperties = {
     fontWeight: 700,
     border: "none",
     transition: "all 0.2s",
-    // ❌ fontFamily 선언 삭제됨
 }
 
 const returnMessageOverlayStyle: React.CSSProperties = {
@@ -1795,7 +1842,6 @@ const completionCheckContainerStyle: React.CSSProperties = {
     backgroundColor: "#FFFFFF",
     display: "flex",
     flexDirection: "column",
-    // ❌ fontFamily 선언 삭제됨
     maxWidth: "440px",
     margin: "0 auto",
 }
@@ -1803,16 +1849,16 @@ const completionCheckContainerStyle: React.CSSProperties = {
 if (typeof document !== "undefined") {
     const styleSheet = document.createElement("style")
     styleSheet.innerText = `
-        @keyframes fadeIn { 
-            from { opacity: 0; transform: translateY(-5px); } 
-            to { opacity: 1; transform: translateY(0); } 
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         @keyframes arrowMove {
-            0%, 100% { 
+            0%, 100% {
                 transform: translateX(0);
                 opacity: 0.3;
             }
-            50% { 
+            50% {
                 transform: translateX(8px);
                 opacity: 1;
             }
@@ -1822,9 +1868,9 @@ if (typeof document !== "undefined") {
             50% { opacity: 0.4; }
             100% { opacity: 1; }
         }
-        @keyframes slideUp { 
-            from { transform: translateY(100%); } 
-            to { transform: translateY(0); } 
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
         }
     `
     if (!document.getElementById("framer-guide-styles")) {
