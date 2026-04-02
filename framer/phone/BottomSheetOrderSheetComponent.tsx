@@ -170,10 +170,9 @@ const DeviceCard = ({
 // ─── 카카오 아이콘 (원형 배지 스타일) ────────────────────────────────
 const KakaoBadge = ({ size = 22 }: { size?: number }) => (
     <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
-        <ellipse cx="18" cy="17" rx="15" ry="13.5" fill="#3A1D1D" />
         <path
             d="M18 6C12.477 6 8 9.806 8 14.5c0 3.12 1.963 5.86 4.94 7.43L12.1 26l4.37-2.87c.5.07 1.01.12 1.53.12 5.523 0 10-3.806 10-8.5S23.523 6 18 6z"
-            fill="#FAE100"
+            fill="#3A1D1D"
         />
     </svg>
 )
@@ -243,7 +242,7 @@ export default function BottomSheetOrderSheetComponent(props) {
 
     const sheet = (
         <div style={{
-            position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
+            position: "fixed", bottom: 0, left: 0, right: 0, margin: "0 auto",
             width: "100%", maxWidth: 440,
             zIndex: 120,
             backgroundColor: "#FFFFFF",
