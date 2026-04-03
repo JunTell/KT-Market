@@ -3575,9 +3575,9 @@ export function withPlanGrid(Component): ComponentType {
         }
 
         // 고정 3개 PID + 선택된 요금제에 대한 할인 금액 맵
-        const GRID_PIDS = ["ppllistobj_0865", "ppllistobj_0808", "ppllistobj_0925"]
+        const GRID_PIDS = ["ppllistobj_0942", "ppllistobj_0808", "ppllistobj_0925"]
         const planPriceMap: Record<string, number> = {
-            "ppllistobj_0865": 90000, "ppllistobj_0808": 69000, "ppllistobj_0925": 37000,
+            "ppllistobj_0942": 90000, "ppllistobj_0808": 69000, "ppllistobj_0925": 37000,
         }
         const discountAmounts: Record<string, number> = {}
         for (const pid of GRID_PIDS) {

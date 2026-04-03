@@ -675,7 +675,19 @@ export default function BottomSheetOrderSheetComponent(props) {
                                 zIndex: 9998,
                             }}
                         />
-                        {/* 모달 카드 */}
+                        {/* 모달 카드 — flex wrapper로 중앙 정렬 (motion y와 CSS transform 충돌 방지) */}
+                        <div
+                            key="order-modal-wrapper"
+                            style={{
+                                position: "fixed",
+                                inset: 0,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                zIndex: 9999,
+                                pointerEvents: "none",
+                            }}
+                        >
                         <motion.div
                             key="order-modal-card"
                             initial={{ opacity: 0, scale: 0.94, y: 16 }}
@@ -683,18 +695,15 @@ export default function BottomSheetOrderSheetComponent(props) {
                             exit={{ opacity: 0, scale: 0.94, y: 16 }}
                             transition={{ type: "spring", stiffness: 380, damping: 28 }}
                             style={{
-                                position: "fixed",
-                                top: "50%", left: "50%",
-                                transform: "translate(-50%, -50%)",
-                                width: "calc(100% - 48px)",
+                                width: "calc(100vw - 48px)",
                                 maxWidth: 360,
                                 backgroundColor: "#FFFFFF",
                                 borderRadius: 20,
                                 padding: "28px 24px 24px",
                                 boxShadow: "0 8px 40px rgba(0,0,0,0.18)",
-                                zIndex: 9999,
                                 fontFamily: FONT,
                                 boxSizing: "border-box",
+                                pointerEvents: "auto",
                             }}
                         >
                             {/* 닫기 버튼 */}
@@ -748,7 +757,8 @@ export default function BottomSheetOrderSheetComponent(props) {
                                 onClick={() => { setShowOrderModal(false); handleFormLink() }}
                                 style={{
                                     width: "100%", height: 44,
-                                    background: "none", border: "none",
+                                    backgroundColor: "#F3F4F6", border: "none",
+                                    borderRadius: 10,
                                     cursor: "pointer", fontFamily: FONT,
                                     fontSize: 14, fontWeight: 600, color: "#6B7280",
                                     display: "flex", alignItems: "center", justifyContent: "center",
@@ -757,6 +767,7 @@ export default function BottomSheetOrderSheetComponent(props) {
                                 비회원으로 신청하기
                             </button>
                         </motion.div>
+                        </div>
                     </>
                 )}
             </AnimatePresence>
