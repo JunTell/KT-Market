@@ -1,4 +1,4 @@
-너는 Framer 환경의 React/TypeScript 전문가야. 
+너는 Framer 환경의 React/TypeScript 전문가야.
 현재 휴대폰 상세 페이지(e-commerce)의 코드 컴포넌트와 Override(HOC) 코드를 리팩토링해야 해.
 
 [현재 문제점]
@@ -11,6 +11,27 @@
 - 색상: Primary #0055FF, Sec #E5E7EB, Bg #FFFFFF, Text #111827
 - 폰트: 12px
 - 여백: gap 8px / 모서리(borderRadius): 8px / 버튼 높이: 32px
+
+[주문 플로우]
+페이지 이동 구조는 아래 순서를 따른다:
+
+1. /phone/[model] — 휴대폰 상세 페이지 (BottomSheetOrderSheetComponent)
+   - "카카오로 10초 간편 주문" 버튼:
+     - 로그인 O → /phone/userinfo 로 이동
+     - 로그인 X → /api/auth/kakao?redirect=/phone/user-info 로 이동 (카카오 로그인 후 /phone/user-info 로 리다이렉트)
+   - "주문하기" 버튼:
+     - 로그인 여부 상관없이 → /phone/user-info 로 이동
+
+2. /phone/user-info — 사용자 정보 입력 페이지 (UserInfoForm.tsx)
+   - 이름, 생년월일, 연락처 입력
+   - 완료 시 → nextPageUrl prop에 지정된 페이지로 이동 (기본: /phone/application-gate)
+
+3. /phone/application-gate — 주문 방식 선택 페이지 (ApplicationGatePage.tsx)
+   - 주문 채널 선택 (카카오톡, 전화, 직접 신청서 등)
+   - 완료 시 → /phone/application-confirm 으로 이동
+
+4. /phone/application-confirm — 주문 접수 완료 페이지 (ApplicationConfirmPage.tsx)
+   - 최종 주문 접수 확인 화면
 
 [작업 지시 사항]
 1. 전역 Store (framer/store.js 기반) 업데이트

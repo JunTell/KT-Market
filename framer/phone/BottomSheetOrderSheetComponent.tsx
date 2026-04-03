@@ -7,7 +7,6 @@
 import { addPropertyControls, ControlType } from "framer"
 import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { createPortal } from "react-dom"
 
 // ─── 숫자 카운트 애니메이션 훅 (easeOutCubic, ~1초) ──────────────────
 function useAnimatedNumber(target: number, duration = 1000) {
@@ -328,7 +327,7 @@ function DetailBottomSheet({
     FONT: string
     isLoggedIn: boolean
 }) {
-    return createPortal(
+    return (
         <AnimatePresence>
             {/* 딤 오버레이 */}
             <motion.div
@@ -387,14 +386,6 @@ function DetailBottomSheet({
                     {/* 제목 + 닫기 */}
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <div style={{
-                                width: 24, height: 24, borderRadius: 6,
-                                backgroundColor: "#111827",
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                flexShrink: 0,
-                            }}>
-                                <span style={{ fontSize: 13, fontWeight: 700, color: "#FFFFFF" }}>7</span>
-                            </div>
                             <span style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>최종 주문서</span>
                         </div>
                         <button
@@ -463,8 +454,7 @@ function DetailBottomSheet({
                     </button>
                 </div>
             </motion.div>
-        </AnimatePresence>,
-        document.body
+        </AnimatePresence>
     )
 }
 
@@ -548,21 +538,17 @@ export default function BottomSheetOrderSheetComponent(props) {
             })
     }, [])
 
-    // 카카오 간편주문: 미로그인이면 카카오 OAuth로 이동
+    // 카카오 간편주문: 로그인 O → /phone/userinfo, 로그인 X → 카카오 로그인 후 /phone/user-info
     const handleKakaoOrder = () => {
         if (!isLoggedIn) {
-            window.location.href = `${API_URL}/api/auth/kakao`
+            window.location.href = `${API_URL}/api/auth/kakao?redirect=/phone/user-info`
             return
         }
-        if (typeof onKakaoOrderClick === "function") {
-            onKakaoOrderClick()
-        } else {
-            window.location.href = "/phone/user-info"
-        }
+        window.location.href = "/phone/userinfo"
     }
 
     const handleFormLink = () => {
-        if (formLink) window.open(formLink, "_blank")
+        window.location.href = "/phone/user-info"
     }
 
     if (!mounted) return <div style={{ height: 80 }} />
@@ -676,7 +662,7 @@ export default function BottomSheetOrderSheetComponent(props) {
                 >
                     <KakaoBadge size={22} />
                     <span style={{ fontSize: 13, fontWeight: 700, color: "#3A1D1D", letterSpacing: "-0.2px" }}>
-                        {isLoggedIn ? "카카오톡으로 10초 간편 주문" : "카카오 로그인 후 주문"}
+                        간편 주문
                     </span>
                 </button>
 
@@ -699,7 +685,8 @@ export default function BottomSheetOrderSheetComponent(props) {
 
     return (
         <>
-            {createPortal(bar, document.body)}
+            {/* portal 없이 직접 렌더링 — Framer 캔버스에서 portal은 에디터 외부 body에 붙음 */}
+            {bar}
 
             {/* 상세 주문서 바텀시트 */}
             {showDetailSheet && (

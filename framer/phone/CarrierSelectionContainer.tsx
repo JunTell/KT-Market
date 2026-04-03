@@ -1,93 +1,110 @@
 // withRegister override와 함께 사용
-// 이미지6 기준: 섹션 번호 + 타이틀 + 부제 + flex 4버튼 행 + 스켈레톤
+// 현재 통신사 선택 — 세로 카드 리스트 UI
+// 라디오 + 로고 + (통신사 | 가입유형) + 설명
 
 import * as React from "react"
 import { addPropertyControls, ControlType } from "framer"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 
-// ─────────────────────────────────────────
-// 스켈레톤
-// ─────────────────────────────────────────
-const Skeleton = ({ width, height, radius = 8, style = {} }: {
-    width: string | number
-    height: number
-    radius?: number
-    style?: React.CSSProperties
-}) => (
+const FONT = '"Pretendard", "Inter", sans-serif'
+
+// ─── 스켈레톤 ────────────────────────────────────────────────────────
+const SkeletonCard = ({ delay = 0 }: { delay?: number }) => (
     <motion.div
-        style={{ width, height, borderRadius: radius, backgroundColor: "#E5E7EB", flexShrink: 0, ...style }}
+        style={{ width: "100%", height: 72, borderRadius: 12, backgroundColor: "#E5E7EB" }}
         animate={{ opacity: [0.4, 1, 0.4] }}
-        transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+        transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay }}
     />
 )
 
-// ─────────────────────────────────────────
-// 개별 통신사 버튼
-// ─────────────────────────────────────────
-function CarrierButton({ id, logo, label, color, isActive, onClick }: {
+// ─── 개별 통신사 카드 ─────────────────────────────────────────────────
+function CarrierCard({
+    id, displayName, joinType, description,
+    logo, textLogo, textColor,
+    isActive, onClick,
+}: {
     id: string
+    displayName: string
+    joinType: string
+    description: string
     logo?: string
-    label: string
-    color?: string
+    textLogo?: string
+    textColor?: string
     isActive: boolean
     onClick: () => void
 }) {
     return (
-        <motion.button
+        <motion.div
             onClick={onClick}
-            whileTap={{ scale: 0.96 }}
+            whileTap={{ scale: 0.985 }}
             style={{
-                flex: 1,
-                width: "75px",
-                height: "32px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "11.77px",
-                backgroundColor: "#FFFFFF",
-                border: isActive ? "1.2px solid #0055FF" : "1.2px solid #E5E7EB",
-                borderRadius: "7px",
-                cursor: "pointer",
-                padding: "8.972px 12.194px",
-                boxSizing: "border-box",
-                transition: "border-color 0.15s, border-width 0.15s",
+                width: "100%",
+                display: "flex", alignItems: "center", gap: 14,
+                padding: "14px 16px",
+                border: isActive ? "1.5px solid #0055FF" : "1px solid #E5E7EB",
+                borderRadius: 12,
+                backgroundColor: isActive ? "#EEF4FF" : "#FFFFFF",
+                cursor: "pointer", boxSizing: "border-box",
             }}
         >
-            {logo ? (
-                <img
-                    src={logo}
-                    alt={id}
-                    style={{
-                        width: "17px",
-                        height: "14px",
-                        flexShrink: 0,
-                        aspectRatio: "17 / 14",
-                        objectFit: "cover",
-                    }}
-                />
-            ) : (
-                <span style={{
-                    fontSize: id === "알뜰폰" ? "12px" : "16px",
-                    fontWeight: 700,
-                    color: isActive ? "#0055FF" : (color ?? "#111827"),
-                    letterSpacing: "-0.3px",
-                    lineHeight: 1,
-                    flexShrink: 0,
-                }}>
-                    {label}
+            {/* 라디오 */}
+            <div style={{
+                width: 22, height: 22, borderRadius: "50%",
+                border: `2px solid ${isActive ? "#0055FF" : "#D1D5DB"}`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0, boxSizing: "border-box",
+            }}>
+                {isActive && (
+                    <div style={{ width: 11, height: 11, borderRadius: "50%", backgroundColor: "#0055FF" }} />
+                )}
+            </div>
+
+            {/* 로고 영역 (고정 너비) */}
+            <div style={{ width: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                {logo ? (
+                    <img src={logo} alt={displayName} style={{ maxWidth: 44, maxHeight: 28, objectFit: "contain" }} />
+                ) : (
+                    <span style={{
+                        fontSize: id === "알뜰폰" ? 13 : 20,
+                        fontWeight: 800,
+                        color: textColor ?? "#111827",
+                        fontFamily: FONT,
+                        letterSpacing: "-0.5px",
+                        lineHeight: 1,
+                    }}>
+                        {textLogo ?? displayName}
+                    </span>
+                )}
+            </div>
+
+            {/* 텍스트 */}
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+                        {displayName}
+                    </span>
+                    <span style={{ fontSize: 13, color: "#9CA3AF", fontFamily: FONT }}>|</span>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: "#6B7280", fontFamily: FONT }}>
+                        {joinType}
+                    </span>
+                </div>
+                <span style={{ fontSize: 13, color: "#9CA3AF", lineHeight: 1.5, fontFamily: FONT }}>
+                    {description}
                 </span>
-            )}
-        </motion.button>
+            </div>
+        </motion.div>
     )
 }
 
-// ─────────────────────────────────────────
-// 메인 컴포넌트
-// ─────────────────────────────────────────
+// ─── 메인 컴포넌트 ────────────────────────────────────────────────────
+
+/**
+ * @framerSupportedLayoutWidth any
+ * @framerSupportedLayoutHeight auto
+ */
 export default function CarrierSelectionContainer(props) {
     const {
-        stepNumber = 3,
-        title = "현재 통신사 선택",
+        title = "현재 통신사",
         defaultCarrier = "KT",
         logoKT,
         logoSK,
@@ -103,57 +120,55 @@ export default function CarrierSelectionContainer(props) {
         if (onValueChange) onValueChange(id)
     }
 
-    // 선택된 통신사에 따른 부제 텍스트
-    const getSubtitle = () => {
-        if (activeId === "KT") return "기기변경 | 이용 중인 KT 번호 그대로 핸드폰만 바꿀 수 있어요"
-        if (["SKT", "LG U+", "알뜰폰"].includes(activeId)) return "번호이동 | 쓰던 번호 그대로 통신사만 KT로 바꿀 수 있어요"
-        if (activeId === "신규가입") return "신규가입 | KT에서 새로운 번호로 가입할 수 있어요"
-        return ""
-    }
-
     const carriers = [
-        { id: "KT", label: "kt", color: "#0055FF", logo: logoKT },
-        { id: "SKT", label: "T", color: "#EA002C", logo: logoSK },
-        { id: "LG U+", label: "U+", color: "#E6007E", logo: logoLG },
-        { id: "알뜰폰", label: "알뜰폰", color: "#111827" },
+        {
+            id: "KT",
+            displayName: "KT",
+            joinType: "기기변경",
+            description: "이용 중인 KT 번호 그대로 핸드폰만 바꿀 수 있어요",
+            logo: logoKT,
+            textLogo: "kt",
+            textColor: "#0055FF",
+        },
+        {
+            id: "SKT",
+            displayName: "SKT",
+            joinType: "번호이동",
+            description: "쓰던 번호 그대로 통신사만 KT로 바꿀 수 있어요",
+            logo: logoSK,
+            textLogo: "T",
+            textColor: "#EA002C",
+        },
+        {
+            id: "LG U+",
+            displayName: "U+",
+            joinType: "번호이동",
+            description: "쓰던 번호 그대로 통신사만 KT로 바꿀 수 있어요",
+            logo: logoLG,
+            textLogo: "U+",
+            textColor: "#E6007E",
+        },
+        {
+            id: "알뜰폰",
+            displayName: "알뜰폰",
+            joinType: "번호이동",
+            description: "쓰던 번호 그대로 통신사만 KT로 바꿀 수 있어요",
+            logo: undefined,
+            textLogo: "알뜰폰",
+            textColor: "#111827",
+        },
     ]
 
     // ── 스켈레톤 ──
     if (isLoading) {
         return (
             <div style={wrapperStyle}>
-                {/* 헤더 행 */}
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    {/* 번호 배지 */}
-                    <div style={{
-                        width: "24px",
-                        height: "24px",
-                        borderRadius: "6px",
-                        backgroundColor: "#111827",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                    }}>
-                        <span style={{ fontSize: "13px", fontWeight: 700, color: "#FFFFFF" }}>
-                            {stepNumber}
-                        </span>
-                    </div>
-                    <Skeleton width="40%" height={18} />
-                </div>
-                {/* 부제 */}
-                <Skeleton width="75%" height={14} />
-                {/* 버튼 행 */}
-                <div style={{ display: "flex", gap: "8px" }}>
-                    {[0, 1, 2, 3].map((i) => (
-                        <motion.div
-                            key={i}
-                            style={{ flex: 1, height: 42, borderRadius: 10, backgroundColor: "#E5E7EB" }}
-                            animate={{ opacity: [0.4, 1, 0.4] }}
-                            transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: i * 0.1 }}
-                        />
-                    ))}
-                </div>
+                <motion.div
+                    style={{ width: 100, height: 18, borderRadius: 6, backgroundColor: "#E5E7EB" }}
+                    animate={{ opacity: [0.4, 1, 0.4] }}
+                    transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                />
+                {[0, 1, 2, 3].map((i) => <SkeletonCard key={i} delay={i * 0.08} />)}
             </div>
         )
     }
@@ -161,93 +176,34 @@ export default function CarrierSelectionContainer(props) {
     // ── 실제 렌더 ──
     return (
         <div style={wrapperStyle}>
-            {/* ── 섹션 헤더 ── */}
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                {/* 번호 배지 */}
-                <div style={{
-                    width: "24px",
-                    height: "24px",
-                    borderRadius: "6px",
-                    backgroundColor: "#111827",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                }}>
-                    <span style={{ fontSize: "13px", fontWeight: 700, color: "#FFFFFF" }}>
-                        {stepNumber}
-                    </span>
-                </div>
-                <span style={{ fontSize: "16px", fontWeight: 700, color: "#111827" }}>
-                    {title}
-                </span>
-            </div>
+            {/* 타이틀 */}
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+                {title}
+            </span>
 
-            {/* ── 부제 텍스트 (선택 상태에 따라 전환) ── */}
-            <AnimatePresence mode="wait">
-                <motion.p
-                    key={activeId}
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 4 }}
-                    transition={{ duration: 0.18 }}
-                    style={{
-                        margin: 0,
-                        fontSize: "13px",
-                        fontWeight: 500,
-                        color: "#6B7280",
-                        lineHeight: 1.5,
-                    }}
-                >
-                    {getSubtitle()}
-                </motion.p>
-            </AnimatePresence>
+            {/* 통신사 카드 목록 */}
+            {carriers.map((c) => (
+                <CarrierCard
+                    key={c.id}
+                    {...c}
+                    isActive={activeId === c.id}
+                    onClick={() => handleSelect(c.id)}
+                />
+            ))}
 
-            {/* ── 통신사 버튼 flex 행 ── */}
-            <div style={{ display: "flex", gap: "8px" }}>
-                {carriers.map((c) => (
-                    <CarrierButton
-                        key={c.id}
-                        {...c}
-                        isActive={activeId === c.id}
-                        onClick={() => handleSelect(c.id)}
-                    />
-                ))}
-            </div>
-
-            {/* ── 신규가입 버튼 (조건부) ── */}
-            <AnimatePresence>
-                {showNewSubscription && (
-                    <motion.button
-                        key="new-sub"
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 42 }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.2 }}
-                        onClick={() => handleSelect("신규가입")}
-                        style={{
-                            width: "100%",
-                            height: "42px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            backgroundColor: "#FFFFFF",
-                            border: `${activeId === "신규가입" ? "2px solid #0055FF" : "1.5px solid #E5E7EB"}`,
-                            borderRadius: "10px",
-                            cursor: "pointer",
-                            overflow: "hidden",
-                        }}
-                    >
-                        <span style={{
-                            fontSize: "14px",
-                            fontWeight: 700,
-                            color: activeId === "신규가입" ? "#0055FF" : "#111827",
-                        }}>
-                            신규가입
-                        </span>
-                    </motion.button>
-                )}
-            </AnimatePresence>
+            {/* 신규가입 (조건부) */}
+            {showNewSubscription && (
+                <CarrierCard
+                    id="신규가입"
+                    displayName="신규가입"
+                    joinType="신규가입"
+                    description="KT에서 새로운 번호로 가입할 수 있어요"
+                    textLogo="신규"
+                    textColor="#111827"
+                    isActive={activeId === "신규가입"}
+                    onClick={() => handleSelect("신규가입")}
+                />
+            )}
         </div>
     )
 }
@@ -256,40 +212,21 @@ const wrapperStyle: React.CSSProperties = {
     width: "100%",
     display: "flex",
     flexDirection: "column",
-    gap: "12px",
+    gap: 10,
     boxSizing: "border-box",
-    fontFamily: '"Pretendard", "Inter", sans-serif',
+    fontFamily: FONT,
 }
 
 addPropertyControls(CarrierSelectionContainer, {
-    isLoading: {
-        type: ControlType.Boolean,
-        title: "Loading",
-        defaultValue: false,
-    },
-    stepNumber: {
-        type: ControlType.Number,
-        title: "Step No.",
-        defaultValue: 3,
-        min: 1,
-        max: 9,
-    },
-    title: {
-        type: ControlType.String,
-        title: "Title",
-        defaultValue: "현재 통신사 선택",
-    },
+    isLoading: { type: ControlType.Boolean, title: "Loading", defaultValue: false },
+    title: { type: ControlType.String, title: "Title", defaultValue: "현재 통신사" },
     defaultCarrier: {
         type: ControlType.Enum,
         options: ["KT", "SKT", "LG U+", "알뜰폰", "신규가입"],
         defaultValue: "KT",
         title: "Default Carrier",
     },
-    showNewSubscription: {
-        type: ControlType.Boolean,
-        title: "신규가입 표시",
-        defaultValue: false,
-    },
+    showNewSubscription: { type: ControlType.Boolean, title: "신규가입 표시", defaultValue: false },
     logoKT: { type: ControlType.Image, title: "KT Logo" },
     logoSK: { type: ControlType.Image, title: "SKT Logo" },
     logoLG: { type: ControlType.Image, title: "LG U+ Logo" },
