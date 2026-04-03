@@ -189,7 +189,6 @@ export default function OrderSheetComponent(props) {
         <div style={wrapperStyle}>
             {/* 헤더 */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={stepBadge}><span style={stepNumText}>{stepNumber}</span></div>
                 <span style={titleStyle}>{title}</span>
             </div>
 
