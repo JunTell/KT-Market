@@ -217,7 +217,7 @@ export default function OrderSheetComponent(props) {
                         {disclosureSubsidy > 0 && (
                             <RedRow
                                 label="공시지원금"
-                                value={`${disclosureSubsidy.toLocaleString()}원`}
+                                value={`-${disclosureSubsidy.toLocaleString()}원`}
                                 tooltip="이동통신사가 공시한 단말기 지원금"
                             />
                         )}
@@ -226,7 +226,7 @@ export default function OrderSheetComponent(props) {
                         {ktmarketSubsidy > 0 && (
                             <RedRow
                                 label="KT마켓 단독지원금"
-                                value={`${ktmarketSubsidy.toLocaleString()}원`}
+                                value={`-${ktmarketSubsidy.toLocaleString()}원`}
                                 tooltip="KT마켓에서만 제공하는 단독 지원금"
                             />
                         )}
@@ -235,33 +235,33 @@ export default function OrderSheetComponent(props) {
                         {promotionDiscount > 0 && (
                             <RedRow
                                 label="디바이스 추가지원금(단독)"
-                                value={`${promotionDiscount.toLocaleString()}원`}
+                                value={`-${promotionDiscount.toLocaleString()}원`}
                                 tooltip="KT마켓 단독 프로모션 추가 지원금"
                             />
                         )}
 
                         {/* 번호이동 지원금 */}
                         {migrationSubsidy > 0 && (
-                            <RedRow label="번호이동 지원금" value={`${migrationSubsidy.toLocaleString()}원`} />
+                            <RedRow label="번호이동 지원금" value={`- ${migrationSubsidy.toLocaleString()}원`} />
                         )}
 
                         {/* 미리보상 할인 */}
                         {guaranteedReturnPrice > 0 && (
                             <RedRow
                                 label="미리보상 할인"
-                                value={`${guaranteedReturnPrice.toLocaleString()}원`}
+                                value={`-${guaranteedReturnPrice.toLocaleString()}원`}
                                 tooltip="미리보상 프로그램 적용 시 단말기 가격의 50% 할인"
                             />
                         )}
 
                         {/* 스페셜 할인 */}
                         {specialPrice > 0 && (
-                            <RedRow label="스페셜 할인" value={`${specialPrice.toLocaleString()}원`} />
+                            <RedRow label="스페셜 할인" value={`-${specialPrice.toLocaleString()}원`} />
                         )}
 
                         {/* 더블스토리지 할인 */}
                         {doubleStorageDiscount > 0 && (
-                            <RedRow label="더블스토리지 할인" value={`${doubleStorageDiscount.toLocaleString()}원`} />
+                            <RedRow label="더블스토리지 할인" value={`-${doubleStorageDiscount.toLocaleString()}원`} />
                         )}
 
                         <Dashed />
