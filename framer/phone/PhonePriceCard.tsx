@@ -628,6 +628,7 @@ export default function PhonePriceCard(props) {
         discount = "공통지원금",
         isLoading = false,
         formLink = "",
+        devicePetName = "",
         // OrderSheet 추가 props
         installmentPaymentTitle = "월 할부원금 (24개월)",
         installmentPaymentDescription = "분할 상환 수수료 5.9% 포함",
@@ -676,6 +677,7 @@ export default function PhonePriceCard(props) {
     if (isLoading) {
         return (
             <div style={{ ...wrapperStyle, gap: "16px" }}>
+                <Skeleton width="40%" height={18} />
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <Skeleton width="55%" height={28} />
                     <Skeleton width="12%" height={18} />
@@ -691,6 +693,13 @@ export default function PhonePriceCard(props) {
     return (
         <>
             <div style={wrapperStyle}>
+                {/* ── 기기명 ── */}
+                {devicePetName && (
+                    <span style={{ fontSize: "15px", fontWeight: 600, color: "#111827", fontFamily: FONT }}>
+                        {devicePetName}
+                    </span>
+                )}
+
                 {/* ── 가격 행 ── */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
@@ -820,6 +829,11 @@ addPropertyControls(PhonePriceCard, {
         type: ControlType.Boolean,
         title: "Loading",
         defaultValue: false,
+    },
+    devicePetName: {
+        type: ControlType.String,
+        title: "기기명",
+        defaultValue: "갤럭시 S26 울트라",
     },
     finalPrice: {
         type: ControlType.Number,

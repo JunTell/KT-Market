@@ -147,9 +147,8 @@ const FIXED_PLANS = FIXED_PLAN_PIDS.map((pid) => ALL_PLANS.find((p) => p.pid ===
 const CATEGORIES_5G = ["전체", "5G 초이스", "5G 일반", "5G 청소년", "5G 주니어", "5G 시니어", "5G 군인", "5G 복지", "5G 외국인"]
 const CATEGORIES_LTE = ["전체", "데이터ON", "Y데이터ON", "LTE 일반", "LTE Y틴(청소년)", "LTE Y 주니어", "LTE 시니어", "Y 군인", "LTE 복지", "순 선택형(LTE)", "순 망내무한 선택형(LTE)"]
 
-// 사은품 제공 대상 요금제 PID
+// 사은품 제공 대상 요금제 PID (티빙/지니/밀리 초이스는 할인 제품 없음 — 제외)
 const FREEBIE_PLAN_PIDS = new Set([
-    "ppllistobj_0942", "ppllistobj_0941", "ppllistobj_0940",
     "ppllistobj_0865", "ppllistobj_0864", "ppllistobj_0863",
     "ppllistobj_0850", "ppllistobj_0851", "ppllistobj_0852",
     "ppllistobj_0994", "ppllistobj_0993", "ppllistobj_0992",
@@ -260,38 +259,122 @@ const PlanCard = ({
 }
 
 // ─── 직접 선택 카드 ───────────────────────────────────────────────────
-const SelectableCard = ({ plan, isActive, discountLabel, onOpen }: { plan: Plan | null; isActive: boolean; discountLabel: string; onOpen: () => void }) => (
-    <motion.div
-        onClick={onOpen}
-        whileTap={{ scale: 0.98 }}
-        style={{
-            width: "100%", display: "flex", flexDirection: "row", alignItems: "center", gap: 10, padding: "14px 16px",
-            border: isActive ? "2px solid #0055FF" : "1.5px solid #E5E7EB",
-            borderRadius: 8, backgroundColor: "#FFFFFF", cursor: "pointer", boxSizing: "border-box",
-        }}
-    >
-        <div style={{ width: 20, height: 20, borderRadius: "50%", border: `2px solid ${isActive ? "#0055FF" : "#D1D5DB"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxSizing: "border-box" }}>
-            {isActive && <div style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#0055FF" }} />}
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
-            {plan ? (
-                <>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>{plan.title}</span>
-                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 4 }}>
-                        <span style={{ fontSize: 13, color: "#0055FF", fontWeight: 500 }}>{discountLabel}</span>
-                        <span style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>월 {plan.price.toLocaleString()}원</span>
-                    </div>
-                </>
-            ) : (
-                <>
+const SelectableCard = ({
+    plan, isActive, discountLabel, onOpen,
+    freebies, freebieLoading, selectedFreebie, onFreebieSelect,
+}: {
+    plan: Plan | null; isActive: boolean; discountLabel: string; onOpen: () => void
+    freebies: any[]; freebieLoading: boolean; selectedFreebie: any; onFreebieSelect: (f: any) => void
+}) => {
+    const hasFreebie = plan ? FREEBIE_PLAN_PIDS.has(plan.pid) : false
+    const showFreebie = isActive && hasFreebie
+
+    // 요금제 미선택: 기존 row 레이아웃
+    if (!plan) {
+        return (
+            <motion.div
+                onClick={onOpen}
+                whileTap={{ scale: 0.98 }}
+                style={{
+                    width: "100%", display: "flex", flexDirection: "row", alignItems: "center", gap: 10, padding: "14px 16px",
+                    border: "1.5px solid #E5E7EB",
+                    borderRadius: 8, backgroundColor: "#FFFFFF", cursor: "pointer", boxSizing: "border-box",
+                }}
+            >
+                <div style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid #D1D5DB", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxSizing: "border-box" }} />
+                <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
                     <span style={{ fontSize: 13, fontWeight: 600, color: "#6B7280" }}>직접 선택</span>
                     <span style={{ fontSize: 11, color: "#9CA3AF" }}>탭하여 요금제 선택 →</span>
+                </div>
+                <span style={{ fontSize: 18, color: "#9CA3AF", flexShrink: 0 }}>›</span>
+            </motion.div>
+        )
+    }
+
+    // 요금제 선택됨: PlanCard와 동일한 column 레이아웃
+    const subtitle = [plan.data, plan.tethering ? `공유 데이터 ${plan.tethering}` : ""].filter(Boolean).join(" | ")
+
+    return (
+        <motion.div
+            onClick={onOpen}
+            whileTap={{ scale: 0.98 }}
+            style={{
+                width: "100%", display: "flex", flexDirection: "column", gap: 10, padding: "14px 16px",
+                border: showFreebie ? "1px solid #0066FF" : "2px solid #0055FF",
+                borderRadius: showFreebie ? 10.526 : 8,
+                backgroundColor: showFreebie ? "#ECF4FF" : "#FFFFFF",
+                cursor: "pointer", boxSizing: "border-box",
+            }}
+        >
+            {/* 상단: 라디오 + 요금제명 + 서브타이틀 + › */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid #0055FF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxSizing: "border-box" }}>
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#0055FF" }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>{plan.title}</div>
+                    {subtitle && <div style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>{subtitle}</div>}
+                </div>
+                <span style={{ fontSize: 18, color: "#9CA3AF", flexShrink: 0 }}>›</span>
+            </div>
+
+            {/* 사은품 섹션 (할인 제품 있는 요금제일 때만) */}
+            {showFreebie && (
+                <>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>할인 제품 안내</div>
+
+                    {freebieLoading ? (
+                        <motion.div
+                            style={{ width: "100%", height: 75, borderRadius: 9, backgroundColor: "#E5E7EB" }}
+                            animate={{ opacity: [0.4, 1, 0.4] }}
+                            transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                    ) : freebies.length > 0 ? (
+                        <div style={{ display: "flex", gap: 8, overflowX: "auto", scrollbarWidth: "none" }}>
+                            {freebies.map((f) => (
+                                <div
+                                    key={f.no}
+                                    style={{
+                                        flexShrink: 0, width: 226, height: 75,
+                                        padding: "13px 7px",
+                                        display: "flex", justifyContent: "center", alignItems: "center", gap: 10,
+                                        borderRadius: 9, border: "0.8px solid #CFCFCF",
+                                        backgroundColor: "#FFF", boxSizing: "border-box",
+                                    }}
+                                >
+                                    <img
+                                        src={`https://juntell.s3.ap-northeast-2.amazonaws.com/freebie/${f.no}.png`}
+                                        alt={f.title}
+                                        style={{ width: 48, height: 48, objectFit: "contain", flexShrink: 0 }}
+                                        onError={(e) => { e.currentTarget.style.display = "none" }}
+                                    />
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                                        <span style={{ fontSize: 12, fontWeight: 500, color: "#374151", lineHeight: 1.3 }}>{f.title}</span>
+                                        <span style={{ fontSize: 12, fontWeight: 700, color: "#111827" }}>월 {(f.monthly_price ?? 0).toLocaleString()}원</span>
+                                        <span style={{ fontSize: 11, color: "#9CA3AF" }}>할부 수수료 별도</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <span style={{ fontSize: 13, color: "#9CA3AF" }}>해당 요금제에 적용 가능한 할인 제품이 없습니다.</span>
+                    )}
+
+                    <div style={{ fontSize: 11, color: "#6B7280", display: "flex", alignItems: "center", gap: 4 }}>
+                        <span>할인 상품 · 초이스 유의사항 안내</span>
+                        <span style={{ width: 14, height: 14, borderRadius: "50%", border: "1px solid #9CA3AF", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#9CA3AF", flexShrink: 0 }}>?</span>
+                    </div>
                 </>
             )}
-        </div>
-        <span style={{ fontSize: 18, color: "#9CA3AF", flexShrink: 0 }}>›</span>
-    </motion.div>
-)
+
+            {/* 하단: 할인라벨 + 월 요금 */}
+            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 13, color: "#0055FF", fontWeight: 500 }}>{discountLabel}</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>월 {plan.price.toLocaleString()}원</span>
+            </div>
+        </motion.div>
+    )
+}
 
 // ─── 팝업 내 요금제 카드 ──────────────────────────────────────────────
 const PopupPlanCard = ({ plan, isSelected, onSelect }: { plan: Plan; isSelected: boolean; onSelect: (p: Plan) => void }) => (
@@ -489,6 +572,10 @@ export default function PlanSelectorComponent(props) {
                     isActive={isCustomActive}
                     discountLabel={isCustomActive && customPlan ? getDiscountLabel(customPlan.pid) : "00만원 할인"}
                     onOpen={openPopup}
+                    freebies={isCustomActive ? freebies : []}
+                    freebieLoading={isCustomActive ? freebieLoading : false}
+                    selectedFreebie={selectedFreebie}
+                    onFreebieSelect={handleFreebieSelect}
                 />
             </div>
 

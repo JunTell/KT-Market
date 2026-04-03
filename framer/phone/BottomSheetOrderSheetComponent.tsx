@@ -163,16 +163,6 @@ const SectionHeader = ({ label, value, description }: { label: string; value?: s
     </div>
 )
 
-// ─── 카카오 아이콘 (원형 배지 스타일) ────────────────────────────────
-const KakaoBadge = ({ size = 22 }: { size?: number }) => (
-    <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
-        <path
-            d="M18 6C12.477 6 8 9.806 8 14.5c0 3.12 1.963 5.86 4.94 7.43L12.1 26l4.37-2.87c.5.07 1.01.12 1.53.12 5.523 0 10-3.806 10-8.5S23.523 6 18 6z"
-            fill="#3A1D1D"
-        />
-    </svg>
-)
-
 // ─── OrderSheet 내용 컴포넌트 ─────────────────────────────────────────
 function OrderSheetContent({
     installment,
@@ -492,7 +482,6 @@ export default function BottomSheetOrderSheetComponent(props) {
 
     const [mounted, setMounted] = useState(false)
     const [showDetailSheet, setShowDetailSheet] = useState(false)
-    const [showOrderModal, setShowOrderModal] = useState(false)
 
     // 모달 열릴 때 배경 스크롤 차단
     useEffect(() => {
@@ -503,8 +492,6 @@ export default function BottomSheetOrderSheetComponent(props) {
         }
         return () => { document.body.style.overflow = "" }
     }, [showDetailSheet])
-    // ── 로그인 상태 (모달 분기용) ──
-    const [isLoggedIn, setIsLoggedIn] = useState(false)
 
     // ── 금액 변동 애니메이션 ──
     const roundedPayment = Math.round(totalMonthPayment)
@@ -522,29 +509,7 @@ export default function BottomSheetOrderSheetComponent(props) {
         }
     }, [roundedPayment])
 
-    useEffect(() => {
-        setMounted(true)
-        // 마운트 시 로그인 여부 확인
-        fetch(`${API_URL}/api/auth/me`, { credentials: "include" })
-            .then((res) => res.json())
-            .then((data) => { setIsLoggedIn(data.isLoggedIn === true) })
-            .catch(() => { setIsLoggedIn(false) })
-    }, [])
-
-    // 카카오 간편주문: 로그인 O → override의 onKakaoOrderClick (세션저장+SPA이동), 로그인 X → 세션저장 후 카카오 OAuth
-    const handleKakaoOrder = () => {
-        if (!isLoggedIn) {
-            onSaveOrderSession?.()
-            window.location.href = `${API_URL}/api/auth/kakao?redirect=/phone/user-info`
-            return
-        }
-        if (typeof onKakaoOrderClick === "function") {
-            onKakaoOrderClick()
-        } else {
-            onSaveOrderSession?.()
-            window.location.href = "/phone/userinfo"
-        }
-    }
+    useEffect(() => { setMounted(true) }, [])
 
     const handleFormLink = () => {
         if (typeof onKakaoOrderClick === "function") {
@@ -635,7 +600,7 @@ export default function BottomSheetOrderSheetComponent(props) {
 
                 {/* 오른쪽: 신청하기 버튼 */}
                 <button
-                    onClick={() => setShowOrderModal(true)}
+                    onClick={handleFormLink}
                     style={{
                         height: 48, paddingLeft: 28, paddingRight: 28,
                         borderRadius: 14, border: "none",
@@ -657,128 +622,13 @@ export default function BottomSheetOrderSheetComponent(props) {
             {/* portal 없이 직접 렌더링 — Framer 캔버스에서 portal은 에디터 외부 body에 붙음 */}
             {bar}
 
-            {/* 신청하기 모달 */}
-            <AnimatePresence>
-                {showOrderModal && (
-                    <>
-                        {/* 딤 오버레이 */}
-                        <motion.div
-                            key="order-modal-overlay"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            onClick={() => setShowOrderModal(false)}
-                            style={{
-                                position: "fixed", inset: 0,
-                                backgroundColor: "rgba(0,0,0,0.5)",
-                                zIndex: 9998,
-                            }}
-                        />
-                        {/* 모달 카드 — flex wrapper로 중앙 정렬 (motion y와 CSS transform 충돌 방지) */}
-                        <div
-                            key="order-modal-wrapper"
-                            style={{
-                                position: "fixed",
-                                inset: 0,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                zIndex: 9999,
-                                pointerEvents: "none",
-                            }}
-                        >
-                        <motion.div
-                            key="order-modal-card"
-                            initial={{ opacity: 0, scale: 0.94, y: 16 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.94, y: 16 }}
-                            transition={{ type: "spring", stiffness: 380, damping: 28 }}
-                            style={{
-                                width: "calc(100vw - 48px)",
-                                maxWidth: 360,
-                                backgroundColor: "#FFFFFF",
-                                borderRadius: 20,
-                                padding: "28px 24px 24px",
-                                boxShadow: "0 8px 40px rgba(0,0,0,0.18)",
-                                fontFamily: FONT,
-                                boxSizing: "border-box",
-                                pointerEvents: "auto",
-                            }}
-                        >
-                            {/* 닫기 버튼 */}
-                            <button
-                                onClick={() => setShowOrderModal(false)}
-                                style={{
-                                    position: "absolute", top: 16, right: 16,
-                                    background: "none", border: "none",
-                                    cursor: "pointer", padding: 4,
-                                    color: "#9CA3AF", display: "flex",
-                                    alignItems: "center", justifyContent: "center",
-                                }}
-                            >
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                                    <line x1="18" y1="6" x2="6" y2="18" />
-                                    <line x1="6" y1="6" x2="18" y2="18" />
-                                </svg>
-                            </button>
-
-                            {/* 제목 */}
-                            <div style={{ textAlign: "center", marginBottom: 8 }}>
-                                <span style={{ fontSize: 18, fontWeight: 700, color: "#111827" }}>신청하기</span>
-                            </div>
-                            {/* 설명 */}
-                            <p style={{
-                                textAlign: "center", fontSize: 14, color: "#6B7280",
-                                lineHeight: 1.6, margin: "0 0 24px",
-                            }}>
-                                휴대폰 셀프가입 신청을 위해<br />로그인 해주세요.
-                            </p>
-
-                            {/* 카카오 로그인으로 신청하기 */}
-                            <button
-                                onClick={() => { setShowOrderModal(false); handleKakaoOrder() }}
-                                style={{
-                                    width: "100%", height: 52, borderRadius: 12,
-                                    border: "none", backgroundColor: "#FAE100",
-                                    cursor: "pointer", display: "flex",
-                                    alignItems: "center", justifyContent: "center",
-                                    gap: 8, fontFamily: FONT, marginBottom: 12,
-                                }}
-                            >
-                                <KakaoBadge size={22} />
-                                <span style={{ fontSize: 14, fontWeight: 700, color: "#3A1D1D" }}>
-                                    카카오 로그인으로 신청하기
-                                </span>
-                            </button>
-
-                            {/* 비회원으로 신청하기 */}
-                            <button
-                                onClick={() => { setShowOrderModal(false); handleFormLink() }}
-                                style={{
-                                    width: "100%", height: 44,
-                                    backgroundColor: "#F3F4F6", border: "none",
-                                    borderRadius: 10,
-                                    cursor: "pointer", fontFamily: FONT,
-                                    fontSize: 14, fontWeight: 600, color: "#6B7280",
-                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                }}
-                            >
-                                비회원으로 신청하기
-                            </button>
-                        </motion.div>
-                        </div>
-                    </>
-                )}
-            </AnimatePresence>
-
             {/* 상세 주문서 바텀시트 */}
             {showDetailSheet && (
                 <DetailBottomSheet
                     onClose={() => setShowDetailSheet(false)}
                     onApply={() => {
                         setShowDetailSheet(false)
-                        setShowOrderModal(true)
+                        handleFormLink()
                     }}
                     sheetProps={sheetProps}
                     FONT={FONT}
