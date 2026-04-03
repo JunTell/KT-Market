@@ -132,28 +132,11 @@ export default function FreebiesSectionComponent(props) {
 
         setFetching(true)
 
-        const supabaseUrl = "https://crooiozzbjwdaghqddnu.supabase.co"
-        const supabaseAnonKey =
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNyb29pb3p6Ymp3ZGFnaHFkZG51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk3NzIzNjMsImV4cCI6MjAyNTM0ODM2M30.A51d6iu60yiGWL4cka8j9-r6QLQ2skXAHiqBGaTIEcM"
-
         fetch(
-            `${supabaseUrl}/rest/v1/freebies?is_available=eq.true&order=sort.asc`,
-            {
-                headers: {
-                    apikey: supabaseAnonKey,
-                    Authorization: `Bearer ${supabaseAnonKey}`,
-                    "Content-Type": "application/json",
-                },
-            }
+            `https://kt-market-puce.vercel.app/api/freebies?planId=${encodeURIComponent(plan)}`
         )
             .then((r) => r.json())
-            .then((data: any[]) => {
-                // 현재 요금제 PID가 plans 배열에 포함된 사은품만 필터
-                const filtered = data.filter(
-                    (f) => Array.isArray(f.plans) && f.plans.includes(plan)
-                )
-                setFreebies(filtered)
-            })
+            .then((data: any[]) => setFreebies(Array.isArray(data) ? data : []))
             .catch(() => setFreebies([]))
             .finally(() => setFetching(false))
     }, [plan])

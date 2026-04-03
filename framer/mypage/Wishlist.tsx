@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
     checkAuth,
     userState,
-} from "https://framer.com/m/AuthStore-jiikDX.js@QRzzhL7x0LkccW6oL0Cw"
+} from "https://framer.com/m/AuthStore-jiikDX.js"
 import * as React from "react"
 import { useEffect, useState } from "react"
 
@@ -76,11 +76,6 @@ function EmptyState() {
     )
 }
 
-const DUMMY: any[] = [
-    { id: "w1", device_model: "SM-S928N", pet_name: "갤럭시 S25 울트라", thumbnail: null, price: 1899000, category_kr: "스마트폰", created_at: "2025-03-20T10:00:00+09:00" },
-    { id: "w2", device_model: "MXVY3KH/A", pet_name: "아이폰 16 Pro Max", thumbnail: null, price: 1799000, category_kr: "스마트폰", created_at: "2025-03-15T12:00:00+09:00" },
-    { id: "w3", device_model: "SM-F956N", pet_name: "갤럭시 Z 폴드6", thumbnail: null, price: 2119000, category_kr: "폴더블", created_at: "2025-03-10T09:00:00+09:00" },
-]
 
 function Wishlist({ onDeviceClick, deviceBaseUrl = "https://ktmarket.co.kr/product" }: any) {
     const isCanvas = RenderTarget.current() === RenderTarget.canvas
@@ -116,7 +111,7 @@ function Wishlist({ onDeviceClick, deviceBaseUrl = "https://ktmarket.co.kr/produ
         finally { setRemovingId(null) }
     }
 
-    const displayItems = isCanvas ? DUMMY : items
+    const displayItems = items
     const displayLoading = isCanvas ? false : loading
     const displayAuthed = isCanvas ? true : authed
 

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { useState, useEffect } from "react"
 import { addPropertyControls, ControlType } from "framer"
-import { checkAuth, userState } from "https://framer.com/m/AuthStore-jiikDX.js@QRzzhL7x0LkccW6oL0Cw"
+import { checkAuth, userState } from "https://framer.com/m/AuthStore-jiikDX.js"
 
 // --- Skeleton Components ---
 const SkeletonBox = ({
@@ -777,7 +777,7 @@ export default function ApplicationGatePage(props: Props) {
                             <div
                                 style={{
                                     ...progressBarFillStyle,
-                                    width: isAllAgreed ? "100%" : "30%",
+                                    width: `${(agreements.filter(Boolean).length / agreements.length) * 100}%`,
                                 }}
                             />
                         </div>

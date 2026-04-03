@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
     checkAuth,
     userState,
-} from "https://framer.com/m/AuthStore-jiikDX.js@QRzzhL7x0LkccW6oL0Cw"
+} from "https://framer.com/m/AuthStore-jiikDX.js"
 import * as React from "react"
 import { useEffect, useState } from "react"
 

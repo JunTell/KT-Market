@@ -584,11 +584,12 @@ export function withPriceComponent(Component): ComponentType {
 }
 
 // PhonePriceCard 전용 override
-// finalPrice 카운트 애니메이션 + 월 할부 팝업 + 스켈레톤 통합
+// finalPrice 카운트 애니메이션 + 월 할부 팝업 + 스켈레톤 통합 + 최종 주문서 모달 props
 export function withPriceCard(Component): ComponentType {
     return (props) => {
         const [store] = useStore()
 
+        // ── 헬퍼 함수 (withOrderSheet와 동일 로직) ──────────────────
         function calcInstallment(principal: number, months: number) {
             if (months === 0) return principal
             const r = 5.9 / 100 / 12
@@ -598,36 +599,137 @@ export function withPriceCard(Component): ComponentType {
             )
         }
 
-        const finalPrice = store.installmentPrincipal ?? 0
-        const originPrice = store.device?.price ?? 0
-        const installment = store.installment ?? 24
-        const monthlyPayment = calcInstallment(finalPrice, installment)
+        function getGuaranteedReturnPrice(model: string, price: number, isGR: boolean) {
+            if (!isGR) return 0
+            const grModels = [
+                "sm-f966nk512", "sm-f966nk", "sm-f766nk512", "sm-f766nk",
+                "aip17-256", "aip17-512", "aipa-256", "aipa-512", "aipa-1t",
+                "aip17p-256", "aip17p-512", "aip17p-1t",
+                "aip17pm-256", "aip17pm-512", "aip17pm-1t", "aip17pm-2t",
+            ]
+            return grModels.includes(model) ? price / 2 : 0
+        }
 
-        const planPrice = store.selectedPlan?.price ?? 0
-        const planDiscountAmount =
-            store.discount === "선택약정"
-                ? Math.round(planPrice * 0.25)
-                : 0
+        function calculateDiscounts(planId: string) {
+            const promo100000Plans = [
+                "ppllistobj_0994", "ppllistobj_0993", "ppllistobj_0992",
+                "ppllistobj_0863", "ppllistobj_0864", "ppllistobj_0865",
+                "ppllistobj_0850", "ppllistobj_0851", "ppllistobj_0852",
+            ]
+            return { promo: promo100000Plans.includes(planId) ? 80000 : 0 }
+        }
+
+        // ── 계산 ────────────────────────────────────────────────────
+        const { register, discount, selectedPlan, device, benefit } = store
+
+        const planPrice = selectedPlan?.price ?? 0
+        const planId = selectedPlan?.plan_id ?? ""
+        const devicePrice = selectedPlan?.model_price ?? 0
+        const isMnp = register === "번호이동" && discount === "공통지원금"
+        const migrationSubsidy = isMnp ? (selectedPlan?.migration_subsidy ?? 0) : 0
+
+        const ktmarketSubsidy = store.benefit === "KT마켓 단독혜택" ? store.ktmarketSubsidy : 0
+        const { promo: promotionDiscount } = calculateDiscounts(planId)
+
+        const isGuaranteedReturn = store.isGuaranteedReturn ?? false
+        const guaranteedReturnPrice = getGuaranteedReturnPrice(
+            device?.model ?? "", devicePrice, isGuaranteedReturn
+        )
+
+        const modelPrices = SPECIAL_PRICES[device?.model ?? ""] || { mnp: 0, chg: 0 }
+        const specialPrice =
+            register === "번호이동" || register === "신규가입"
+                ? modelPrices.mnp
+                : register === "기기변경"
+                  ? modelPrices.chg
+                  : 0
+
+        let disclosureSubsidy = 0
+        if (discount === "공통지원금") {
+            disclosureSubsidy = selectedPlan?.disclosure_subsidy ?? 0
+        }
+
+        // 더블스토리지
+        const doubleStorageModels = ["sm-s942nk512", "sm-s947nk512", "sm-s948nk512"]
+        const exceptionPlansForDoubleStorage = [
+            "ppllistobj_0845", "ppllistobj_0535", "ppllistobj_0765", "ppllistobj_0775",
+        ]
+        let doubleStorageDiscount = 0
+        if (
+            doubleStorageModels.includes(device?.model ?? "") &&
+            register === "기기변경" &&
+            store.installment < 36 &&
+            (planPrice >= 37000 || exceptionPlansForDoubleStorage.includes(planId))
+        ) {
+            doubleStorageDiscount = 0
+        }
+
+        const totalDeviceDiscountAmount =
+            ktmarketSubsidy + disclosureSubsidy + migrationSubsidy +
+            promotionDiscount + guaranteedReturnPrice + specialPrice + doubleStorageDiscount
+
+        const installment = store.installment ?? 24
+        const originPrice = device?.price ?? 0
+
+        const isFreePhone = devicePrice - totalDeviceDiscountAmount <= 0
+        const installmentPrincipal = isFreePhone ? 0 : devicePrice - totalDeviceDiscountAmount
+        const installmentPaymentNum = isFreePhone
+            ? 0
+            : calcInstallment(installmentPrincipal, installment, )
+        const installmentPayment = `${installmentPaymentNum.toLocaleString()}원`
+
+        const planDiscountAmount = discount === "공통지원금" ? 0 : Math.round(planPrice * 0.25)
+        const totalMonthPlanPrice = planPrice - planDiscountAmount
+        const totalMonthPayment =
+            installment === 0
+                ? totalMonthPlanPrice
+                : installmentPaymentNum + totalMonthPlanPrice
+
+        const monthlyPayment = calcInstallment(installmentPrincipal, installment)
 
         const discountRate = (() => {
             if (originPrice <= 0) return 0
-            const rate = ((originPrice - finalPrice) / originPrice) * 100
+            const rate = ((originPrice - installmentPrincipal) / originPrice) * 100
             return Math.round(Math.min(Math.max(rate, 0), 100))
         })()
+
+        const installmentPaymentTitle = isGuaranteedReturn
+            ? "월 할부금"
+            : installment > 0
+              ? `월 할부금 (${installment}개월)`
+              : "결제 금액"
+        const installmentPaymentDescription =
+            installment > 0 ? "분할 상환 수수료 5.9% 포함" : "카드 또는 현금결제"
 
         return (
             <Component
                 {...props}
-                finalPrice={finalPrice}
+                finalPrice={installmentPrincipal}
                 originPrice={originPrice}
                 discountRate={discountRate}
                 monthlyPayment={monthlyPayment}
                 installment={installment}
                 planPrice={planPrice}
                 planDiscountAmount={planDiscountAmount}
-                discount={store.discount ?? "공통지원금"}
+                discount={discount ?? "공통지원금"}
                 isLoading={store.isLoading ?? false}
-                formLink={store.device?.form_link ?? ""}
+                formLink={device?.form_link ?? ""}
+                // OrderSheet 모달용 props
+                installmentPaymentTitle={installmentPaymentTitle}
+                installmentPaymentDescription={installmentPaymentDescription}
+                installmentPrincipal={installmentPrincipal}
+                installmentPayment={installmentPayment}
+                devicePrice={devicePrice}
+                disclosureSubsidy={disclosureSubsidy}
+                ktmarketSubsidy={ktmarketSubsidy}
+                promotionDiscount={promotionDiscount}
+                migrationSubsidy={migrationSubsidy}
+                guaranteedReturnPrice={guaranteedReturnPrice}
+                specialPrice={specialPrice}
+                doubleStorageDiscount={doubleStorageDiscount}
+                plan={selectedPlan?.name ?? ""}
+                totalMonthPlanPrice={totalMonthPlanPrice}
+                totalMonthPayment={Math.round(totalMonthPayment)}
             />
         )
     }
@@ -1352,7 +1454,38 @@ export function withPhoneDetail(Component): ComponentType {
                     initialPlanId = device.plan_id
                 }
 
-                await fetchInitPlanData(initialPlanId, store.register, modelId)
+                // ── 번호이동 vs 기기변경 중 더 저렴한 쪽을 기본값으로 설정 ──
+                const [mnpRes, chgRes] = await Promise.all([
+                    supabase
+                        .from("device_plans_mnp")
+                        .select("price, migration_subsidy")
+                        .eq("plan_id", initialPlanId)
+                        .eq("model", modelId)
+                        .maybeSingle(),
+                    supabase
+                        .from("device_plans_chg")
+                        .select("price")
+                        .eq("plan_id", initialPlanId)
+                        .eq("model", modelId)
+                        .maybeSingle(),
+                ])
+                // 번이 실질 단말가 = price - migration_subsidy
+                const mnpEffective = mnpRes.data
+                    ? (mnpRes.data.price ?? 0) - (mnpRes.data.migration_subsidy ?? 0)
+                    : null
+                const chgEffective = chgRes.data ? (chgRes.data.price ?? 0) : null
+
+                let bestRegister = store.register
+                if (mnpEffective !== null && chgEffective !== null) {
+                    bestRegister = mnpEffective <= chgEffective ? "번호이동" : "기기변경"
+                } else if (mnpEffective !== null) {
+                    bestRegister = "번호이동"
+                } else if (chgEffective !== null) {
+                    bestRegister = "기기변경"
+                }
+                setStore({ register: bestRegister })
+
+                await fetchInitPlanData(initialPlanId, bestRegister, modelId)
 
                 setStore({
                     device,
@@ -1827,7 +1960,11 @@ export function withStock(Component): ComponentType {
 
         // 0320 금요일 수정
         useEffect(() => {
-            if (store.colors.length == store.stocks.length) {
+            if (
+                Array.isArray(store.colors) &&
+                Array.isArray(store.stocks) &&
+                store.colors.length === store.stocks.length
+            ) {
                 if (store.color) {
                     const selectedColor = store.color.en
                     const selectedStock = store.stocks?.find(
@@ -1852,6 +1989,7 @@ export function withColor(Component): ComponentType {
         const [colors, setColors] = useState([])
 
         useEffect(() => {
+            if (!Array.isArray(store.colors)) return
             setColors(store.colors)
             if (store.colors.length > 0) {
                 handleColorChange(store.colors[0])

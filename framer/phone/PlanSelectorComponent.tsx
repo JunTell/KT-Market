@@ -163,7 +163,7 @@ const PlanCard = ({ plan, isActive, discountLabel, onSelect }: { plan: Plan; isA
         whileTap={{ scale: 0.97 }}
         style={{
             flex: "1 1 calc(50% - 4px)", minWidth: 0, height: 72,
-            display: "flex", flexDirection: "row", alignItems: "center", gap: 10, padding: "0 14px",
+            display: "flex", flexDirection: "row", alignItems: "center", gap: 10,
             border: isActive ? "2px solid #0055FF" : "1.5px solid #E5E7EB",
             borderRadius: 8, backgroundColor: "#FFFFFF", cursor: "pointer", boxSizing: "border-box",
         }}
