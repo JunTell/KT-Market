@@ -1,60 +1,18 @@
-import { createClient } from "@supabase/supabase-js"
 import { addPropertyControls, ControlType } from "framer"
-import { checkAuth, userState } from "https://framer.com/m/AuthStore-jiikDX.js@QRzzhL7x0LkccW6oL0Cw"
+import { checkAuth, userState } from "https://framer.com/m/AuthStore-jiikDX.js"
 import LoadingIndicator from "https://framer.com/m/LoadingIndicator-9X6k.js"
 import * as React from "react"
 import { useState, useEffect, useRef, useCallback } from "react"
 
-// --- Supabase 설정 ---
-const supabaseUrl = "https://crooiozzbjwdaghqddnu.supabase.co"
-const supabaseAnonKey =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNyb29pb3p6Ymp3ZGFnaHFkZG51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk3NzIzNjMsImV4cCI6MjAyNTM0ODM2M30.A51d6iu60yiGWL4cka8j9-r6QLQ2skXAHiqBGaTIEcM"
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const API_URL = "https://kt-market-puce.vercel.app"
 
-// --- Constants ---
-const preorderModel = [
-    "aip17-256",
-    "aip17-512",
-    "aipa-256",
-    "aipa-512",
-    "aipa-1t",
-    "aip17p-256",
-    "aip17p-512",
-    "aip17p-1t",
-    "aip17pm-256",
-    "aip17pm-512",
-    "aip17pm-1t",
-    "aip17pm-2t",
-]
-
-const s26OrderModel = [
-    "sm-s942nk",
-    "sm-s942nk512",
-    "sm-s947nk",
-    "sm-s947nk512",
-    "sm-s948nk",
-    "sm-s948nk512",
-]
-
-const aip17eOrderModel = ["aip17e-256", "aip17e-512"]
-
-// --- Helpers ---
-function normalizePhoneNumberWithHyphen(input?: string): string {
-    if (typeof input !== "string" || input.trim() === "") return ""
-    const digitsOnly = input.replace(/\D/g, "").slice(0, 11)
-    if (digitsOnly.length <= 3) return digitsOnly
-    else if (digitsOnly.length <= 7)
-        return `${digitsOnly.slice(0, 3)}-${digitsOnly.slice(3)}`
-    else
-        return `${digitsOnly.slice(0, 3)}-${digitsOnly.slice(3, 7)}-${digitsOnly.slice(7)}`
-}
 
 function isAdultFromBirth6(birth6: string): boolean {
     if (!/^\d{6}$/.test(birth6)) return false
     const yy = parseInt(birth6.slice(0, 2), 10)
     const mm = parseInt(birth6.slice(2, 4), 10)
     const dd = parseInt(birth6.slice(4, 6), 10)
-    const fullYear = yy <= 24 ? 2000 + yy : 1900 + yy
+    const fullYear = yy <= new Date().getFullYear() % 100 ? 2000 + yy : 1900 + yy
     const today = new Date()
 
     if (fullYear < 2006) return true
@@ -326,159 +284,27 @@ export default function UserInfoForm(props: Props) {
         setIsLoading(true)
 
         try {
-            const storedData = sessionStorage.getItem("data")
-            const parsedData = storedData ? JSON.parse(storedData) : null
-            const storedSheet = sessionStorage.getItem("sheet")
-            const parsedSheet = storedSheet ? JSON.parse(storedSheet) : null
+            const parsedData = JSON.parse(sessionStorage.getItem("data") ?? "null")
+            const parsedSheet = JSON.parse(sessionStorage.getItem("sheet") ?? "null")
 
-            const isConsultation = false
-            const profileId = userState.isLoggedIn ? userState.id : null
-
-            // 1. 아이폰 17 분기
-            if (
-                parsedData?.device?.model &&
-                preorderModel.includes(parsedData.device.model)
-            ) {
-                const { error } = await supabase.from("iphone17_order").insert([
-                    {
-                        profile_id: profileId,
-                        model: parsedData?.device?.model,
-                        capacity: parsedData?.device?.capacity ?? "",
-                        color: parsedData?.color?.kr,
-                        pet_name: parsedData?.device?.pet_name,
-                        name: formData.userName,
-                        phone: formData.userPhone,
-                        birthday: formData.userDob,
-                        register: parsedData?.register,
-                        plan:
-                            parsedData?.selectedPlan?.name ||
-                            parsedSheet?.planName,
-                        discount: parsedSheet?.discount,
-                        carrier: parsedData?.carrier,
-                        benefit: parsedSheet?.ktmarketSubsidy,
-                        installment: parsedSheet?.installment,
-                        form_link:
-                            parsedData?.form_link || parsedSheet?.formLink,
-                        freebie: parsedSheet?.freebie,
-                        freebie_second: parsedData?.freebieSecond,
-                        is_guaranteed_return:
-                            parsedSheet?.isGuaranteedReturn ?? false,
-                        installment_principal:
-                            parsedSheet?.installmentPrincipal,
-                        is_consultation: isConsultation,
+            const res = await fetch(`${API_URL}/api/my/orders`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    data: parsedData,
+                    sheet: parsedSheet,
+                    form: {
+                        userName: formData.userName,
+                        userPhone: formData.userPhone,
+                        userDob: formData.userDob,
                     },
-                ])
-                if (error) throw error
-            }
-            // 2. 갤럭시 S26 분기
-            else if (
-                parsedData?.device?.model &&
-                s26OrderModel.includes(parsedData.device.model)
-            ) {
-                const row = {
-                    profile_id: profileId,
-                    petName: parsedData?.device?.pet_name,
-                    device: parsedData?.device?.model,
-                    capacity: parsedData?.device?.capacity ?? "",
-                    color: parsedData?.color?.kr,
-                    name: formData.userName,
-                    phone: normalizePhoneNumberWithHyphen(formData.userPhone),
-                    birthday: formData.userDob,
-                    register: parsedData?.register,
-                    plan: parsedSheet?.planName,
-                    discount: parsedSheet?.discount,
-                    carrier: parsedData?.carrier,
-                    benefit:
-                        parsedData?.ktmarketSubsidy ||
-                        parsedSheet?.ktmarketSubsidy,
-                    installment:
-                        parsedData?.installment || parsedSheet?.installment,
-                    freebie: parsedSheet?.freebie,
-                    installment_principal: parsedSheet?.installmentPrincipal,
-                    is_consultation: isConsultation,
-                }
+                }),
+            })
 
-                const { error } = await supabase
-                    .from("s26_orders")
-                    .insert([row])
-
-                if (error) {
-                    if ((error as any).code === "23505") {
-                        window.location.href = props.nextPageUrl
-                        return
-                    }
-                    console.error("Supabase insert error:", error)
-                    window.location.href = props.nextPageUrl
-                    return
-                }
-            } else if (
-                parsedData?.device?.model &&
-                aip17eOrderModel.includes(parsedData.device.model)
-            ) {
-                const row = {
-                    profile_id: profileId,
-                    petName: parsedData?.device?.pet_name,
-                    device: parsedData?.device?.category || "iPhone 17e", // 카테고리나 기본 기기명
-                    model: parsedData?.device?.model,
-                    capacity: parsedData?.device?.capacity ?? "",
-                    color: parsedData?.color?.kr,
-                    name: formData.userName,
-                    phone: normalizePhoneNumberWithHyphen(formData.userPhone),
-                    birthday: formData.userDob,
-                    register: parsedData?.register,
-                    plan: parsedSheet?.planName,
-                    discount: parsedSheet?.discount,
-                    carrier: parsedData?.carrier,
-                    benefit:
-                        parsedData?.ktmarketSubsidy ||
-                        parsedSheet?.ktmarketSubsidy,
-                    installment:
-                        parsedData?.installment || parsedSheet?.installment,
-                    installment_principal: parsedSheet?.installmentPrincipal,
-                    freebie: parsedSheet?.freebie,
-                    is_consultation: isConsultation,
-                }
-
-                const { error } = await supabase
-                    .from("preorder_17e_orders")
-                    .insert([row])
-
-                if (error) {
-                    if ((error as any).code === "23505") {
-                        // 연락처 UNIQUE 제약 조건 위반 시(이미 신청한 번호) 부드럽게 다음 페이지로 이동
-                        window.location.href = props.nextPageUrl
-                        return
-                    }
-                    console.error("Supabase insert error (17e):", error)
-                    window.location.href = props.nextPageUrl
-                    return
-                }
-            }
-            // 3. 그 외 기본 온라인 오더 분기
-            else {
-                const { error } = await supabase.from("online_order").insert([
-                    {
-                        profile_id: profileId,
-                        petName: parsedData?.device?.pet_name,
-                        device: parsedData?.device?.model,
-                        capacity: parsedData?.device?.capacity ?? "",
-                        color: parsedData?.color?.kr,
-                        name: formData.userName,
-                        phone: formData.userPhone,
-                        birthday: formData.userDob,
-                        register: parsedData?.register,
-                        carrier: parsedData?.carrier,
-                        plan: parsedSheet?.planName,
-                        discount: parsedSheet?.discount,
-                        benefit: parsedData?.ktmarketSubsidy,
-                        installment: parsedData?.installment,
-                        freebie: parsedSheet?.freebie,
-                        installment_principal:
-                            parsedSheet?.installmentPrincipal,
-                        is_consultation: isConsultation,
-                    },
-                ])
-                if (error) throw error
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}))
+                throw new Error(err.error ?? `HTTP ${res.status}`)
             }
 
             window.location.href = props.nextPageUrl
