@@ -69,7 +69,15 @@ export async function GET(request: NextRequest) {
       console.error('프로필 upsert 실패 (로그인은 계속):', profileError)
     }
 
-    return NextResponse.redirect(`${FRONTEND_URL}/mypage`)
+    // 로그인 전 저장된 리다이렉트 경로 확인 (kakao/route.ts에서 설정)
+    const postAuthRedirect = request.cookies.get('post_auth_redirect')?.value
+    const finalRedirectUrl = postAuthRedirect
+      ? `${FRONTEND_URL}${postAuthRedirect}`
+      : `${FRONTEND_URL}/mypage`
+
+    const successResponse = NextResponse.redirect(finalRedirectUrl)
+    successResponse.cookies.delete('post_auth_redirect')
+    return successResponse
   } catch (err) {
     console.error('콜백 처리 오류:', err)
     return NextResponse.redirect(`${FRONTEND_URL}/?login_error=true`)

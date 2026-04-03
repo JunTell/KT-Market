@@ -641,8 +641,8 @@ export function withPriceCard(Component): ComponentType {
             register === "번호이동" || register === "신규가입"
                 ? modelPrices.mnp
                 : register === "기기변경"
-                  ? modelPrices.chg
-                  : 0
+                    ? modelPrices.chg
+                    : 0
 
         let disclosureSubsidy = 0
         if (discount === "공통지원금") {
@@ -675,7 +675,7 @@ export function withPriceCard(Component): ComponentType {
         const installmentPrincipal = isFreePhone ? 0 : devicePrice - totalDeviceDiscountAmount
         const installmentPaymentNum = isFreePhone
             ? 0
-            : calcInstallment(installmentPrincipal, installment, )
+            : calcInstallment(installmentPrincipal, installment,)
         const installmentPayment = `${installmentPaymentNum.toLocaleString()}원`
 
         const planDiscountAmount = discount === "공통지원금" ? 0 : Math.round(planPrice * 0.25)
@@ -696,8 +696,8 @@ export function withPriceCard(Component): ComponentType {
         const installmentPaymentTitle = isGuaranteedReturn
             ? "월 할부금"
             : installment > 0
-              ? `월 할부금 (${installment}개월)`
-              : "결제 금액"
+                ? `월 할부금 (${installment}개월)`
+                : "결제 금액"
         const installmentPaymentDescription =
             installment > 0 ? "분할 상환 수수료 5.9% 포함" : "카드 또는 현금결제"
 
@@ -1025,8 +1025,8 @@ export function withOrderSheet(Component): ComponentType {
                 register === "번호이동" || register === "신규가입"
                     ? specialPriceMnp
                     : register === "기기변경"
-                      ? specialPriceChg
-                      : 0
+                        ? specialPriceChg
+                        : 0
 
             let disclosureSubsidy = 0
 
@@ -1087,10 +1087,10 @@ export function withOrderSheet(Component): ComponentType {
             const installmentPayment = isFreePhone
                 ? 0
                 : calculateInstallment(
-                      installmentPrincipal,
-                      store.installment,
-                      5.9
-                  )
+                    installmentPrincipal,
+                    store.installment,
+                    5.9
+                )
 
             const planDiscountAmount =
                 discount === "공통지원금" ? 0 : planPrice * 0.25
@@ -1879,45 +1879,7 @@ export function withCarousel(Component): ComponentType {
     }
 }
 
-// s26 사전예약때 쓰던거
-// export function withCapacity(Component): ComponentType {
-//     return (props) => {
-//         const [store, setStore] = useStore()
-//         const [capacities, setCapacities] = useState([])
-
-//         function getDescriptionForCapacity(capacity: string): string {
-//             const currentModel = store.device?.model || ""
-
-//             // [일반 설명]
-//             const descriptions: Record<string, string> = {
-//                 "128GB": "사진은 약 38,333장 저장할 수 있어요.",
-//                 "256GB": "사진은 약 76,667장 저장할 수 있어요.",
-//                 "512GB": "사진은 약 153,334장 저장할 수 있어요.",
-//                 "1TB": "사진은 306,668장 저장할 수 있어요.",
-//             }
-//             return (
-//                 descriptions[capacity] || "사진은 612,668장 저장할 수 있어요."
-//             )
-//         }
-
-//         useEffect(() => {
-//             if (store.device && Array.isArray(store.device.capacities)) {
-//                 // 프레이머용 데이터(capacities props) 생성
-//                 const formattedCapacities = store.device.capacities.map(
-//                     (item, index) => ({
-//                         capacity: item || "",
-//                         description: getDescriptionForCapacity(item),
-//                         path: store.device.paths[index] || "",
-//                     })
-//                 )
-//                 setCapacities(formattedCapacities)
-//             }
-//         }, [store.device])
-
-//         return <Component {...props} capacities={capacities} />
-//     }
-// }
-
+// @deprecated — PhoneColorComponent.tsx (ColorCapacitySelector) + withColorCapacity로 통합됨
 export function withCapacity(Component): ComponentType {
     return (props) => {
         const [store, setStore] = useStore()
@@ -1952,6 +1914,68 @@ export function withCapacity(Component): ComponentType {
     }
 }
 
+// ─── withColorCapacity ────────────────────────────────────────────────
+// PhoneColorComponent.tsx (ColorCapacitySelector) 전용 통합 override
+// withColor + withCapacity 기능 합산
+export function withColorCapacity(Component): ComponentType {
+    return (props) => {
+        const [store, setStore] = useStore()
+        const [capacities, setCapacities] = useState([])
+        const [colors, setColors] = useState([])
+
+        // 용량 목록 동기화
+        useEffect(() => {
+            if (store.device && Array.isArray(store.device.capacities)) {
+                const formatted = store.device.capacities.map((item, index) => ({
+                    capacity: item || "",
+                    path: store.device.paths[index] || "",
+                }))
+                setCapacities(formatted)
+            }
+        }, [store.device])
+
+        // 색상 목록 동기화 + 첫 색상 자동 선택
+        useEffect(() => {
+            if (!Array.isArray(store.colors)) return
+            setColors(store.colors)
+            if (store.colors.length > 0 && !store.color) {
+                handleColorChange(store.colors[0])
+            }
+        }, [store.colors])
+
+        const handleColorChange = (color) => {
+            setStore({ color })
+            if (store.stocks) {
+                const selectedStock = store.stocks?.find(
+                    (stock) => stock.colorEn === color.en
+                )
+                const quantity = selectedStock?.quantity ?? 0
+                if (quantity <= 0) {
+                    alert("해당 색상은 현재 재고가 없습니다. 입고 알림을 신청해주세요.")
+                }
+            }
+        }
+
+        const handleCapacitySelect = (path: string) => {
+            window.history.pushState({}, "", `/phone/${path}`)
+            setStore({ currentModelId: path })
+        }
+
+        return (
+            <Component
+                {...props}
+                colors={colors}
+                capacities={capacities}
+                currentModelId={store.currentModelId}
+                selectedColor={store.color}
+                onColorChange={handleColorChange}
+                onCapacitySelect={handleCapacitySelect}
+                isLoading={store.isLoading ?? false}
+            />
+        )
+    }
+}
+
 export function withStock(Component): ComponentType {
     return (props) => {
         const [store, setStore] = useStore()
@@ -1977,12 +2001,13 @@ export function withStock(Component): ComponentType {
             }
         }, [store.color, store.stocks])
 
-        const handleColorChange = (color) => {}
+        const handleColorChange = (color) => { }
 
         return <Component {...props} quantity={quantity} />
     }
 }
 
+// @deprecated — PhoneColorComponent.tsx (ColorCapacitySelector) + withColorCapacity로 통합됨
 export function withColor(Component): ComponentType {
     return (props) => {
         const [store, setStore] = useStore()
@@ -2025,84 +2050,6 @@ export function withColor(Component): ComponentType {
         )
     }
 }
-
-// export function withRegister(Component): ComponentType {
-//     return (props) => {
-//         const [store, setStore] = useStore()
-//         const [variant, setVariant] = useState(
-//             props.title === store.register ? "active" : "inactive"
-//         )
-//         const hasInitializedRef = useRef(false)
-
-//         const NEW_SUBSCRIPTION_MODELS = [
-//             "aip16e-128",
-//             "aip16e-256",
-//             "sm-a175nk-kp",
-//         ]
-
-//         // 번호이동을 기본값으로 설정할 기기 모델들
-//         const numberPortingModels = [
-//             "aip16-128", // iPhone 16 128GB
-//             "aip16-256", // iPhone 16 256GB
-//             "aip16-512", // iPhone 16 512GB
-//             "aip17-256",
-//             "aip17-512",
-//             "aip17p-1t",
-//             "aip17p-256",
-//             "aip17p-512",
-//             "aip17pm-1t",
-//             "aip17pm-256",
-//             "aip17pm-2t",
-//             "aip17pm-512",
-//             "aipa-1t",
-//             "aipa-256",
-//             "aipa-512",
-//         ]
-
-//         useEffect(() => {
-//             const variant =
-//                 props.title === store.register ? "active" : "inactive"
-//             setVariant(variant)
-//             setStore({ ktmarketSubsidy: calcKTmarketSubsidy(store) })
-//         }, [store.register, store.ktmarketSubsidies])
-
-//         useEffect(() => {
-//             if (store.device && !hasInitializedRef.current) {
-//                 const deviceModel = store.device.model
-
-//                 if (numberPortingModels.includes(deviceModel)) {
-//                     setStore({ register: "번호이동" })
-//                 } else if (deviceModel === "sm-a175nk-kp") {
-//                     setStore({ register: "신규가입" })
-//                 }
-
-//                 hasInitializedRef.current = true
-//             }
-//         }, [store.device])
-
-//         const handleOnClick = (register) => {
-//             setStore({ register: register })
-//         }
-
-//         if (props.title === "신규가입") {
-//             const currentModel = store.device?.model
-//             if (
-//                 !currentModel ||
-//                 !NEW_SUBSCRIPTION_MODELS.includes(currentModel)
-//             ) {
-//                 return null
-//             }
-//         }
-
-//         return (
-//             <Component
-//                 {...props}
-//                 onClick={() => handleOnClick(props.title)}
-//                 variant={variant}
-//             />
-//         )
-//     }
-// }
 
 // 해당 코드는 초기 통신사의 로직
 export function withRegister(Component): ComponentType {
@@ -2288,6 +2235,7 @@ export function withSelectedPlan(Component): ComponentType {
     }
 }
 
+// @deprecated — PlanSelectorComponent (withPlanGrid)에 사은품 로직 통합됨. FreebiesSectionComponent.tsx 미사용 시 제거 가능
 export function withFreebiesSection(Component): ComponentType {
     return (props) => {
         const [store, setStore] = useStore()
@@ -2320,6 +2268,7 @@ export function withFreebiesSection(Component): ComponentType {
     }
 }
 
+// @deprecated — withPlanGrid로 대체됨
 export function withFreebies(Component): ComponentType {
     return (props) => {
         const [store, setStore] = useStore()
@@ -2336,6 +2285,7 @@ export function withFreebies(Component): ComponentType {
     }
 }
 
+// @deprecated — 로직 없음, withPlanGrid로 대체됨
 export function withFreebiesSecondSection(Component): ComponentType {
     return (props) => {
         const [store, setStore] = useStore()
@@ -2878,6 +2828,7 @@ export function withDiscountWarning(Component): ComponentType {
     }
 }
 
+// @deprecated — 로직 없음 (no-op), 제거 가능
 export function withFreebie(Component): ComponentType {
     return (props) => {
         const [store, setStore] = useStore()
@@ -3631,6 +3582,8 @@ export function withPlanGrid(Component): ComponentType {
                 discountAmounts={discountAmounts}
                 onPlanSelect={handlePlanSelect}
                 onTabChange={handleTabChange}
+                store={store}
+                setStore={setStore}
             />
         )
     }
