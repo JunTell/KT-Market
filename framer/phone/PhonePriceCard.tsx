@@ -1,5 +1,5 @@
 // withPriceCard override와 함께 사용
-// 요금제 변경 시 가격 카운트 애니메이션 + 스켈레톤 UI + 월 할부 팝업 + 최종 주문서 모달
+// 요금제 변경 시 가격 카운트 애니메이션 + 스켈레톤 UI + 월 할부 팝업 + 최종 신청서 모달
 
 import { addPropertyControls, ControlType } from "framer"
 import React, { useState, useEffect, useRef } from "react"
@@ -403,17 +403,7 @@ function OrderSheetModal({
                         alignItems: "center",
                         marginBottom: 20,
                     }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <div style={{
-                                width: 24, height: 24, borderRadius: 6,
-                                backgroundColor: "#111827",
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                flexShrink: 0,
-                            }}>
-                                <span style={{ fontSize: 13, fontWeight: 700, color: "#FFFFFF" }}>7</span>
-                            </div>
-                            <span style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>최종 주문서</span>
-                        </div>
+                        <span style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>최종 신청서</span>
                         <button
                             onClick={onClose}
                             style={{
@@ -745,7 +735,7 @@ export default function PhonePriceCard(props) {
                     </button>
                 </div>
 
-                {/* ── 최종 주문서 보기 버튼 ── */}
+                {/* ── 최종 신청서 보기 버튼 ── */}
                 <button
                     onClick={() => setShowOrderSheet(true)}
                     style={{
@@ -765,7 +755,7 @@ export default function PhonePriceCard(props) {
                         fontFamily: FONT,
                     }}
                 >
-                    최종 주문서 보기
+                    최종 신청서 보기
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="9 18 15 12 9 6" />
                     </svg>
@@ -785,7 +775,7 @@ export default function PhonePriceCard(props) {
                 />
             )}
 
-            {/* ── 최종 주문서 모달 ── */}
+            {/* ── 최종 신청서 모달 ── */}
             {showOrderSheet && (
                 <OrderSheetModal
                     onClose={() => setShowOrderSheet(false)}

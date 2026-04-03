@@ -1,5 +1,5 @@
 import { addPropertyControls, ControlType } from "framer"
-import { checkAuth, userState } from "https://framer.com/m/AuthStore-jiikDX.js"
+
 import LoadingIndicator from "https://framer.com/m/LoadingIndicator-9X6k.js"
 import * as React from "react"
 import { useState, useEffect, useRef, useCallback } from "react"
@@ -95,11 +95,18 @@ export default function UserInfoForm(props: Props) {
         if (typeof window === "undefined") return
 
         try {
-            await checkAuth()
-            
-            const sheetStr = sessionStorage.getItem("sheet")
-            const dataStr = sessionStorage.getItem("data")
+            // userState 스토어 대신 API 직접 호출 — checkAuth() 후 Data() 스토어 반영 지연 race condition 방지
+            const authRes = await fetch(`${API_URL}/api/auth/me`, { credentials: "include" })
+            const authData = authRes.ok ? await authRes.json() : { isLoggedIn: false }
+
+            // sessionStorage 우선, 없으면 localStorage fallback (Safari OAuth 리다이렉트 후 초기화 대응)
+            const sheetStr = sessionStorage.getItem("sheet") || localStorage.getItem("kt_sheet")
+            const dataStr = sessionStorage.getItem("data") || localStorage.getItem("kt_data")
             const savedUserInfoStr = sessionStorage.getItem("user-info")
+
+            // 읽은 후 localStorage 정리 (다음 주문과 혼재 방지)
+            if (!sessionStorage.getItem("sheet") && sheetStr) localStorage.removeItem("kt_sheet")
+            if (!sessionStorage.getItem("data") && dataStr) localStorage.removeItem("kt_data")
 
             let parsedSheet = null
             let parsedData = null
@@ -143,14 +150,18 @@ export default function UserInfoForm(props: Props) {
                 })
             }
 
-            if (userState.isLoggedIn) {
+            if (authData.isLoggedIn && authData.user) {
+                const kakaoUser = authData.user
+                // birthday: DB는 "YYYYMMDD" 8자리, 폼은 "YYMMDD" 6자리
+                const rawBirthday: string = kakaoUser.birthday ?? ""
+                const formattedDob = rawBirthday.length === 8 ? rawBirthday.slice(2) : rawBirthday
                 setFormData({
-                    userName: userState.fullName || "",
-                    userDob: "981128", // 예시로 설정된 생년월일 (스토어에 없을 시)
-                    userPhone: formatPhoneNumber(userState.phoneNumber || ""),
+                    userName: kakaoUser.full_name || "",
+                    userDob: formattedDob,
+                    userPhone: formatPhoneNumber(kakaoUser.phone || ""),
                 })
-                setIsInitialEntry(false)
-                setIsEditing(false)
+                setIsInitialEntry(!formattedDob && !kakaoUser.phone)
+                setIsEditing(!formattedDob || !kakaoUser.phone)
             } else if (savedUserInfoStr) {
                 const savedUser = JSON.parse(savedUserInfoStr)
                 setFormData({

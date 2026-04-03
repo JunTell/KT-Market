@@ -1,8 +1,6 @@
 // withOrderSheet override와 함께 사용
-// 하단 고정 BottomSheet (440px 고정, flex 2버튼)
-// 카카오톡으로 10초 간편 주문 + 주문하기
-// 상세 주문서 탭 → 위로 올라오는 바텀시트로 OrderSheetComponent UI 표시
-// 카카오 간편주문 버튼: 로그인 여부 확인 후 미로그인 시 카카오 OAuth 리다이렉트
+// 하단 고정 BottomSheet — 신청하기 버튼 클릭 시 모달 (카카오 로그인 / 비회원)
+// 상세 신청서 탭 → 위로 올라오는 바텀시트로 OrderSheetComponent UI 표시
 
 import { addPropertyControls, ControlType } from "framer"
 import React, { useState, useEffect, useRef } from "react"
@@ -314,19 +312,24 @@ function OrderSheetContent({
 // ─── 상세 주문서 바텀시트 ─────────────────────────────────────────────
 function DetailBottomSheet({
     onClose,
-    onKakaoOrder,
-    onFormLink,
+    onApply,
     sheetProps,
     FONT,
-    isLoggedIn,
 }: {
     onClose: () => void
-    onKakaoOrder: () => void
-    onFormLink: () => void
+    onApply: () => void
     sheetProps: any
     FONT: string
-    isLoggedIn: boolean
 }) {
+    const touchStartY = useRef(0)
+    const handleSheetTouchStart = (e: React.TouchEvent) => {
+        touchStartY.current = e.touches[0].clientY
+    }
+    const handleSheetTouchEnd = (e: React.TouchEvent) => {
+        const delta = e.changedTouches[0].clientY - touchStartY.current
+        if (delta > 60) onClose()
+    }
+
     return (
         <AnimatePresence>
             {/* 딤 오버레이 */}
@@ -371,12 +374,17 @@ function DetailBottomSheet({
                     fontFamily: FONT,
                 }}
             >
-                {/* 핸들 + 헤더 */}
-                <div style={{
-                    padding: "16px 20px 12px",
-                    borderBottom: "1px solid #F3F4F6",
-                    flexShrink: 0,
-                }}>
+                {/* 핸들 + 헤더 — 스와이프 다운으로 닫기 */}
+                <div
+                    style={{
+                        padding: "16px 20px 12px",
+                        borderBottom: "1px solid #F3F4F6",
+                        flexShrink: 0,
+                        cursor: "grab",
+                    }}
+                    onTouchStart={handleSheetTouchStart}
+                    onTouchEnd={handleSheetTouchEnd}
+                >
                     {/* 핸들 */}
                     <div style={{
                         width: 40, height: 4, borderRadius: 9999,
@@ -386,7 +394,7 @@ function DetailBottomSheet({
                     {/* 제목 + 닫기 */}
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <span style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>최종 주문서</span>
+                            <span style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>최종 신청서</span>
                         </div>
                         <button
                             onClick={onClose}
@@ -417,8 +425,6 @@ function DetailBottomSheet({
 
                 {/* CTA 버튼 */}
                 <div style={{
-                    display: "flex",
-                    gap: 8,
                     padding: "10px 16px",
                     paddingBottom: "calc(10px + env(safe-area-inset-bottom, 10px))",
                     borderTop: "1px solid #F3F4F6",
@@ -426,31 +432,16 @@ function DetailBottomSheet({
                     backgroundColor: "#FFFFFF",
                 }}>
                     <button
-                        onClick={onKakaoOrder}
+                        onClick={onApply}
                         style={{
-                            flex: 1, height: 52, borderRadius: 14,
-                            border: "none", backgroundColor: "#FAE100",
-                            cursor: "pointer", display: "flex",
-                            alignItems: "center", justifyContent: "center",
-                            gap: 6, fontFamily: FONT,
-                        }}
-                    >
-                        <KakaoBadge size={22} />
-                        <span style={{ fontSize: 13, fontWeight: 700, color: "#3A1D1D", letterSpacing: "-0.2px" }}>
-                            {isLoggedIn ? "카카오톡으로 10초 간편 주문" : "카카오 로그인 후 주문"}
-                        </span>
-                    </button>
-                    <button
-                        onClick={onFormLink}
-                        style={{
-                            flex: 1, height: 52, borderRadius: 14,
+                            width: "100%", height: 52, borderRadius: 14,
                             border: "none", backgroundColor: "#0055FF",
-                            color: "#FFFFFF", fontSize: 14, fontWeight: 700,
+                            color: "#FFFFFF", fontSize: 15, fontWeight: 700,
                             cursor: "pointer", fontFamily: FONT,
                             display: "flex", alignItems: "center", justifyContent: "center",
                         }}
                     >
-                        주문하기
+                        신청하기
                     </button>
                 </div>
             </motion.div>
@@ -496,14 +487,24 @@ export default function BottomSheetOrderSheetComponent(props) {
         phoneOrderLink = "tel:15880661",
         kakaoTalkLink = "https://pf.kakao.com/_xjxhxnj",
         onKakaoOrderClick,
+        onSaveOrderSession,
     } = props
 
     const [mounted, setMounted] = useState(false)
     const [showDetailSheet, setShowDetailSheet] = useState(false)
-    // ── 로그인 상태 ──
+    const [showOrderModal, setShowOrderModal] = useState(false)
+
+    // 모달 열릴 때 배경 스크롤 차단
+    useEffect(() => {
+        if (showDetailSheet) {
+            document.body.style.overflow = "hidden"
+        } else {
+            document.body.style.overflow = ""
+        }
+        return () => { document.body.style.overflow = "" }
+    }, [showDetailSheet])
+    // ── 로그인 상태 (모달 분기용) ──
     const [isLoggedIn, setIsLoggedIn] = useState(false)
-    const [authChecked, setAuthChecked] = useState(false)
-    const [userName, setUserName] = useState("")
 
     // ── 금액 변동 애니메이션 ──
     const roundedPayment = Math.round(totalMonthPayment)
@@ -526,29 +527,32 @@ export default function BottomSheetOrderSheetComponent(props) {
         // 마운트 시 로그인 여부 확인
         fetch(`${API_URL}/api/auth/me`, { credentials: "include" })
             .then((res) => res.json())
-            .then((data) => {
-                setIsLoggedIn(data.isLoggedIn === true)
-                setUserName(data.user?.full_name ?? "")
-            })
-            .catch(() => {
-                setIsLoggedIn(false)
-            })
-            .finally(() => {
-                setAuthChecked(true)
-            })
+            .then((data) => { setIsLoggedIn(data.isLoggedIn === true) })
+            .catch(() => { setIsLoggedIn(false) })
     }, [])
 
-    // 카카오 간편주문: 로그인 O → /phone/userinfo, 로그인 X → 카카오 로그인 후 /phone/user-info
+    // 카카오 간편주문: 로그인 O → override의 onKakaoOrderClick (세션저장+SPA이동), 로그인 X → 세션저장 후 카카오 OAuth
     const handleKakaoOrder = () => {
         if (!isLoggedIn) {
+            onSaveOrderSession?.()
             window.location.href = `${API_URL}/api/auth/kakao?redirect=/phone/user-info`
             return
         }
-        window.location.href = "/phone/userinfo"
+        if (typeof onKakaoOrderClick === "function") {
+            onKakaoOrderClick()
+        } else {
+            onSaveOrderSession?.()
+            window.location.href = "/phone/userinfo"
+        }
     }
 
     const handleFormLink = () => {
-        window.location.href = "/phone/user-info"
+        if (typeof onKakaoOrderClick === "function") {
+            onKakaoOrderClick()
+        } else {
+            onSaveOrderSession?.()
+            window.location.href = "/phone/user-info"
+        }
     }
 
     if (!mounted) return <div style={{ height: 80 }} />
@@ -588,96 +592,61 @@ export default function BottomSheetOrderSheetComponent(props) {
             boxShadow: "0 -4px 28px rgba(0,0,0,0.13)",
             fontFamily: FONT,
         }}>
-            {/* 월 예상 금액 행 — 클릭 시 상세 주문서 시트 열기 */}
+            {/* 상단 chevron — 탭 시 상세 신청서 열기 */}
             <button
                 onClick={() => setShowDetailSheet(true)}
                 style={{
-                    width: "100%",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "14px 16px 10px",
-                    borderBottom: "1px solid #F3F4F6",
-                    background: "none",
-                    border: "none",
-                    borderBottom: "1px solid #F3F4F6",
-                    cursor: "pointer",
-                    fontFamily: FONT,
-                    textAlign: "left",
+                    width: "100%", padding: "10px 0 4px",
+                    background: "none", border: "none",
+                    cursor: "pointer", display: "flex",
+                    alignItems: "center", justifyContent: "center",
                 }}
             >
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: 14, fontWeight: 500, color: "#374151" }}>월 예상 금액</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="18 15 12 9 6 15" />
-                    </svg>
-                    <span style={{ fontSize: 11, color: "#9CA3AF" }}>주문서 상세보기</span>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="18 15 12 9 6 15" />
+                </svg>
+            </button>
+
+            {/* 금액 + 신청하기 버튼 한 행 */}
+            <div style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "8px 16px",
+                paddingBottom: "calc(14px + env(safe-area-inset-bottom, 10px))",
+            }}>
+                {/* 왼쪽: 레이블 + 금액 */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    <span style={{ fontSize: 13, color: "#9CA3AF", fontFamily: FONT }}>
+                        월 예상 금액 <span style={{ fontSize: 11 }}>(부가세 포함)</span>
+                    </span>
                     <motion.div
                         style={{
-                            fontSize: 20,
+                            fontSize: 22,
                             fontWeight: 700,
                             lineHeight: 1.2,
                             color: direction === "up" ? "#EF4444" : direction === "down" ? "#0055FF" : "#111827",
                             transition: "color 0.4s ease",
                             fontVariantNumeric: "tabular-nums",
+                            fontFamily: FONT,
                         }}
                     >
                         {animatedPayment.toLocaleString()}원
                     </motion.div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <span style={{ fontSize: 11, color: "#9CA3AF" }}>부가세 포함</span>
-                        {/* 로그인 상태 뱃지 */}
-                        {authChecked && (
-                            <span style={{
-                                fontSize: 10, fontWeight: 600,
-                                color: isLoggedIn ? "#059669" : "#9CA3AF",
-                                backgroundColor: isLoggedIn ? "#ECFDF5" : "#F3F4F6",
-                                padding: "1px 6px", borderRadius: 4,
-                            }}>
-                                {isLoggedIn ? `${userName || "로그인"} 님` : "로그인 필요"}
-                            </span>
-                        )}
-                    </div>
                 </div>
-            </button>
 
-            {/* CTA 버튼 2종 */}
-            <div style={{
-                display: "flex", gap: 8,
-                padding: "10px 16px",
-                paddingBottom: "calc(10px + env(safe-area-inset-bottom, 10px))",
-            }}>
-                {/* ① 카카오 로그인 / 간편 주문 */}
+                {/* 오른쪽: 신청하기 버튼 */}
                 <button
-                    onClick={handleKakaoOrder}
+                    onClick={() => setShowOrderModal(true)}
                     style={{
-                        flex: 1, height: 52, borderRadius: 14,
-                        border: "none", backgroundColor: "#FAE100",
-                        cursor: "pointer", display: "flex",
-                        alignItems: "center", justifyContent: "center",
-                        gap: 6, fontFamily: FONT,
-                    }}
-                >
-                    <KakaoBadge size={22} />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#3A1D1D", letterSpacing: "-0.2px" }}>
-                        간편 주문
-                    </span>
-                </button>
-
-                {/* ② 주문하기 */}
-                <button
-                    onClick={handleFormLink}
-                    style={{
-                        flex: 1, height: 52, borderRadius: 14,
-                        border: "none", backgroundColor: "#0055FF",
-                        color: "#FFFFFF", fontSize: 14, fontWeight: 700,
+                        height: 48, paddingLeft: 28, paddingRight: 28,
+                        borderRadius: 14, border: "none",
+                        backgroundColor: "#0055FF",
+                        color: "#FFFFFF", fontSize: 16, fontWeight: 700,
                         cursor: "pointer", fontFamily: FONT,
                         display: "flex", alignItems: "center", justifyContent: "center",
+                        flexShrink: 0,
                     }}
                 >
-                    주문하기
+                    신청하기
                 </button>
             </div>
         </div>
@@ -688,21 +657,120 @@ export default function BottomSheetOrderSheetComponent(props) {
             {/* portal 없이 직접 렌더링 — Framer 캔버스에서 portal은 에디터 외부 body에 붙음 */}
             {bar}
 
+            {/* 신청하기 모달 */}
+            <AnimatePresence>
+                {showOrderModal && (
+                    <>
+                        {/* 딤 오버레이 */}
+                        <motion.div
+                            key="order-modal-overlay"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            onClick={() => setShowOrderModal(false)}
+                            style={{
+                                position: "fixed", inset: 0,
+                                backgroundColor: "rgba(0,0,0,0.5)",
+                                zIndex: 9998,
+                            }}
+                        />
+                        {/* 모달 카드 */}
+                        <motion.div
+                            key="order-modal-card"
+                            initial={{ opacity: 0, scale: 0.94, y: 16 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.94, y: 16 }}
+                            transition={{ type: "spring", stiffness: 380, damping: 28 }}
+                            style={{
+                                position: "fixed",
+                                top: "50%", left: "50%",
+                                transform: "translate(-50%, -50%)",
+                                width: "calc(100% - 48px)",
+                                maxWidth: 360,
+                                backgroundColor: "#FFFFFF",
+                                borderRadius: 20,
+                                padding: "28px 24px 24px",
+                                boxShadow: "0 8px 40px rgba(0,0,0,0.18)",
+                                zIndex: 9999,
+                                fontFamily: FONT,
+                                boxSizing: "border-box",
+                            }}
+                        >
+                            {/* 닫기 버튼 */}
+                            <button
+                                onClick={() => setShowOrderModal(false)}
+                                style={{
+                                    position: "absolute", top: 16, right: 16,
+                                    background: "none", border: "none",
+                                    cursor: "pointer", padding: 4,
+                                    color: "#9CA3AF", display: "flex",
+                                    alignItems: "center", justifyContent: "center",
+                                }}
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                            </button>
+
+                            {/* 제목 */}
+                            <div style={{ textAlign: "center", marginBottom: 8 }}>
+                                <span style={{ fontSize: 18, fontWeight: 700, color: "#111827" }}>신청하기</span>
+                            </div>
+                            {/* 설명 */}
+                            <p style={{
+                                textAlign: "center", fontSize: 14, color: "#6B7280",
+                                lineHeight: 1.6, margin: "0 0 24px",
+                            }}>
+                                휴대폰 셀프가입 신청을 위해<br />로그인 해주세요.
+                            </p>
+
+                            {/* 카카오 로그인으로 신청하기 */}
+                            <button
+                                onClick={() => { setShowOrderModal(false); handleKakaoOrder() }}
+                                style={{
+                                    width: "100%", height: 52, borderRadius: 12,
+                                    border: "none", backgroundColor: "#FAE100",
+                                    cursor: "pointer", display: "flex",
+                                    alignItems: "center", justifyContent: "center",
+                                    gap: 8, fontFamily: FONT, marginBottom: 12,
+                                }}
+                            >
+                                <KakaoBadge size={22} />
+                                <span style={{ fontSize: 14, fontWeight: 700, color: "#3A1D1D" }}>
+                                    카카오 로그인으로 신청하기
+                                </span>
+                            </button>
+
+                            {/* 비회원으로 신청하기 */}
+                            <button
+                                onClick={() => { setShowOrderModal(false); handleFormLink() }}
+                                style={{
+                                    width: "100%", height: 44,
+                                    background: "none", border: "none",
+                                    cursor: "pointer", fontFamily: FONT,
+                                    fontSize: 14, fontWeight: 600, color: "#6B7280",
+                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                }}
+                            >
+                                비회원으로 신청하기
+                            </button>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+
             {/* 상세 주문서 바텀시트 */}
             {showDetailSheet && (
                 <DetailBottomSheet
                     onClose={() => setShowDetailSheet(false)}
-                    onKakaoOrder={() => {
+                    onApply={() => {
                         setShowDetailSheet(false)
-                        handleKakaoOrder()
-                    }}
-                    onFormLink={() => {
-                        setShowDetailSheet(false)
-                        handleFormLink()
+                        setShowOrderModal(true)
                     }}
                     sheetProps={sheetProps}
                     FONT={FONT}
-                    isLoggedIn={isLoggedIn}
                 />
             )}
         </>

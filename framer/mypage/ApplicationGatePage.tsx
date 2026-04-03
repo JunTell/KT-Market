@@ -1,7 +1,7 @@
 import * as React from "react"
 import { useState, useEffect } from "react"
 import { addPropertyControls, ControlType } from "framer"
-import { checkAuth, userState } from "https://framer.com/m/AuthStore-jiikDX.js"
+const API_URL = "https://kt-market-puce.vercel.app"
 
 // --- Skeleton Components ---
 const SkeletonBox = ({
@@ -486,10 +486,16 @@ export default function ApplicationGatePage(props: Props) {
         if (typeof window === "undefined") return
 
         try {
-            await checkAuth() // 카카오 로그인 상태 동기화 완료 후 진행
+            // 직접 auth/me 호출 (AuthStore 비동기 race condition 회피)
+            let kakaoUser: { id?: string; full_name?: string; phone?: string } = {}
+            try {
+                const authRes = await fetch(`${API_URL}/api/auth/me`, { credentials: "include" })
+                const authData = authRes.ok ? await authRes.json() : { isLoggedIn: false }
+                if (authData.isLoggedIn && authData.user) kakaoUser = authData.user
+            } catch { /* 인증 실패 시 빈 값 유지 */ }
 
-            const sheetStr = sessionStorage.getItem("sheet")
-            const dataStr = sessionStorage.getItem("data")
+            const sheetStr = sessionStorage.getItem("sheet") || localStorage.getItem("kt_sheet")
+            const dataStr = sessionStorage.getItem("data") || localStorage.getItem("kt_data")
             const userStr = sessionStorage.getItem("user-info")
 
             let parsedSheet = null
@@ -522,14 +528,14 @@ export default function ApplicationGatePage(props: Props) {
                     doubleStorageDiscount -
                     promotionDiscount
 
-                // 카카오 로그인 이용자: sessionStorage 미설정 시 userState 값으로 보완
+                // 카카오 로그인 이용자: sessionStorage 미설정 시 auth/me 값으로 보완
                 const resolvedName =
                     parsedUser?.userName ||
-                    (userState.isLoggedIn ? userState.fullName : "") ||
+                    kakaoUser.full_name ||
                     "-"
                 const resolvedPhone =
                     parsedUser?.userPhone ||
-                    (userState.isLoggedIn ? userState.phoneNumber : "") ||
+                    kakaoUser.phone ||
                     "-"
                 const resolvedDob = parsedUser?.userDob || "-"
 

@@ -151,10 +151,7 @@ export default function JunCarousel(props) {
         if (onColorChange) onColorChange(color)
     }
 
-    // 색상 서클이 있을 때 하단에 확보할 공간
-    const colorBarHeight = colors.length > 0 ? COLOR_BAR : 0
-
-    if (!isMounted) return <div style={{ width: "100%", height: `${imageHeight + colorBarHeight}px` }} />
+    if (!isMounted) return <div style={{ width: "100%", height: `${imageHeight + (colors.length > 0 ? COLOR_BAR : 0)}px` }} />
 
     // 로딩 중: 스켈레톤
     if (isLoading) return <SkeletonView imageHeight={imageHeight} />
@@ -168,35 +165,23 @@ export default function JunCarousel(props) {
         )
     }
 
+    const totalHeight = imageHeight + (colors.length > 0 ? COLOR_BAR : 0)
+
     return (
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-            {/* ── 캐러셀 전체 컨테이너 (이미지 + 색상 서클 포함) ── */}
+        <div style={{ width: "100%", height: `${totalHeight}px`, display: "flex", flexDirection: "column", alignItems: "center", overflow: "visible" }}>
+            {/* ── 이미지 슬라이드 영역 ── */}
             <div
                 style={{
                     position: "relative",
                     width: "100%",
-                    // 색상 서클 공간을 포함한 전체 높이
-                    height: `${imageHeight + colorBarHeight}px`,
+                    height: `${imageHeight}px`,
+                    overflow: "hidden",
                     touchAction: "pan-y",
                 }}
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
             >
-                {/* 슬라이드 뷰포트 — 이미지 높이만큼만, 하단은 색상 서클 여백 */}
-                <div
-                    style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        height: `${imageHeight}px`,
-                        overflow: "hidden",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                    }}
-                >
                 <div
                     style={{
                         display: "flex",
@@ -310,55 +295,51 @@ export default function JunCarousel(props) {
                         />
                     ))}
                 </div>
-                </div>{/* ← 이미지 슬라이드 뷰포트 닫기 */}
+            </div>{/* ← 이미지 슬라이드 영역 닫기 */}
 
-                {/* ── 색상 선택 서클 (컨테이너 내부 하단 절대 위치) ── */}
-                {colors.length > 0 && (
-                    <div
-                        style={{
-                            position: "absolute",
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            height: `${colorBarHeight}px`,
-                            display: "flex",
-                            gap: "12px",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            flexWrap: "wrap",
-                            zIndex: 3,
-                        }}
-                    >
-                        {colors.map((color, index) => {
-                            const isActive = activeColor ? activeColor.code === color.code : index === 0
-                            return (
-                                <motion.div
-                                    key={index}
-                                    onClick={() => handleColorClick(color)}
-                                    title={color.kr}
-                                    whileTap={color.isSoldOut ? {} : { scale: 0.88 }}
-                                    style={{
-                                        position: "relative",
-                                        width: "36px",
-                                        height: "36px",
-                                        borderRadius: "50%",
-                                        backgroundColor: color.code || "#E5E7EB",
-                                        cursor: color.isSoldOut ? "not-allowed" : "pointer",
-                                        boxShadow: isActive
-                                            ? "0 0 0 2.5px #ffffff, 0 0 0 5px #0055FF"
-                                            : "0 0 0 1.5px rgba(0,0,0,0.12)",
-                                        opacity: color.isSoldOut ? 0.4 : 1,
-                                        transition: "box-shadow 0.18s ease",
-                                        flexShrink: 0,
-                                    }}
-                                >
-                                    {color.isSoldOut && <SoldOutOverlay />}
-                                </motion.div>
-                            )
-                        })}
-                    </div>
-                )}
-            </div>{/* ← 전체 컨테이너 닫기 */}
+            {/* ── 색상 선택 서클 — 이미지 아래 일반 flow로 배치 (fit height 대응) ── */}
+            {colors.length > 0 && (
+                <div
+                    style={{
+                        width: "100%",
+                        height: `${COLOR_BAR}px`,
+                        display: "flex",
+                        gap: "12px",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        flexShrink: 0,
+                    }}
+                >
+                    {colors.map((color, index) => {
+                        const isActive = activeColor ? activeColor.code === color.code : index === 0
+                        return (
+                            <motion.div
+                                key={index}
+                                onClick={() => handleColorClick(color)}
+                                title={color.kr}
+                                whileTap={color.isSoldOut ? {} : { scale: 0.88 }}
+                                style={{
+                                    position: "relative",
+                                    width: "36px",
+                                    height: "36px",
+                                    borderRadius: "50%",
+                                    backgroundColor: color.code || "#E5E7EB",
+                                    cursor: color.isSoldOut ? "not-allowed" : "pointer",
+                                    boxShadow: isActive
+                                        ? "0 0 0 2.5px #ffffff, 0 0 0 5px #0055FF"
+                                        : "0 0 0 1.5px rgba(0,0,0,0.12)",
+                                    opacity: color.isSoldOut ? 0.4 : 1,
+                                    transition: "box-shadow 0.18s ease",
+                                    flexShrink: 0,
+                                }}
+                            >
+                                {color.isSoldOut && <SoldOutOverlay />}
+                            </motion.div>
+                        )
+                    })}
+                </div>
+            )}
         </div>
     )
 }
@@ -389,7 +370,11 @@ addPropertyControls(JunCarousel, {
     colors: {
         type: ControlType.Array,
         title: "Colors",
-        defaultValue: [],
+        defaultValue: [
+            { kr: "블랙", code: "#1C1C1E", isSoldOut: false },
+            { kr: "화이트", code: "#F5F5F7", isSoldOut: false },
+            { kr: "블루", code: "#0055FF", isSoldOut: false },
+        ],
         propertyControl: {
             type: ControlType.Object,
             controls: {

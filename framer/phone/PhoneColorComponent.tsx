@@ -4,7 +4,7 @@
 // 클릭 시: 바텀시트 모달 (용량 세그먼트 탭 + 색상 리스트)
 
 import { addPropertyControls, ControlType } from "framer"
-import React, { useState } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
 interface Color {
@@ -50,6 +50,25 @@ export default function ColorCapacitySelector(props) {
     } = props
 
     const [showModal, setShowModal] = useState(false)
+    const touchStartY = useRef(0)
+
+    // 모달 열릴 때 배경 스크롤 차단
+    useEffect(() => {
+        if (showModal) {
+            document.body.style.overflow = "hidden"
+        } else {
+            document.body.style.overflow = ""
+        }
+        return () => { document.body.style.overflow = "" }
+    }, [showModal])
+
+    const handleSheetTouchStart = (e: React.TouchEvent) => {
+        touchStartY.current = e.touches[0].clientY
+    }
+    const handleSheetTouchEnd = (e: React.TouchEvent) => {
+        const delta = e.changedTouches[0].clientY - touchStartY.current
+        if (delta > 60) setShowModal(false)
+    }
 
     const activeColor: Color | null = selectedColor ?? (colors.length > 0 ? colors[0] : null)
     const activeCapacity: Capacity | null =
@@ -173,8 +192,12 @@ export default function ColorCapacitySelector(props) {
                                 maxHeight: "80vh", fontFamily: FONT,
                             }}
                         >
-                            {/* 핸들 */}
-                            <div style={{ padding: "14px 20px 0", flexShrink: 0 }}>
+                            {/* 핸들 — 스와이프 다운으로 닫기 */}
+                            <div
+                                style={{ padding: "14px 20px 0", flexShrink: 0, cursor: "grab" }}
+                                onTouchStart={handleSheetTouchStart}
+                                onTouchEnd={handleSheetTouchEnd}
+                            >
                                 <div style={{
                                     width: 40, height: 4, borderRadius: 9999,
                                     backgroundColor: "#E5E7EB", margin: "0 auto",

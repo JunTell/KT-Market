@@ -1201,6 +1201,7 @@ export function withOrderSheet(Component): ComponentType {
             }
 
             sessionStorage.setItem("sheet", JSON.stringify(data))
+            localStorage.setItem("kt_sheet", JSON.stringify(data))
         }, [store])
 
         useEffect(() => {
@@ -1218,10 +1219,22 @@ export function withOrderSheet(Component): ComponentType {
             return null
         }
 
-        // 카카오 간편주문: sessionStorage 보존 후 user-info 페이지로 이동
+        // 이동 전 세션 데이터 저장 (sessionStorage + localStorage 이중 저장)
+        // sheet도 여기서 강제 저장 — store.plan이 null이어서 useEffect가 스킵된 경우 방어
+        const saveOrderSession = () => {
+            const storeJson = JSON.stringify(store)
+            sessionStorage.setItem("data", storeJson)
+            localStorage.setItem("kt_data", storeJson)
+
+            const currentSheet = sessionStorage.getItem("sheet")
+            if (currentSheet) {
+                localStorage.setItem("kt_sheet", currentSheet)
+            }
+        }
+
+        // 카카오 간편주문: 세션 저장 후 user-info 페이지로 이동
         const handleKakaoOrder = () => {
-            sessionStorage.setItem("data", JSON.stringify(store))
-            // sheet는 withOrderSheet useEffect에서 이미 지속 저장됨
+            saveOrderSession()
             const routeId = getUserInfoRouteId()
             if (routeId) {
                 navigate(routeId, "")
@@ -1279,6 +1292,7 @@ export function withOrderSheet(Component): ComponentType {
                 deviceCapacity={store.device?.capacity ?? ""}
                 formLink={formLink}
                 onKakaoOrderClick={handleKakaoOrder}
+                onSaveOrderSession={saveOrderSession}
             />
         )
     }
@@ -2956,8 +2970,10 @@ export function withApplianceText(Component): ComponentType {
 
             // sessionStorage에 데이터 저장
             if (typeof window !== "undefined") {
+                const storeJson = JSON.stringify(store)
                 sessionStorage.removeItem("data")
-                sessionStorage.setItem("data", JSON.stringify(store))
+                sessionStorage.setItem("data", storeJson)
+                localStorage.setItem("kt_data", storeJson)
             }
 
             // 페이지 이동
@@ -3068,8 +3084,10 @@ export function withOnlineButton(Component): ComponentType {
         const handleOnClick = (event) => {
             event.preventDefault()
 
+            const storeJson = JSON.stringify(store)
             sessionStorage.removeItem("data")
-            sessionStorage.setItem("data", JSON.stringify(store))
+            sessionStorage.setItem("data", storeJson)
+            localStorage.setItem("kt_data", storeJson)
 
             const allRoutes = routes
             // 재고 상태에 따라 다른 페이지(알림 페이지 vs 정보 입력 페이지)로 라우팅
@@ -3129,7 +3147,9 @@ export function withSubmitButton(Component): ComponentType {
         const handleOnClick = async (e) => {
             // e.preventDefault()
 
-            sessionStorage.setItem("data", JSON.stringify(store))
+            const storeJson2 = JSON.stringify(store)
+            sessionStorage.setItem("data", storeJson2)
+            localStorage.setItem("kt_data", storeJson2)
             // window.history.pushState({}, "", PATH)
             sessionStorage.setItem("scrollPosition", window.scrollY)
             // console.log(window.scrollY)

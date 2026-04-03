@@ -1,6 +1,6 @@
 // withPlanGrid override와 함께 사용
 // 준텔DB - plans.csv 전체 등록
-// 고정 3개: 90,000원(ppllistobj_0865) / 69,000원(ppllistobj_0808) / 37,000원(ppllistobj_0925)
+// 고정 3개: 90,000원(ppllistobj_0942) / 69,000원(ppllistobj_0808) / 37,000원(ppllistobj_0925)
 // 4번째 칸: 팝업에서 전체 요금제 선택 가능 (5G/LTE 탭 + 카테고리 + 검색)
 
 import { addPropertyControls, ControlType } from "framer"
@@ -137,7 +137,7 @@ const ALL_PLANS: Plan[] = [
 
 // ─── 고정 3개 요금제 ──────────────────────────────────────────────────
 const FIXED_PLAN_PIDS = [
-    "ppllistobj_0865", // 90,000원 디바이스 초이스 베이직
+    "ppllistobj_0942", // 90,000원 티빙/지니/밀리 초이스 베이직
     "ppllistobj_0808", // 69,000원 5G 심플 110GB
     "ppllistobj_0925", // 37,000원 5G 슬림 4GB
 ]
@@ -149,6 +149,7 @@ const CATEGORIES_LTE = ["전체", "데이터ON", "Y데이터ON", "LTE 일반", "
 
 // 사은품 제공 대상 요금제 PID
 const FREEBIE_PLAN_PIDS = new Set([
+    "ppllistobj_0942", "ppllistobj_0941", "ppllistobj_0940",
     "ppllistobj_0865", "ppllistobj_0864", "ppllistobj_0863",
     "ppllistobj_0850", "ppllistobj_0851", "ppllistobj_0852",
     "ppllistobj_0994", "ppllistobj_0993", "ppllistobj_0992",
@@ -212,18 +213,15 @@ const PlanCard = ({
                     ) : freebies.length > 0 ? (
                         <div style={{ display: "flex", gap: 8, overflowX: "auto", scrollbarWidth: "none" }}>
                             {freebies.map((f) => {
-                                const isSel = selectedFreebie?.no === f.no
                                 return (
-                                    <motion.div
+                                    <div
                                         key={f.no}
-                                        onClick={(e) => { e.stopPropagation(); onFreebieSelect(f) }}
-                                        whileTap={{ scale: 0.97 }}
                                         style={{
                                             flexShrink: 0, width: 226, height: 75,
                                             padding: "13px 7px",
                                             display: "flex", justifyContent: "center", alignItems: "center", gap: 10,
-                                            borderRadius: 9, border: isSel ? "1.5px solid #0055FF" : "0.8px solid #CFCFCF",
-                                            backgroundColor: "#FFF", boxSizing: "border-box", cursor: "pointer",
+                                            borderRadius: 9, border: "0.8px solid #CFCFCF",
+                                            backgroundColor: "#FFF", boxSizing: "border-box",
                                         }}
                                     >
                                         <img
@@ -234,10 +232,10 @@ const PlanCard = ({
                                         />
                                         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                                             <span style={{ fontSize: 12, fontWeight: 500, color: "#374151", lineHeight: 1.3 }}>{f.title}</span>
-                                            <span style={{ fontSize: 12, fontWeight: 700, color: isSel ? "#0055FF" : "#111827" }}>월 {(f.monthly_price ?? 0).toLocaleString()}원</span>
+                                            <span style={{ fontSize: 12, fontWeight: 700, color: "#111827" }}>월 {(f.monthly_price ?? 0).toLocaleString()}원</span>
                                             <span style={{ fontSize: 11, color: "#9CA3AF" }}>할부 수수료 별도</span>
                                         </div>
-                                    </motion.div>
+                                    </div>
                                 )
                             })}
                         </div>
@@ -436,25 +434,40 @@ export default function PlanSelectorComponent(props) {
 
     return (
         <div style={wrapperStyle}>
-            {/* 헤더 */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: '"Pretendard","Inter",sans-serif' }}>{title}</span>
-            </div>
+            {/* ── 할인 방법 섹션 ── */}
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: '"Pretendard","Inter",sans-serif' }}>할인 방법</span>
 
             {/* 기기할인 / 요금할인 탭 */}
-            <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", border: "1px solid #E5E7EB", backgroundColor: "#F9FAFB" }}>
-                {(["기기 할인", "요금할인"] as const).map((tab) => (
-                    <button key={tab} onClick={() => { setActiveTab(tab); onTabChange?.(tab) }} style={{
-                        flex: 1, height: 34, border: "none",
-                        backgroundColor: activeTab === tab ? "#FFFFFF" : "transparent",
-                        color: activeTab === tab ? "#111827" : "#9CA3AF",
-                        fontSize: 13, fontWeight: activeTab === tab ? 700 : 400, cursor: "pointer",
-                        boxShadow: activeTab === tab ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
-                        borderRadius: 6, margin: 3, transition: "all 0.15s",
-                        fontFamily: '"Pretendard","Inter",sans-serif',
-                    }}>{tab}</button>
-                ))}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", border: "1px solid #E5E7EB", backgroundColor: "#F9FAFB" }}>
+                    {(["기기 할인", "요금할인"] as const).map((tab) => (
+                        <button key={tab} onClick={() => { setActiveTab(tab); onTabChange?.(tab) }} style={{
+                            flex: 1, height: 34, border: "none",
+                            backgroundColor: activeTab === tab ? "#FFFFFF" : "transparent",
+                            color: activeTab === tab ? "#111827" : "#9CA3AF",
+                            fontSize: 13, fontWeight: activeTab === tab ? 700 : 400, cursor: "pointer",
+                            boxShadow: activeTab === tab ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+                            borderRadius: 6, margin: 3, transition: "all 0.15s",
+                            fontFamily: '"Pretendard","Inter",sans-serif',
+                        }}>{tab}</button>
+                    ))}
+                </div>
+                {/* 탭 설명 */}
+                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                        <circle cx="7" cy="7" r="6.5" stroke="#9CA3AF" />
+                        <text x="7" y="11" textAnchor="middle" fontSize="9" fill="#9CA3AF" fontWeight="600">i</text>
+                    </svg>
+                    <span style={{ fontSize: 12, color: "#6B7280", fontFamily: '"Pretendard","Inter",sans-serif' }}>
+                        {activeTab === "기기 할인"
+                            ? "통신사 지원금과 대리점 지원금을 함께 받아요"
+                            : "선택약정 할인과 대리점 지원금을 함께 받아요"}
+                    </span>
+                </div>
             </div>
+
+            {/* ── 요금제 섹션 ── */}
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: '"Pretendard","Inter",sans-serif' }}>요금제</span>
 
             {/* 요금제 컬럼 리스트 */}
             <div style={columnStyle}>

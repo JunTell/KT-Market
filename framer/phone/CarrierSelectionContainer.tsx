@@ -59,23 +59,25 @@ function CarrierCard({
                 )}
             </div>
 
-            {/* 로고 영역 (고정 너비) */}
-            <div style={{ width: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                {logo ? (
-                    <img src={logo} alt={displayName} style={{ maxWidth: 44, maxHeight: 28, objectFit: "contain" }} />
-                ) : (
-                    <span style={{
-                        fontSize: id === "알뜰폰" ? 13 : 20,
-                        fontWeight: 800,
-                        color: textColor ?? "#111827",
-                        fontFamily: FONT,
-                        letterSpacing: "-0.5px",
-                        lineHeight: 1,
-                    }}>
-                        {textLogo ?? displayName}
-                    </span>
-                )}
-            </div>
+            {/* 로고 영역 (고정 너비) — 알뜰폰은 제외 */}
+            {id !== "알뜰폰" && (
+                <div style={{ width: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    {logo ? (
+                        <img src={logo} alt={displayName} style={{ maxWidth: 44, maxHeight: 28, objectFit: "contain" }} />
+                    ) : (
+                        <span style={{
+                            fontSize: 20,
+                            fontWeight: 800,
+                            color: textColor ?? "#111827",
+                            fontFamily: FONT,
+                            letterSpacing: "-0.5px",
+                            lineHeight: 1,
+                        }}>
+                            {textLogo ?? displayName}
+                        </span>
+                    )}
+                </div>
+            )}
 
             {/* 텍스트 */}
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
