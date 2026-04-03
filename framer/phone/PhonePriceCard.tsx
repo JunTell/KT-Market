@@ -1,0 +1,956 @@
+// withPriceCard override와 함께 사용
+// 요금제 변경 시 가격 카운트 애니메이션 + 스켈레톤 UI + 월 할부 팝업 + 최종 주문서 모달
+
+import { addPropertyControls, ControlType } from "framer"
+import React, { useState, useEffect, useRef } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { createPortal } from "react-dom"
+
+// ─────────────────────────────────────────
+// 숫자 카운트 애니메이션 훅 (easeOutCubic, ~1초)
+// ─────────────────────────────────────────
+function useAnimatedNumber(target: number, duration = 1000) {
+    const [display, setDisplay] = useState(target)
+    const currentRef = useRef(target)
+    const rafRef = useRef<number | null>(null)
+
+    useEffect(() => {
+        if (rafRef.current) cancelAnimationFrame(rafRef.current)
+
+        const from = currentRef.current
+        const to = target
+        if (from === to) return
+
+        const startTime = performance.now()
+
+        const tick = (now: number) => {
+            const elapsed = now - startTime
+            const t = Math.min(elapsed / duration, 1)
+            const eased = 1 - Math.pow(1 - t, 3)
+            const value = Math.round(from + (to - from) * eased)
+            currentRef.current = value
+            setDisplay(value)
+            if (t < 1) {
+                rafRef.current = requestAnimationFrame(tick)
+            } else {
+                currentRef.current = to
+                setDisplay(to)
+            }
+        }
+
+        rafRef.current = requestAnimationFrame(tick)
+        return () => {
+            if (rafRef.current) cancelAnimationFrame(rafRef.current)
+        }
+    }, [target, duration])
+
+    return display
+}
+
+// ─────────────────────────────────────────
+// 스켈레톤
+// ─────────────────────────────────────────
+const Skeleton = ({ width, height, style = {} }: { width: string | number; height: number; style?: React.CSSProperties }) => (
+    <motion.div
+        style={{
+            width,
+            height,
+            borderRadius: "8px",
+            backgroundColor: "#E5E7EB",
+            ...style,
+        }}
+        animate={{ opacity: [0.4, 1, 0.4] }}
+        transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+    />
+)
+
+// ─────────────────────────────────────────
+// OrderSheet 내부 서브 컴포넌트
+// ─────────────────────────────────────────
+const OSTooltip = ({ text, children }: { text: string; children: React.ReactNode }) => {
+    const [visible, setVisible] = useState(false)
+    return (
+        <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
+            <span
+                onMouseEnter={() => setVisible(true)}
+                onMouseLeave={() => setVisible(false)}
+                onClick={() => setVisible((v) => !v)}
+                style={{ cursor: "pointer", lineHeight: 1 }}
+            >
+                {children}
+            </span>
+            <AnimatePresence>
+                {visible && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 4 }}
+                        style={{
+                            position: "absolute",
+                            bottom: "calc(100% + 6px)",
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            backgroundColor: "#1F2937",
+                            color: "#FFFFFF",
+                            fontSize: 11,
+                            padding: "6px 10px",
+                            borderRadius: 6,
+                            whiteSpace: "nowrap",
+                            zIndex: 10100,
+                            pointerEvents: "none",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                        }}
+                    >
+                        {text}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    )
+}
+
+const OSQuestionIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+        <circle cx="7" cy="7" r="6.5" stroke="#9CA3AF" />
+        <text x="7" y="11" textAnchor="middle" fontSize="9" fill="#9CA3AF" fontWeight="600">?</text>
+    </svg>
+)
+
+const OSSkeletonRow = ({ delay = 0, width = "45%" }: { delay?: number; width?: string }) => (
+    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: 10 }}>
+        <motion.div style={{ width: "50%", height: 13, borderRadius: 4, backgroundColor: "#E5E7EB" }}
+            animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay }} />
+        <motion.div style={{ width, height: 13, borderRadius: 4, backgroundColor: "#E5E7EB" }}
+            animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: delay + 0.08 }} />
+    </div>
+)
+
+const OSDashed = () => (
+    <div style={{ width: "100%", height: 0, borderTop: "1.5px dashed #E5E7EB", margin: "10px 0 12px" }} />
+)
+
+const OSRow = ({
+    label, value, bold = false, large = false,
+    labelColor = "#374151", valueColor = "#111827", tooltip,
+}: {
+    label: string; value: string; bold?: boolean; large?: boolean
+    labelColor?: string; valueColor?: string; tooltip?: string
+}) => (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <span style={{ fontSize: large ? 15 : 14, fontWeight: bold ? 700 : 400, color: labelColor }}>
+                {label}
+            </span>
+            {tooltip && <OSTooltip text={tooltip}><OSQuestionIcon /></OSTooltip>}
+        </div>
+        <span style={{ fontSize: large ? 17 : 14, fontWeight: bold ? 700 : 500, color: valueColor }}>
+            {value}
+        </span>
+    </div>
+)
+
+const OSRedRow = ({ label, value, tooltip }: { label: string; value: string; tooltip?: string }) => (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <span style={{ fontSize: 14, fontWeight: 400, color: "#EF4444" }}>{label}</span>
+            {tooltip && <OSTooltip text={tooltip}><OSQuestionIcon /></OSTooltip>}
+        </div>
+        <span style={{ fontSize: 14, fontWeight: 500, color: "#EF4444" }}>{value}</span>
+    </div>
+)
+
+const OSCard = ({ children }: { children: React.ReactNode }) => (
+    <div style={{
+        width: "100%", backgroundColor: "#FFFFFF",
+        border: "1.5px solid #E5E7EB", borderRadius: 12,
+        padding: "16px 18px 6px", boxSizing: "border-box",
+    }}>
+        {children}
+    </div>
+)
+
+const OSSectionHeader = ({ label, value, description }: { label: string; value?: string; description?: string }) => (
+    <div style={{ marginBottom: 14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+            <span style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>{label}</span>
+            {value && <span style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>{value}</span>}
+        </div>
+        {description && (
+            <span style={{ fontSize: 12, color: "#9CA3AF", display: "block", marginTop: 2 }}>
+                {description}
+            </span>
+        )}
+    </div>
+)
+
+// ─────────────────────────────────────────
+// OrderSheet 내용 렌더러 (모달 내부용)
+// ─────────────────────────────────────────
+function OrderSheetContent({
+    installment,
+    installmentPaymentTitle,
+    installmentPaymentDescription,
+    installmentPrincipal,
+    installmentPayment,
+    devicePrice,
+    disclosureSubsidy,
+    ktmarketSubsidy,
+    promotionDiscount,
+    migrationSubsidy,
+    guaranteedReturnPrice,
+    specialPrice,
+    doubleStorageDiscount,
+    plan,
+    planPrice,
+    planDiscountAmount,
+    totalMonthPlanPrice,
+    totalMonthPayment,
+    discount,
+    isLoading,
+}: {
+    installment: number
+    installmentPaymentTitle: string
+    installmentPaymentDescription: string
+    installmentPrincipal: number
+    installmentPayment: string | number
+    devicePrice: number
+    disclosureSubsidy: number
+    ktmarketSubsidy: number
+    promotionDiscount: number
+    migrationSubsidy: number
+    guaranteedReturnPrice: number
+    specialPrice: number
+    doubleStorageDiscount: number
+    plan: string
+    planPrice: number
+    planDiscountAmount: number
+    totalMonthPlanPrice: number
+    totalMonthPayment: number
+    discount: string
+    isLoading: boolean
+}) {
+    const planAfterDiscount = totalMonthPlanPrice > 0 ? totalMonthPlanPrice : planPrice - planDiscountAmount
+    const planDiscountLabel = discount === "선택약정할인"
+        ? `요금할인 25%${installment > 0 ? ` (${installment}개월)` : ""}`
+        : ""
+    const planTooltip = discount === "선택약정할인"
+        ? `월 요금제(${planPrice.toLocaleString()}원) × 25% 선택약정 할인 적용`
+        : `공통지원금 선택 시 요금제 할인 없음`
+    const installmentPaymentStr = typeof installmentPayment === "number"
+        ? `${installmentPayment.toLocaleString()}원`
+        : installmentPayment
+
+    if (isLoading) {
+        return (
+            <OSCard>
+                <OSSkeletonRow delay={0} />
+                <OSSkeletonRow delay={0.1} />
+                <OSSkeletonRow delay={0.2} />
+                <OSSkeletonRow delay={0.3} width="35%" />
+            </OSCard>
+        )
+    }
+
+    return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {/* 카드 1: 월 할부원금 */}
+            <OSCard>
+                <OSSectionHeader
+                    label={installmentPaymentTitle}
+                    value={installmentPaymentStr}
+                    description={installmentPaymentDescription}
+                />
+                <OSRow label="출고가" value={`${devicePrice.toLocaleString()}원`} />
+                {disclosureSubsidy > 0 && (
+                    <OSRedRow label="공시지원금" value={`-${disclosureSubsidy.toLocaleString()}원`} tooltip="이동통신사가 공시한 단말기 지원금" />
+                )}
+                {ktmarketSubsidy > 0 && (
+                    <OSRedRow label="KT마켓 단독지원금" value={`-${ktmarketSubsidy.toLocaleString()}원`} tooltip="KT마켓에서만 제공하는 단독 지원금" />
+                )}
+                {promotionDiscount > 0 && (
+                    <OSRedRow label="디바이스 추가지원금(단독)" value={`-${promotionDiscount.toLocaleString()}원`} tooltip="KT마켓 단독 프로모션 추가 지원금" />
+                )}
+                {migrationSubsidy > 0 && (
+                    <OSRedRow label="번호이동 지원금" value={`- ${migrationSubsidy.toLocaleString()}원`} />
+                )}
+                {guaranteedReturnPrice > 0 && (
+                    <OSRedRow label="미리보상 할인" value={`-${guaranteedReturnPrice.toLocaleString()}원`} tooltip="미리보상 프로그램 적용 시 단말기 가격의 50% 할인" />
+                )}
+                {specialPrice > 0 && (
+                    <OSRedRow label="스페셜 할인" value={`-${specialPrice.toLocaleString()}원`} />
+                )}
+                {doubleStorageDiscount > 0 && (
+                    <OSRedRow label="더블스토리지 할인" value={`-${doubleStorageDiscount.toLocaleString()}원`} />
+                )}
+                <OSDashed />
+                <OSRow label="할부원금" value={`${installmentPrincipal.toLocaleString()}원`} bold large />
+            </OSCard>
+
+            {/* 카드 2: 월 통신요금 */}
+            <OSCard>
+                <OSSectionHeader label="월 통신요금" description="결합 할인 또는 복지할인은 제외된 금액" />
+                {plan && (
+                    <OSRow label={plan} value={`월 ${planPrice.toLocaleString()}원`} />
+                )}
+                {discount === "선택약정할인" && planDiscountAmount > 0 && (
+                    <OSRedRow label={planDiscountLabel} value={`-${planDiscountAmount.toLocaleString()}원`} tooltip={planTooltip} />
+                )}
+                <OSDashed />
+                <OSRow label="월 통신요금" value={`${planAfterDiscount.toLocaleString()}원`} bold large />
+            </OSCard>
+
+            {/* 카드 3: 월 예상 금액 */}
+            <div style={{
+                width: "100%",
+                backgroundColor: "#F9FAFB",
+                border: "1.5px solid #E5E7EB",
+                borderRadius: 12,
+                padding: "16px 18px",
+                boxSizing: "border-box" as const,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+            }}>
+                <span style={{ fontSize: 15, fontWeight: 500, color: "#374151" }}>월 예상 금액</span>
+                <span style={{ fontSize: 20, fontWeight: 700, color: "#0055FF" }}>
+                    {Math.round(totalMonthPayment).toLocaleString()}원
+                </span>
+            </div>
+        </div>
+    )
+}
+
+// ─────────────────────────────────────────
+// 주문서 센터 모달
+// ─────────────────────────────────────────
+function OrderSheetModal({
+    onClose,
+    ...sheetProps
+}: {
+    onClose: () => void
+    installment: number
+    installmentPaymentTitle: string
+    installmentPaymentDescription: string
+    installmentPrincipal: number
+    installmentPayment: string | number
+    devicePrice: number
+    disclosureSubsidy: number
+    ktmarketSubsidy: number
+    promotionDiscount: number
+    migrationSubsidy: number
+    guaranteedReturnPrice: number
+    specialPrice: number
+    doubleStorageDiscount: number
+    plan: string
+    planPrice: number
+    planDiscountAmount: number
+    totalMonthPlanPrice: number
+    totalMonthPayment: number
+    discount: string
+    isLoading: boolean
+}) {
+    const FONT = '"Pretendard", "Inter", sans-serif'
+
+    const modal = (
+        <AnimatePresence>
+            {/* 딤 오버레이 */}
+            <motion.div
+                key="os-overlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                onClick={onClose}
+                style={{
+                    position: "fixed",
+                    inset: 0,
+                    backgroundColor: "rgba(0,0,0,0.5)",
+                    zIndex: 10000,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "24px 16px",
+                    boxSizing: "border-box",
+                    fontFamily: FONT,
+                }}
+            >
+                {/* 모달 카드 */}
+                <motion.div
+                    key="os-modal"
+                    initial={{ opacity: 0, scale: 0.93, y: 12 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.93, y: 12 }}
+                    transition={{ type: "spring", stiffness: 380, damping: 34 }}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                        position: "relative",
+                        width: "100%",
+                        maxWidth: 440,
+                        maxHeight: "85vh",
+                        overflowY: "auto",
+                        backgroundColor: "#FFFFFF",
+                        borderRadius: 20,
+                        padding: "24px 20px 28px",
+                        boxSizing: "border-box",
+                        boxShadow: "0 8px 40px rgba(0,0,0,0.18)",
+                        fontFamily: FONT,
+                    }}
+                >
+                    {/* 헤더 */}
+                    <div style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: 20,
+                    }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <div style={{
+                                width: 24, height: 24, borderRadius: 6,
+                                backgroundColor: "#111827",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                flexShrink: 0,
+                            }}>
+                                <span style={{ fontSize: 13, fontWeight: 700, color: "#FFFFFF" }}>7</span>
+                            </div>
+                            <span style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>최종 주문서</span>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            style={{
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                padding: "4px",
+                                color: "#6B7280",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <OrderSheetContent {...sheetProps} />
+                </motion.div>
+            </motion.div>
+        </AnimatePresence>
+    )
+
+    if (typeof document === "undefined") return null
+    return createPortal(modal, document.body)
+}
+
+// ─────────────────────────────────────────
+// 월 납부금 팝업 (바텀시트)
+// ─────────────────────────────────────────
+function MonthlyPopup({
+    finalPrice,
+    monthlyPayment,
+    installment,
+    planPrice,
+    planDiscountAmount,
+    discount,
+    onClose,
+}: {
+    finalPrice: number
+    monthlyPayment: number
+    installment: number
+    planPrice: number
+    planDiscountAmount: number
+    discount: string
+    onClose: () => void
+}) {
+    const isYakjeong =
+        discount === "선택약정할인" || discount === "선택약정"
+
+    const planAfterDiscount = planPrice - planDiscountAmount
+    const totalMonthly = monthlyPayment + planAfterDiscount
+
+    return (
+        <AnimatePresence>
+            <motion.div
+                key="overlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                onClick={onClose}
+                style={{
+                    position: "fixed",
+                    inset: 0,
+                    backgroundColor: "rgba(0,0,0,0.45)",
+                    zIndex: 9998,
+                }}
+            />
+            <motion.div
+                key="sheet"
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", stiffness: 340, damping: 32 }}
+                style={{
+                    position: "fixed",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    margin: "0 auto",
+                    maxWidth: "440px",
+                    width: "100%",
+                    boxSizing: "border-box",
+                    backgroundColor: "#FFFFFF",
+                    borderTopLeftRadius: "20px",
+                    borderTopRightRadius: "20px",
+                    padding: "28px 20px 36px",
+                    zIndex: 9999,
+                    boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
+                    fontFamily: '"Pretendard", "Inter", sans-serif',
+                }}
+            >
+                <div
+                    style={{
+                        width: "40px",
+                        height: "4px",
+                        borderRadius: "9999px",
+                        backgroundColor: "#E5E7EB",
+                        margin: "0 auto 24px",
+                    }}
+                />
+
+                <p style={{ fontSize: "18px", fontWeight: 700, color: "#111827", marginBottom: "4px", margin: "0 0 4px" }}>
+                    월 납부금액 안내
+                </p>
+
+                <div style={{ marginBottom: "20px" }}>
+                    <span style={{
+                        display: "inline-block",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        color: isYakjeong ? "#7C3AED" : "#0055FF",
+                        backgroundColor: isYakjeong ? "#F5F3FF" : "#EFF6FF",
+                        padding: "3px 8px",
+                        borderRadius: "6px",
+                    }}>
+                        {isYakjeong ? "선택약정할인 (25%)" : "공통지원금"}
+                    </span>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginBottom: "20px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: "14px", color: "#6B7280" }}>할부원금</span>
+                        <span style={{ fontSize: "14px", color: "#111827" }}>
+                            {finalPrice.toLocaleString()}원
+                        </span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: "14px", color: "#6B7280" }}>
+                            월 단말 할부금 ({installment}개월, 5.9%)
+                        </span>
+                        <span style={{ fontSize: "14px", fontWeight: 700, color: "#111827" }}>
+                            {monthlyPayment.toLocaleString()}원
+                        </span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: "14px", color: "#6B7280" }}>월 요금제</span>
+                        <span style={{ fontSize: "14px", color: "#111827" }}>
+                            {planPrice.toLocaleString()}원
+                        </span>
+                    </div>
+                    {isYakjeong && planDiscountAmount > 0 && (
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span style={{ fontSize: "14px", color: "#7C3AED" }}>
+                                └ 선택약정 25% 할인
+                            </span>
+                            <span style={{ fontSize: "14px", fontWeight: 600, color: "#7C3AED" }}>
+                                -{planDiscountAmount.toLocaleString()}원
+                            </span>
+                        </div>
+                    )}
+                    {!isYakjeong && (
+                        <div style={{
+                            fontSize: "12px",
+                            color: "#9CA3AF",
+                            backgroundColor: "#F9FAFB",
+                            borderRadius: "8px",
+                            padding: "8px 10px",
+                        }}>
+                            공통지원금 선택 시 요금제 별도 할인 없음
+                        </div>
+                    )}
+                </div>
+
+                <div style={{ height: "1px", backgroundColor: "#F3F4F6", marginBottom: "16px" }} />
+
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+                    <div>
+                        <span style={{ fontSize: "15px", fontWeight: 600, color: "#111827" }}>월 예상 납부금</span>
+                        <div style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "2px" }}>
+                            부가세 포함, 결합할인 미적용 기준
+                        </div>
+                    </div>
+                    <span style={{ fontSize: "20px", fontWeight: 800, color: "#0055FF" }}>
+                        {totalMonthly.toLocaleString()}원
+                    </span>
+                </div>
+
+                <button
+                    onClick={onClose}
+                    style={{
+                        width: "100%",
+                        height: "52px",
+                        backgroundColor: "#0055FF",
+                        color: "#FFFFFF",
+                        border: "none",
+                        borderRadius: "12px",
+                        fontSize: "15px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        fontFamily: '"Pretendard", "Inter", sans-serif',
+                    }}
+                >
+                    확인
+                </button>
+            </motion.div>
+        </AnimatePresence>
+    )
+}
+
+// ─────────────────────────────────────────
+// 메인 컴포넌트
+// ─────────────────────────────────────────
+
+/**
+ * @framerSupportedLayoutWidth any
+ * @framerSupportedLayoutHeight auto
+ */
+export default function PhonePriceCard(props) {
+    const {
+        finalPrice = 0,
+        originPrice = 0,
+        discountRate = 0,
+        monthlyPayment = 0,
+        installment = 24,
+        planPrice = 0,
+        planDiscountAmount = 0,
+        discount = "공통지원금",
+        isLoading = false,
+        formLink = "",
+        // OrderSheet 추가 props
+        installmentPaymentTitle = "월 할부원금 (24개월)",
+        installmentPaymentDescription = "분할 상환 수수료 5.9% 포함",
+        installmentPrincipal = 0,
+        installmentPayment = "0원",
+        devicePrice = 0,
+        disclosureSubsidy = 0,
+        ktmarketSubsidy = 0,
+        promotionDiscount = 0,
+        migrationSubsidy = 0,
+        guaranteedReturnPrice = 0,
+        specialPrice = 0,
+        doubleStorageDiscount = 0,
+        plan = "",
+        totalMonthPlanPrice = 0,
+        totalMonthPayment = 0,
+    } = props
+
+    const [isMounted, setIsMounted] = useState(false)
+    const [showPopup, setShowPopup] = useState(false)
+    const [showOrderSheet, setShowOrderSheet] = useState(false)
+    const prevFinalPrice = useRef(finalPrice)
+    const [direction, setDirection] = useState<"up" | "down" | null>(null)
+
+    useEffect(() => { setIsMounted(true) }, [])
+
+    useEffect(() => {
+        if (!isMounted) return
+        if (finalPrice !== prevFinalPrice.current) {
+            setDirection(finalPrice > prevFinalPrice.current ? "up" : "down")
+            prevFinalPrice.current = finalPrice
+            const t = setTimeout(() => setDirection(null), 1200)
+            return () => clearTimeout(t)
+        }
+    }, [finalPrice])
+
+    const animatedPrice = useAnimatedNumber(finalPrice, 1000)
+
+    const priceColor =
+        direction === "up" ? "#F59E0B" :
+        direction === "down" ? "#0055FF" :
+        "#111827"
+
+    if (!isMounted) return <div style={{ width: "100%", height: "120px" }} />
+
+    if (isLoading) {
+        return (
+            <div style={{ ...wrapperStyle, gap: "16px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Skeleton width="55%" height={28} />
+                    <Skeleton width="12%" height={18} />
+                </div>
+                <Skeleton width="70%" height={16} style={{ margin: "0 auto" }} />
+                <Skeleton width="100%" height={48} />
+            </div>
+        )
+    }
+
+    const FONT = '"Pretendard", "Inter", sans-serif'
+
+    return (
+        <>
+            <div style={wrapperStyle}>
+                {/* ── 가격 행 ── */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
+                        <span style={{ fontSize: "13px", fontWeight: 600, color: "#0055FF" }}>최저가</span>
+                        <motion.span
+                            key={animatedPrice}
+                            style={{
+                                fontSize: "26px",
+                                fontWeight: 800,
+                                color: priceColor,
+                                transition: "color 0.4s ease",
+                                letterSpacing: "-0.5px",
+                                fontVariantNumeric: "tabular-nums",
+                            }}
+                        >
+                            {animatedPrice.toLocaleString()}
+                        </motion.span>
+                        <span style={{ fontSize: "15px", fontWeight: 500, color: "#374151" }}>원</span>
+                    </div>
+
+                    {/* 월 납부금액 > 버튼 */}
+                    <button
+                        onClick={() => setShowPopup(true)}
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "2px",
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            padding: "4px 0 4px 8px",
+                            color: "#6B7280",
+                            fontSize: "13px",
+                            fontWeight: 500,
+                            fontFamily: FONT,
+                        }}
+                    >
+                        월 납부금액
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* ── 최종 주문서 보기 버튼 ── */}
+                <button
+                    onClick={() => setShowOrderSheet(true)}
+                    style={{
+                        width: "100%",
+                        height: 44,
+                        backgroundColor: "#F9FAFB",
+                        border: "1.5px solid #E5E7EB",
+                        borderRadius: 10,
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: "#374151",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        fontFamily: FONT,
+                    }}
+                >
+                    최종 주문서 보기
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                </button>
+            </div>
+
+            {/* ── 월 할부 팝업 ── */}
+            {showPopup && (
+                <MonthlyPopup
+                    finalPrice={finalPrice}
+                    monthlyPayment={monthlyPayment}
+                    installment={installment}
+                    planPrice={planPrice}
+                    planDiscountAmount={planDiscountAmount}
+                    discount={discount}
+                    onClose={() => setShowPopup(false)}
+                />
+            )}
+
+            {/* ── 최종 주문서 모달 ── */}
+            {showOrderSheet && (
+                <OrderSheetModal
+                    onClose={() => setShowOrderSheet(false)}
+                    installment={installment}
+                    installmentPaymentTitle={installmentPaymentTitle}
+                    installmentPaymentDescription={installmentPaymentDescription}
+                    installmentPrincipal={installmentPrincipal}
+                    installmentPayment={installmentPayment}
+                    devicePrice={devicePrice}
+                    disclosureSubsidy={disclosureSubsidy}
+                    ktmarketSubsidy={ktmarketSubsidy}
+                    promotionDiscount={promotionDiscount}
+                    migrationSubsidy={migrationSubsidy}
+                    guaranteedReturnPrice={guaranteedReturnPrice}
+                    specialPrice={specialPrice}
+                    doubleStorageDiscount={doubleStorageDiscount}
+                    plan={plan}
+                    planPrice={planPrice}
+                    planDiscountAmount={planDiscountAmount}
+                    totalMonthPlanPrice={totalMonthPlanPrice}
+                    totalMonthPayment={totalMonthPayment}
+                    discount={discount}
+                    isLoading={isLoading}
+                />
+            )}
+        </>
+    )
+}
+
+const wrapperStyle: React.CSSProperties = {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+    padding: "16px",
+    boxSizing: "border-box",
+    backgroundColor: "#FFFFFF",
+}
+
+addPropertyControls(PhonePriceCard, {
+    isLoading: {
+        type: ControlType.Boolean,
+        title: "Loading",
+        defaultValue: false,
+    },
+    finalPrice: {
+        type: ControlType.Number,
+        title: "최저가 (원)",
+        defaultValue: 857400,
+    },
+    originPrice: {
+        type: ControlType.Number,
+        title: "출고가 (원)",
+        defaultValue: 1200000,
+    },
+    discountRate: {
+        type: ControlType.Number,
+        title: "할인율 (%)",
+        defaultValue: 28,
+    },
+    monthlyPayment: {
+        type: ControlType.Number,
+        title: "월 할부금 (원)",
+        defaultValue: 38000,
+    },
+    installment: {
+        type: ControlType.Number,
+        title: "할부 개월",
+        defaultValue: 24,
+    },
+    planPrice: {
+        type: ControlType.Number,
+        title: "요금제 가격 (원)",
+        defaultValue: 90000,
+    },
+    planDiscountAmount: {
+        type: ControlType.Number,
+        title: "요금제 할인 (원)",
+        defaultValue: 0,
+    },
+    discount: {
+        type: ControlType.Enum,
+        title: "할인 유형",
+        options: ["공통지원금", "선택약정할인"],
+        defaultValue: "공통지원금",
+    },
+    formLink: {
+        type: ControlType.String,
+        title: "전용 조건 링크",
+        defaultValue: "",
+    },
+    // OrderSheet 모달용 추가 props
+    installmentPaymentTitle: {
+        type: ControlType.String,
+        title: "할부 타이틀",
+        defaultValue: "월 할부원금 (24개월)",
+    },
+    installmentPaymentDescription: {
+        type: ControlType.String,
+        title: "할부 설명",
+        defaultValue: "분할 상환 수수료 5.9% 포함",
+    },
+    installmentPayment: {
+        type: ControlType.String,
+        title: "월 할부금 표시",
+        defaultValue: "0원",
+    },
+    devicePrice: {
+        type: ControlType.Number,
+        title: "출고가",
+        defaultValue: 0,
+    },
+    disclosureSubsidy: {
+        type: ControlType.Number,
+        title: "공시지원금",
+        defaultValue: 0,
+    },
+    ktmarketSubsidy: {
+        type: ControlType.Number,
+        title: "KT마켓 단독지원금",
+        defaultValue: 0,
+    },
+    promotionDiscount: {
+        type: ControlType.Number,
+        title: "디바이스 추가지원금",
+        defaultValue: 0,
+    },
+    migrationSubsidy: {
+        type: ControlType.Number,
+        title: "번호이동 지원금",
+        defaultValue: 0,
+    },
+    guaranteedReturnPrice: {
+        type: ControlType.Number,
+        title: "미리보상 할인",
+        defaultValue: 0,
+    },
+    specialPrice: {
+        type: ControlType.Number,
+        title: "스페셜 할인",
+        defaultValue: 0,
+    },
+    doubleStorageDiscount: {
+        type: ControlType.Number,
+        title: "더블스토리지 할인",
+        defaultValue: 0,
+    },
+    installmentPrincipal: {
+        type: ControlType.Number,
+        title: "할부원금",
+        defaultValue: 0,
+    },
+    plan: {
+        type: ControlType.String,
+        title: "요금제명",
+        defaultValue: "",
+    },
+    totalMonthPlanPrice: {
+        type: ControlType.Number,
+        title: "월 통신요금(할인 후)",
+        defaultValue: 0,
+    },
+    totalMonthPayment: {
+        type: ControlType.Number,
+        title: "월 예상 금액",
+        defaultValue: 0,
+    },
+})

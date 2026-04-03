@@ -1,6 +1,7 @@
 import * as React from "react"
 import { useState, useEffect } from "react"
 import { addPropertyControls, ControlType } from "framer"
+import { checkAuth, userState } from "https://framer.com/m/AuthStore-jiikDX.js"
 
 // --- Skeleton Components ---
 const SkeletonBox = ({
@@ -481,10 +482,12 @@ export default function ApplicationGatePage(props: Props) {
         return () => window.removeEventListener("popstate", handlePopState)
     }, [showCompletionCheck, showReturnMessage, showMustRead])
 
-    const loadSessionData = () => {
+    const loadSessionData = async () => {
         if (typeof window === "undefined") return
 
         try {
+            await checkAuth() // 카카오 로그인 상태 동기화 완료 후 진행
+
             const sheetStr = sessionStorage.getItem("sheet")
             const dataStr = sessionStorage.getItem("data")
             const userStr = sessionStorage.getItem("user-info")
@@ -519,6 +522,17 @@ export default function ApplicationGatePage(props: Props) {
                     doubleStorageDiscount -
                     promotionDiscount
 
+                // 카카오 로그인 이용자: sessionStorage 미설정 시 userState 값으로 보완
+                const resolvedName =
+                    parsedUser?.userName ||
+                    (userState.isLoggedIn ? userState.fullName : "") ||
+                    "-"
+                const resolvedPhone =
+                    parsedUser?.userPhone ||
+                    (userState.isLoggedIn ? userState.phoneNumber : "") ||
+                    "-"
+                const resolvedDob = parsedUser?.userDob || "-"
+
                 setOrderInfo({
                     petName: parsedData.device?.pet_name || "기기명 없음",
                     capacity: parsedData.device?.capacity || "",
@@ -536,9 +550,9 @@ export default function ApplicationGatePage(props: Props) {
                     joinType: parsedData.register || "기기변경",
                     discountType: parsedSheet.discount || "공통지원금",
                     contract: parsedSheet.installment || 24,
-                    userName: parsedUser?.userName || "-",
-                    userDob: parsedUser?.userDob || "-",
-                    userPhone: parsedUser?.userPhone || "-",
+                    userName: resolvedName,
+                    userDob: resolvedDob,
+                    userPhone: resolvedPhone,
                     totalMonthPayment: parsedSheet.totalMonthPayment || 0,
                 })
             } else {
@@ -575,37 +589,6 @@ export default function ApplicationGatePage(props: Props) {
         }
     }
 
-<<<<<<< HEAD
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        loadSessionData()
-    }, [])
-
-    useEffect(() => {
-        const handlePopState = () => {
-            if (showCompletionCheck || showReturnMessage || showMustRead) {
-                const dataStr = sessionStorage.getItem("data")
-                if (dataStr) {
-                    try {
-                        const data = JSON.parse(dataStr)
-                        const model =
-                            data.device?.model || data.model || "default"
-                        window.location.href = `/phone/${model}`
-                    } catch {
-                        window.location.href = "/phone"
-                    }
-                } else {
-                    window.location.href = "/phone"
-                }
-            }
-        }
-
-        window.addEventListener("popstate", handlePopState)
-        return () => window.removeEventListener("popstate", handlePopState)
-    }, [showCompletionCheck, showReturnMessage, showMustRead])
-
-=======
->>>>>>> 1a7b32b (feat: 신청경로 코드 수정)
     const formatPhoneNumber = (value: string) => {
         const numbers = value.replace(/[^0-9]/g, "")
         if (numbers.length <= 3) return numbers
@@ -794,7 +777,7 @@ export default function ApplicationGatePage(props: Props) {
                             <div
                                 style={{
                                     ...progressBarFillStyle,
-                                    width: isAllAgreed ? "100%" : "30%",
+                                    width: `${(agreements.filter(Boolean).length / agreements.length) * 100}%`,
                                 }}
                             />
                         </div>

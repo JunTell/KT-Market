@@ -473,6 +473,8 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 const useStore = createStore({
     capacity: null,
+    currentModelId: null as string | null,
+    isLoading: true,
     device: null,
     colors: [],
     // pid: "ppllistobj_0808",
@@ -576,6 +578,158 @@ export function withPriceComponent(Component): ComponentType {
                 discountRate={discountRate()}
                 originPrice={store.device?.price ?? 0}
                 finalPrice={store.installmentPrincipal}
+            />
+        )
+    }
+}
+
+// PhonePriceCard 전용 override
+// finalPrice 카운트 애니메이션 + 월 할부 팝업 + 스켈레톤 통합 + 최종 주문서 모달 props
+export function withPriceCard(Component): ComponentType {
+    return (props) => {
+        const [store] = useStore()
+
+        // ── 헬퍼 함수 (withOrderSheet와 동일 로직) ──────────────────
+        function calcInstallment(principal: number, months: number) {
+            if (months === 0) return principal
+            const r = 5.9 / 100 / 12
+            const n = months
+            return Math.floor(
+                (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1)
+            )
+        }
+
+        function getGuaranteedReturnPrice(model: string, price: number, isGR: boolean) {
+            if (!isGR) return 0
+            const grModels = [
+                "sm-f966nk512", "sm-f966nk", "sm-f766nk512", "sm-f766nk",
+                "aip17-256", "aip17-512", "aipa-256", "aipa-512", "aipa-1t",
+                "aip17p-256", "aip17p-512", "aip17p-1t",
+                "aip17pm-256", "aip17pm-512", "aip17pm-1t", "aip17pm-2t",
+            ]
+            return grModels.includes(model) ? price / 2 : 0
+        }
+
+        function calculateDiscounts(planId: string) {
+            const promo100000Plans = [
+                "ppllistobj_0994", "ppllistobj_0993", "ppllistobj_0992",
+                "ppllistobj_0863", "ppllistobj_0864", "ppllistobj_0865",
+                "ppllistobj_0850", "ppllistobj_0851", "ppllistobj_0852",
+            ]
+            return { promo: promo100000Plans.includes(planId) ? 80000 : 0 }
+        }
+
+        // ── 계산 ────────────────────────────────────────────────────
+        const { register, discount, selectedPlan, device, benefit } = store
+
+        const planPrice = selectedPlan?.price ?? 0
+        const planId = selectedPlan?.plan_id ?? ""
+        const devicePrice = selectedPlan?.model_price ?? 0
+        const isMnp = register === "번호이동" && discount === "공통지원금"
+        const migrationSubsidy = isMnp ? (selectedPlan?.migration_subsidy ?? 0) : 0
+
+        const ktmarketSubsidy = store.benefit === "KT마켓 단독혜택" ? store.ktmarketSubsidy : 0
+        const { promo: promotionDiscount } = calculateDiscounts(planId)
+
+        const isGuaranteedReturn = store.isGuaranteedReturn ?? false
+        const guaranteedReturnPrice = getGuaranteedReturnPrice(
+            device?.model ?? "", devicePrice, isGuaranteedReturn
+        )
+
+        const modelPrices = SPECIAL_PRICES[device?.model ?? ""] || { mnp: 0, chg: 0 }
+        const specialPrice =
+            register === "번호이동" || register === "신규가입"
+                ? modelPrices.mnp
+                : register === "기기변경"
+                  ? modelPrices.chg
+                  : 0
+
+        let disclosureSubsidy = 0
+        if (discount === "공통지원금") {
+            disclosureSubsidy = selectedPlan?.disclosure_subsidy ?? 0
+        }
+
+        // 더블스토리지
+        const doubleStorageModels = ["sm-s942nk512", "sm-s947nk512", "sm-s948nk512"]
+        const exceptionPlansForDoubleStorage = [
+            "ppllistobj_0845", "ppllistobj_0535", "ppllistobj_0765", "ppllistobj_0775",
+        ]
+        let doubleStorageDiscount = 0
+        if (
+            doubleStorageModels.includes(device?.model ?? "") &&
+            register === "기기변경" &&
+            store.installment < 36 &&
+            (planPrice >= 37000 || exceptionPlansForDoubleStorage.includes(planId))
+        ) {
+            doubleStorageDiscount = 0
+        }
+
+        const totalDeviceDiscountAmount =
+            ktmarketSubsidy + disclosureSubsidy + migrationSubsidy +
+            promotionDiscount + guaranteedReturnPrice + specialPrice + doubleStorageDiscount
+
+        const installment = store.installment ?? 24
+        const originPrice = device?.price ?? 0
+
+        const isFreePhone = devicePrice - totalDeviceDiscountAmount <= 0
+        const installmentPrincipal = isFreePhone ? 0 : devicePrice - totalDeviceDiscountAmount
+        const installmentPaymentNum = isFreePhone
+            ? 0
+            : calcInstallment(installmentPrincipal, installment, )
+        const installmentPayment = `${installmentPaymentNum.toLocaleString()}원`
+
+        const planDiscountAmount = discount === "공통지원금" ? 0 : Math.round(planPrice * 0.25)
+        const totalMonthPlanPrice = planPrice - planDiscountAmount
+        const totalMonthPayment =
+            installment === 0
+                ? totalMonthPlanPrice
+                : installmentPaymentNum + totalMonthPlanPrice
+
+        const monthlyPayment = calcInstallment(installmentPrincipal, installment)
+
+        const discountRate = (() => {
+            if (originPrice <= 0) return 0
+            const rate = ((originPrice - installmentPrincipal) / originPrice) * 100
+            return Math.round(Math.min(Math.max(rate, 0), 100))
+        })()
+
+        const installmentPaymentTitle = isGuaranteedReturn
+            ? "월 할부금"
+            : installment > 0
+              ? `월 할부금 (${installment}개월)`
+              : "결제 금액"
+        const installmentPaymentDescription =
+            installment > 0 ? "분할 상환 수수료 5.9% 포함" : "카드 또는 현금결제"
+
+        return (
+            <Component
+                {...props}
+                finalPrice={installmentPrincipal}
+                originPrice={originPrice}
+                discountRate={discountRate}
+                monthlyPayment={monthlyPayment}
+                installment={installment}
+                planPrice={planPrice}
+                planDiscountAmount={planDiscountAmount}
+                discount={discount ?? "공통지원금"}
+                isLoading={store.isLoading ?? false}
+                formLink={device?.form_link ?? ""}
+                // OrderSheet 모달용 props
+                installmentPaymentTitle={installmentPaymentTitle}
+                installmentPaymentDescription={installmentPaymentDescription}
+                installmentPrincipal={installmentPrincipal}
+                installmentPayment={installmentPayment}
+                devicePrice={devicePrice}
+                disclosureSubsidy={disclosureSubsidy}
+                ktmarketSubsidy={ktmarketSubsidy}
+                promotionDiscount={promotionDiscount}
+                migrationSubsidy={migrationSubsidy}
+                guaranteedReturnPrice={guaranteedReturnPrice}
+                specialPrice={specialPrice}
+                doubleStorageDiscount={doubleStorageDiscount}
+                plan={selectedPlan?.name ?? ""}
+                totalMonthPlanPrice={totalMonthPlanPrice}
+                totalMonthPayment={Math.round(totalMonthPayment)}
             />
         )
     }
@@ -718,6 +872,7 @@ export function withOrderSheetFreebie(Component): ComponentType {
 export function withOrderSheet(Component): ComponentType {
     return (props) => {
         const [store, setStore] = useStore()
+        const { navigate, routes } = useRouter()
         const [formLink, setFormLink] = useState(props.formLink)
         const [hydrated, setHydrated] = useState(false)
 
@@ -732,6 +887,7 @@ export function withOrderSheet(Component): ComponentType {
         const [devicePrice, setDevicePrice] = useState(0)
         const [ktmarketSubsidy, setKtmarketSubsidy] = useState(0)
         const [disclosureSubsidy, setDisclosureSubsidy] = useState(0)
+        // 추가할인 합계 (KT마켓지원금 + 프로모션 + 디바이스 추가지원금 + 미리보상 등)
         const [additionalSubsidy, setAdditionalSubsidy] = useState(0)
         const [migrationSubsidy, setMigrationSubsidy] = useState(0)
         const [totalDeviceDiscountAmount, setTotalDeviceDiscountAmount] =
@@ -948,6 +1104,15 @@ export function withOrderSheet(Component): ComponentType {
             const freebie = store.freebie?.title ?? ""
             const monthlyPriceFreebie = store.freebie?.monthly_price ?? 0
 
+            // 추가할인 합계: KT마켓지원금 + 프로모션 + 디바이스 추가지원금 + 미리보상 + 더블스토리지
+            const additionalSubsidy =
+                ktmarketSubsidy +
+                promotionDiscount +
+                selected +
+                guaranteedReturnPrice +
+                preorderDiscount +
+                doubleStorageDiscountValue
+
             return {
                 planName: selectedPlan?.name ?? "",
                 benefit,
@@ -963,6 +1128,7 @@ export function withOrderSheet(Component): ComponentType {
                 ktmarketSubsidy,
                 disclosureSubsidy,
                 migrationSubsidy,
+                additionalSubsidy,
                 totalDeviceDiscountAmount,
                 promotionDiscount,
                 freebie,
@@ -1008,6 +1174,7 @@ export function withOrderSheet(Component): ComponentType {
             setKtmarketSubsidy(result.ktmarketSubsidy)
             setDisclosureSubsidy(result.disclosureSubsidy)
             setMigrationSubsidy(result.migrationSubsidy)
+            setAdditionalSubsidy(result.additionalSubsidy)
             setTotalDeviceDiscountAmount(result.totalDeviceDiscountAmount)
             setGuaranteedReturnPrice(result.guaranteedReturnPrice)
             setPreorderDiscount(result.preorderDiscount)
@@ -1042,6 +1209,26 @@ export function withOrderSheet(Component): ComponentType {
                 setStore({ installmentPrincipal })
             }
         }, [installmentPrincipal])
+
+        // /phone/user-info 라우트 ID 조회
+        const getUserInfoRouteId = () => {
+            for (const [key, value] of Object.entries(routes)) {
+                if ((value as any)?.path === "/phone/user-info") return key
+            }
+            return null
+        }
+
+        // 카카오 간편주문: sessionStorage 보존 후 user-info 페이지로 이동
+        const handleKakaoOrder = () => {
+            sessionStorage.setItem("data", JSON.stringify(store))
+            // sheet는 withOrderSheet useEffect에서 이미 지속 저장됨
+            const routeId = getUserInfoRouteId()
+            if (routeId) {
+                navigate(routeId, "")
+            } else {
+                window.location.href = "/phone/user-info"
+            }
+        }
 
         if (!hydrated) return null
         return (
@@ -1086,6 +1273,12 @@ export function withOrderSheet(Component): ComponentType {
                 specialPriceMnp={specialPriceMnp}
                 specialPriceChg={specialPriceChg}
                 doubleStorageDiscount={doubleStorageDiscount}
+                devicePetName={store.device?.pet_name ?? ""}
+                deviceImage={store.color?.urls?.[0] ?? store.device?.thumbnail ?? ""}
+                deviceColor={store.color?.kr ?? ""}
+                deviceCapacity={store.device?.capacity ?? ""}
+                formLink={formLink}
+                onKakaoOrderClick={handleKakaoOrder}
             />
         )
     }
@@ -1113,11 +1306,6 @@ export function withPhoneDetail(Component): ComponentType {
             KTMARKET_SUBSIDY: "ktmarket_subsidy",
         }
 
-        const lastSegment =
-            typeof window !== "undefined"
-                ? window.location.pathname.split("/").filter(Boolean).pop()
-                : ""
-
         const createColors = ({
             category,
             colors_kr,
@@ -1143,12 +1331,12 @@ export function withPhoneDetail(Component): ComponentType {
                 }
             })
 
-        const fetchKTmarketSubsidy = async () => {
+        const fetchKTmarketSubsidy = async (modelId: string) => {
             try {
                 const { data, error } = await supabase
                     .from(DB.KTMARKET_SUBSIDY)
                     .select("*")
-                    .eq("model", lastSegment)
+                    .eq("model", modelId)
 
                 if (error) throw error
                 setStore({
@@ -1174,16 +1362,16 @@ export function withPhoneDetail(Component): ComponentType {
             }
         }
 
-        const fetchInitPlanData = async (planId: string, planType: string) => {
+        const fetchInitPlanData = async (planId: string, planType: string, modelId: string) => {
             try {
                 const { data, error } = await supabase
                     .from(getPlanDB(planType))
                     .select("*")
                     .eq("plan_id", planId)
-                    .eq("model", lastSegment)
+                    .eq("model", modelId)
 
                 if (error) throw error
-                await fetchKTmarketSubsidy()
+                await fetchKTmarketSubsidy(modelId)
                 const planInfo = getPlanInfoByPid(data[0].plan_id)
                 setStore({
                     plan: data[0],
@@ -1193,18 +1381,16 @@ export function withPhoneDetail(Component): ComponentType {
                 })
             } catch (err) {
                 setError(err.message)
-            } finally {
-                // setLoading(false)
             }
         }
 
-        const fetchMainPlanData = async (planId: string, planType: string) => {
+        const fetchMainPlanData = async (planId: string, planType: string, modelId: string) => {
             try {
                 const { data, error } = await supabase
                     .from(getPlanDB(planType))
                     .select("*")
                     .eq("plan_id", planId)
-                    .eq("model", lastSegment)
+                    .eq("model", modelId)
 
                 if (error) throw error
                 setStore({
@@ -1214,31 +1400,27 @@ export function withPhoneDetail(Component): ComponentType {
                 })
             } catch (err) {
                 setError(err.message)
-            } finally {
-                // setLoading(false)
             }
         }
 
         const fetchSelectedPlanData = async (
             plan_id: string,
-            planType: string
+            planType: string,
+            modelId: string
         ) => {
             try {
                 const { data, error } = await supabase
                     .from(getPlanDB(planType))
                     .select("*")
                     .eq("plan_id", plan_id)
-                    .eq("model", lastSegment)
+                    .eq("model", modelId)
 
                 if (error) throw error
-                const planInfo = getPlanInfoByPid(data[0].plan_id)
                 setStore({
                     selectedPlan: data[0],
                 })
             } catch (err) {
                 setError(err.message)
-            } finally {
-                // setLoading(false)
             }
         }
 
@@ -1246,12 +1428,13 @@ export function withPhoneDetail(Component): ComponentType {
             return ["aip16e-128", "aip16e-256", "aip16e-512"].includes(model)
         }
 
-        const fetchDeviceData = async () => {
+        const fetchDeviceData = async (modelId: string) => {
+            setStore({ isLoading: true })
             try {
                 const { data, error } = await supabase
                     .from(DB.DEVICES)
                     .select("*")
-                    .eq("model", lastSegment)
+                    .eq("model", modelId)
 
                 if (error) throw error
 
@@ -1271,7 +1454,38 @@ export function withPhoneDetail(Component): ComponentType {
                     initialPlanId = device.plan_id
                 }
 
-                await fetchInitPlanData(initialPlanId, store.register)
+                // ── 번호이동 vs 기기변경 중 더 저렴한 쪽을 기본값으로 설정 ──
+                const [mnpRes, chgRes] = await Promise.all([
+                    supabase
+                        .from("device_plans_mnp")
+                        .select("price, migration_subsidy")
+                        .eq("plan_id", initialPlanId)
+                        .eq("model", modelId)
+                        .maybeSingle(),
+                    supabase
+                        .from("device_plans_chg")
+                        .select("price")
+                        .eq("plan_id", initialPlanId)
+                        .eq("model", modelId)
+                        .maybeSingle(),
+                ])
+                // 번이 실질 단말가 = price - migration_subsidy
+                const mnpEffective = mnpRes.data
+                    ? (mnpRes.data.price ?? 0) - (mnpRes.data.migration_subsidy ?? 0)
+                    : null
+                const chgEffective = chgRes.data ? (chgRes.data.price ?? 0) : null
+
+                let bestRegister = store.register
+                if (mnpEffective !== null && chgEffective !== null) {
+                    bestRegister = mnpEffective <= chgEffective ? "번호이동" : "기기변경"
+                } else if (mnpEffective !== null) {
+                    bestRegister = "번호이동"
+                } else if (chgEffective !== null) {
+                    bestRegister = "기기변경"
+                }
+                setStore({ register: bestRegister })
+
+                await fetchInitPlanData(initialPlanId, bestRegister, modelId)
 
                 setStore({
                     device,
@@ -1282,46 +1496,46 @@ export function withPhoneDetail(Component): ComponentType {
                 setError(err.message)
             } finally {
                 setLoading(false)
+                setStore({ isLoading: false })
             }
         }
 
-        // ✅ 단종 팝업 강제 이동 핸들러
+        // ✅ 단종 팝업 → SPA 방식으로 모델 이동
         const handleDiscontinuedRedirect = () => {
             if (!discontinuedInfo) return
-            const currentPath = window.location.pathname
-            const newPath = currentPath.replace(
-                lastSegment,
-                discontinuedInfo.targetModel
-            )
-            window.location.href = newPath
+            window.history.pushState({}, "", `/phone/${discontinuedInfo.targetModel}`)
+            setStore({ currentModelId: discontinuedInfo.targetModel })
         }
 
+        // currentModelId 초기화: URL에서 파싱 후 store에 저장
         useEffect(() => {
-            if (
-                lastSegment == "sm-f966nk512" ||
-                lastSegment == "sm-f766nk512"
-            ) {
-                const params = new URLSearchParams(window.location.search)
+            if (typeof window === "undefined") return
+            if (!store.currentModelId) {
+                const pathSegment =
+                    window.location.pathname.split("/").filter(Boolean).pop() || ""
+                setStore({ currentModelId: pathSegment })
+            }
+        }, [])
 
+        // currentModelId 변경 시: 팝업/단종 체크 + 데이터 재호출 (SPA 핵심)
+        useEffect(() => {
+            if (!store.currentModelId) return
+            const modelId = store.currentModelId
+
+            // isGuaranteedReturn 초기화 (해당 모델만)
+            if (modelId === "sm-f966nk512" || modelId === "sm-f766nk512") {
+                const params = new URLSearchParams(window.location.search)
                 const isGuaranteedReturnValue =
                     params.get("isGuaranteedReturn") ?? "0"
-                if (isGuaranteedReturnValue == "1") {
+                if (isGuaranteedReturnValue === "1") {
                     setStore({ isGuaranteedReturn: true })
                 }
             }
 
-            if (!store.device) fetchDeviceData()
-
-            if (typeof window === "undefined") return
-
-            const pathname = window.location.pathname
-
             // ✅ 오직 이 경로에서만 16e 팝업 ON
-            if (pathname === TARGET_POPUP_PATH) {
-                setShowPopup(true)
-            }
+            setShowPopup(modelId === "aip16e-128")
 
-            // ✅ 단종 모델 체크 및 텍스트 고도화 반영
+            // ✅ 단종 모델 체크
             const obsoleteIphones = [
                 "aip16-128",
                 "aip16-256",
@@ -1351,7 +1565,7 @@ export function withPhoneDetail(Component): ComponentType {
                 "sm-s928nk",
             ]
 
-            if (obsoleteIphones.includes(lastSegment)) {
+            if (obsoleteIphones.includes(modelId)) {
                 setDiscontinuedInfo({
                     title: "단종된 모델입니다",
                     description:
@@ -1359,7 +1573,7 @@ export function withPhoneDetail(Component): ComponentType {
                     targetModel: "aip17-256",
                     buttonText: "아이폰17 보러가기",
                 })
-            } else if (obsoleteGalaxys.includes(lastSegment)) {
+            } else if (obsoleteGalaxys.includes(modelId)) {
                 setDiscontinuedInfo({
                     title: "단종된 모델입니다",
                     description:
@@ -1367,30 +1581,39 @@ export function withPhoneDetail(Component): ComponentType {
                     targetModel: "sm-s942nk",
                     buttonText: "최신 기종 보러가기",
                 })
+            } else {
+                setDiscontinuedInfo(null)
             }
-        }, [])
+
+            // 디바이스 데이터 재호출 (스켈레톤 ON → fetch → OFF)
+            fetchDeviceData(modelId)
+        }, [store.currentModelId])
 
         useEffect(() => {
             if (!isFirst) {
+                const modelId = store.currentModelId || ""
                 if (store.selectedPlanInfo)
                     fetchSelectedPlanData(
                         store.selectedPlanInfo.pid,
-                        store.register
+                        store.register,
+                        modelId
                     )
             }
         }, [store.selectedPlanInfo])
 
         useEffect(() => {
             if (!isFirst) {
+                const modelId = store.currentModelId || ""
                 if (store.planInfo)
-                    fetchMainPlanData(store.planInfo.pid, store.register)
+                    fetchMainPlanData(store.planInfo.pid, store.register, modelId)
             }
         }, [store.planInfo])
 
         useEffect(() => {
             if (!isFirst) {
+                const modelId = store.currentModelId || ""
                 if (store.planInfo)
-                    fetchMainPlanData(store.planInfo.pid, store.register)
+                    fetchMainPlanData(store.planInfo.pid, store.register, modelId)
             }
         }, [store.register])
 
@@ -1612,9 +1835,47 @@ export function withThumbnail(Component): ComponentType {
             if (store.color) {
                 setUrls(store.color.urls)
             }
-        }, [store.color]) // store.device를 의존성으로 설정
+        }, [store.color])
 
         return <Component {...props} urls={urls} />
+    }
+}
+
+// JunCarousel 전용: 이미지 + 색상 선택 + 스켈레톤 통합
+export function withCarousel(Component): ComponentType {
+    return (props) => {
+        const [store, setStore] = useStore()
+        const [urls, setUrls] = useState([])
+        const [colors, setColors] = useState([])
+
+        // 색상 변경 시 이미지 업데이트
+        useEffect(() => {
+            if (store.color) {
+                setUrls(store.color.urls)
+            }
+        }, [store.color])
+
+        // store.colors 초기화 및 첫 번째 색상 선택
+        useEffect(() => {
+            if (store.colors && store.colors.length > 0) {
+                setColors(store.colors)
+            }
+        }, [store.colors])
+
+        const handleColorChange = (color) => {
+            setStore({ color })
+        }
+
+        return (
+            <Component
+                {...props}
+                urls={urls}
+                colors={colors}
+                activeColor={store.color}
+                isLoading={store.isLoading}
+                onColorChange={handleColorChange}
+            />
+        )
     }
 }
 
@@ -1659,7 +1920,6 @@ export function withThumbnail(Component): ComponentType {
 
 export function withCapacity(Component): ComponentType {
     return (props) => {
-        // Framer Data 또는 Context API를 통한 상태 관리 (가정된 useStore 훅 사용)
         const [store, setStore] = useStore()
         const [capacities, setCapacities] = useState([])
 
@@ -1675,7 +1935,20 @@ export function withCapacity(Component): ComponentType {
             }
         }, [store.device])
 
-        return <Component {...props} capacities={capacities} />
+        const handleCapacitySelect = (path: string) => {
+            window.history.pushState({}, "", `/phone/${path}`)
+            setStore({ currentModelId: path })
+        }
+
+        return (
+            <Component
+                {...props}
+                capacities={capacities}
+                currentModelId={store.currentModelId}
+                isLoading={store.isLoading}
+                onCapacitySelect={handleCapacitySelect}
+            />
+        )
     }
 }
 
@@ -1687,7 +1960,11 @@ export function withStock(Component): ComponentType {
 
         // 0320 금요일 수정
         useEffect(() => {
-            if (store.colors.length == store.stocks.length) {
+            if (
+                Array.isArray(store.colors) &&
+                Array.isArray(store.stocks) &&
+                store.colors.length === store.stocks.length
+            ) {
                 if (store.color) {
                     const selectedColor = store.color.en
                     const selectedStock = store.stocks?.find(
@@ -1712,6 +1989,7 @@ export function withColor(Component): ComponentType {
         const [colors, setColors] = useState([])
 
         useEffect(() => {
+            if (!Array.isArray(store.colors)) return
             setColors(store.colors)
             if (store.colors.length > 0) {
                 handleColorChange(store.colors[0])
@@ -1740,7 +2018,9 @@ export function withColor(Component): ComponentType {
             <Component
                 {...props}
                 colors={colors}
+                activeColor={store.color}
                 onColorChange={handleColorChange}
+                isLoading={store.isLoading ?? false}
             />
         )
     }
@@ -1949,6 +2229,7 @@ export function withRegister(Component): ComponentType {
                 defaultCarrier={getActiveCarrier()}
                 onValueChange={handleValueChange}
                 showNewSubscription={showNewSub}
+                isLoading={store.isLoading ?? false}
             />
         )
     }
@@ -2027,7 +2308,15 @@ export function withFreebiesSection(Component): ComponentType {
 
         if (!pid || !sections.includes(pid)) return null
 
-        return <Component {...props} />
+        return (
+            <Component
+                {...props}
+                plan={pid}
+                store={store}
+                setStore={setStore}
+                isLoading={store.isLoading}
+            />
+        )
     }
 }
 
@@ -2357,7 +2646,15 @@ export function withInstallmentSection(Component): ComponentType {
         const [store, setStore] = useStore()
 
         if (store.isGuaranteedReturn) return null
-        return <Component {...props} isVisible={store.installment == 0} />
+        return (
+            <Component
+                {...props}
+                installment={store.installment}
+                isGuaranteedReturn={store.isGuaranteedReturn}
+                onInstallmentChange={(v: number) => setStore({ installment: v })}
+                isLoading={store.isLoading}
+            />
+        )
     }
 }
 
@@ -3249,5 +3546,92 @@ export function withYoutubePremiumCondition(Component): ComponentType {
         // 3. 대상 요금제면 컴포넌트 보여줌
 
         return <Component {...props} />
+    }
+}
+
+// ─── withPlanGrid ─────────────────────────────────────────────────────
+// PlanSelectorComponent 전용 Override
+// store의 planInfo / selectedPlanInfo 연동 + 카드별 할인 금액 계산
+// ──────────────────────────────────────────────────────────────────────
+export function withPlanGrid(Component): ComponentType {
+    return (props) => {
+        const [store, setStore] = useStore()
+
+        const handlePlanSelect = (plan: { pid: string; title: string; price: number; description?: string; data?: string; tethering?: string; roaming?: string; voiceText?: string }) => {
+            const isBenefit =
+                plan.price >= 61000 ||
+                ["ppllistobj_0778", "ppllistobj_0844", "ppllistobj_0893"].includes(plan.pid)
+
+            const planInfo: PlanInfo = {
+                pid: plan.pid,
+                title: plan.title,
+                price: plan.price,
+                description: plan.description ?? "",
+                data: plan.data ?? "",
+                tethering: plan.tethering ?? "",
+                roaming: plan.roaming ?? "",
+                voiceText: plan.voiceText ?? "",
+                isBenefit,
+            }
+
+            setStore({ planInfo, selectedPlanInfo: planInfo })
+        }
+
+        // 고정 3개 + 커스텀 요금제에 대해 예상 할인 금액 계산
+        // 공통지원금은 DB에서 가져와야 하므로 KT마켓지원금만 계산
+        const calcDiscountForPrice = (planPrice: number, pid: string): number => {
+            if (!store.ktmarketSubsidies) return 0
+            const discount = store.discount === "선택약정할인" ? "plan" : "device"
+            const register = store.register === "번호이동" ? "mnp" : store.register === "신규가입" ? "new" : "chg"
+
+            const forceTierByPlanId: Record<string, number> = {
+                ppllistobj_0893: 61000, ppllistobj_0778: 61000, ppllistobj_0844: 61000,
+                ppllistobj_0845: 37000, ppllistobj_0535: 37000, ppllistobj_0765: 37000, ppllistobj_0775: 37000,
+            }
+            const forcedTier = forceTierByPlanId[pid]
+            const priceTiers = [110000, 100000, 90000, 61000, 37000]
+
+            let key = ""
+            if (forcedTier) {
+                key = `${discount}_discount_${register}_gte_${forcedTier}`
+            } else {
+                for (const tier of priceTiers) {
+                    if (planPrice >= tier) { key = `${discount}_discount_${register}_gte_${tier}`; break }
+                }
+                if (!key) key = `${discount}_discount_${register}_lt_37000`
+            }
+            return store.ktmarketSubsidies[key] ?? 0
+        }
+
+        // 고정 3개 PID + 선택된 요금제에 대한 할인 금액 맵
+        const GRID_PIDS = ["ppllistobj_0865", "ppllistobj_0808", "ppllistobj_0925"]
+        const planPriceMap: Record<string, number> = {
+            "ppllistobj_0865": 90000, "ppllistobj_0808": 69000, "ppllistobj_0925": 37000,
+        }
+        const discountAmounts: Record<string, number> = {}
+        for (const pid of GRID_PIDS) {
+            discountAmounts[pid] = calcDiscountForPrice(planPriceMap[pid], pid)
+        }
+        // 현재 선택된 요금제 할인 금액도 포함
+        if (store.selectedPlanInfo?.pid && !discountAmounts[store.selectedPlanInfo.pid]) {
+            discountAmounts[store.selectedPlanInfo.pid] =
+                calcDiscountForPrice(store.selectedPlanInfo.price, store.selectedPlanInfo.pid)
+        }
+
+        const handleTabChange = (tab: "기기 할인" | "요금할인") => {
+            const discount = tab === "요금할인" ? "선택약정할인" : "공통지원금"
+            setStore({ discount })
+        }
+
+        return (
+            <Component
+                {...props}
+                isLoading={store.isLoading ?? false}
+                selectedPlanPid={store.selectedPlanInfo?.pid ?? ""}
+                discountAmounts={discountAmounts}
+                onPlanSelect={handlePlanSelect}
+                onTabChange={handleTabChange}
+            />
+        )
     }
 }
