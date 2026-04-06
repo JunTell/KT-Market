@@ -87,10 +87,6 @@ export default function InstallmentSectionComponent(props) {
     if (isGuaranteedReturn) return null
 
     const handleClick = (value: number) => {
-        if (isGuaranteedReturn && value !== 0 && value !== 24) {
-            alert("미리보상을 선택하신 고객님의 경우\n일시불 혹은 24개월 할부만 선택하실 수 있습니다.")
-            return
-        }
         onInstallmentChange?.(value)
     }
 

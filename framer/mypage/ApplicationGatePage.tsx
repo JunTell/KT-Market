@@ -1,7 +1,6 @@
 import * as React from "react"
 import { useState, useEffect } from "react"
 import { addPropertyControls, ControlType } from "framer"
-const API_URL = "https://kt-market-puce.vercel.app"
 
 // --- Skeleton Components ---
 const SkeletonBox = ({
@@ -262,6 +261,7 @@ interface OrderSummary {
 
 interface Props {
     nextPageUrl: string
+    completionPageUrl: string
 }
 
 const mustReadListStyle: React.CSSProperties = {
@@ -407,12 +407,7 @@ const PriceInfoSection = ({
             </span>
         </div>
         <div style={paymentNoticeStyle}>
-            <div
-                style={{
-                    marginRight: "8px",
-                    marginTop: "2px",
-                }}
-            >
+            <div style={{ marginRight: "8px", marginTop: "2px" }}>
                 <InfoIcon />
             </div>
             <div>
@@ -447,7 +442,6 @@ export default function ApplicationGatePage(props: Props) {
 
     const [showMustRead, setShowMustRead] = useState(false)
     const [showReturnMessage, setShowReturnMessage] = useState(false)
-    const [showCompletionCheck, setShowCompletionCheck] = useState(false)
 
     const [agreements, setAgreements] = useState<boolean[]>(
         new Array(6).fill(false)
@@ -461,7 +455,7 @@ export default function ApplicationGatePage(props: Props) {
 
     useEffect(() => {
         const handlePopState = () => {
-            if (showCompletionCheck || showReturnMessage || showMustRead) {
+            if (showReturnMessage || showMustRead) {
                 const dataStr = sessionStorage.getItem("data")
                 if (dataStr) {
                     try {
@@ -480,22 +474,14 @@ export default function ApplicationGatePage(props: Props) {
 
         window.addEventListener("popstate", handlePopState)
         return () => window.removeEventListener("popstate", handlePopState)
-    }, [showCompletionCheck, showReturnMessage, showMustRead])
+    }, [showReturnMessage, showMustRead])
 
-    const loadSessionData = async () => {
+    const loadSessionData = () => {
         if (typeof window === "undefined") return
 
         try {
-            // 직접 auth/me 호출 (AuthStore 비동기 race condition 회피)
-            let kakaoUser: { id?: string; full_name?: string; phone?: string } = {}
-            try {
-                const authRes = await fetch(`${API_URL}/api/auth/me`, { credentials: "include" })
-                const authData = authRes.ok ? await authRes.json() : { isLoggedIn: false }
-                if (authData.isLoggedIn && authData.user) kakaoUser = authData.user
-            } catch { /* 인증 실패 시 빈 값 유지 */ }
-
-            const sheetStr = sessionStorage.getItem("sheet") || localStorage.getItem("kt_sheet")
-            const dataStr = sessionStorage.getItem("data") || localStorage.getItem("kt_data")
+            const sheetStr = sessionStorage.getItem("sheet")
+            const dataStr = sessionStorage.getItem("data")
             const userStr = sessionStorage.getItem("user-info")
 
             let parsedSheet = null
@@ -528,17 +514,6 @@ export default function ApplicationGatePage(props: Props) {
                     doubleStorageDiscount -
                     promotionDiscount
 
-                // 카카오 로그인 이용자: sessionStorage 미설정 시 auth/me 값으로 보완
-                const resolvedName =
-                    parsedUser?.userName ||
-                    kakaoUser.full_name ||
-                    "-"
-                const resolvedPhone =
-                    parsedUser?.userPhone ||
-                    kakaoUser.phone ||
-                    "-"
-                const resolvedDob = parsedUser?.userDob || "-"
-
                 setOrderInfo({
                     petName: parsedData.device?.pet_name || "기기명 없음",
                     capacity: parsedData.device?.capacity || "",
@@ -556,9 +531,9 @@ export default function ApplicationGatePage(props: Props) {
                     joinType: parsedData.register || "기기변경",
                     discountType: parsedSheet.discount || "공통지원금",
                     contract: parsedSheet.installment || 24,
-                    userName: resolvedName,
-                    userDob: resolvedDob,
-                    userPhone: resolvedPhone,
+                    userName: parsedUser?.userName || "-",
+                    userDob: parsedUser?.userDob || "-",
+                    userPhone: parsedUser?.userPhone || "-",
                     totalMonthPayment: parsedSheet.totalMonthPayment || 0,
                 })
             } else {
@@ -630,18 +605,8 @@ export default function ApplicationGatePage(props: Props) {
             if (orderInfo?.formLink) {
                 window.open(orderInfo.formLink, "_blank")
             }
-            setShowCompletionCheck(true)
+            window.location.href = props.completionPageUrl
         }, 2000)
-    }
-
-    const handleContinueWriting = () => {
-        if (orderInfo?.formLink) {
-            window.open(orderInfo.formLink, "_blank")
-        }
-    }
-
-    const handleComplete = () => {
-        window.location.href = props.nextPageUrl
     }
 
     const handleGuideClick = () => {
@@ -776,6 +741,7 @@ export default function ApplicationGatePage(props: Props) {
 
     return (
         <div style={containerStyle}>
+            {/* ── 유의사항 화면 ── */}
             {showMustRead && (
                 <div style={mustReadContainerStyle}>
                     <div style={topProgressWrapperStyle}>
@@ -783,7 +749,7 @@ export default function ApplicationGatePage(props: Props) {
                             <div
                                 style={{
                                     ...progressBarFillStyle,
-                                    width: `${(agreements.filter(Boolean).length / agreements.length) * 100}%`,
+                                    width: isAllAgreed ? "100%" : "30%",
                                 }}
                             />
                         </div>
@@ -854,6 +820,7 @@ export default function ApplicationGatePage(props: Props) {
                 </div>
             )}
 
+            {/* ── KT 이동 전환 화면 ── */}
             {showReturnMessage && (
                 <div style={returnMessageOverlayStyle}>
                     <div style={returnMessageContentStyle}>
@@ -933,8 +900,9 @@ export default function ApplicationGatePage(props: Props) {
                 </div>
             )}
 
-            {showCompletionCheck && (
-                <div style={completionCheckContainerStyle}>
+            {/* ── 초기 화면 ── */}
+            {!showMustRead && !showReturnMessage && (
+                <>
                     <div style={stepContainerStyle}>
                         <div style={stepItemStyle}>
                             <div
@@ -980,14 +948,20 @@ export default function ApplicationGatePage(props: Props) {
 
                     <div style={titleContainerStyle}>
                         <h1 style={titleStyle}>
-                            KT 신청서 작성을
+                            이제 신청서 작성을
                             <br />
-                            모두 완료하셨나요?
+                            하러 다녀올게요
                         </h1>
                     </div>
 
                     {orderInfo && (
-                        <div style={contentContainerStyle}>
+                        <div
+                            style={{
+                                ...contentContainerStyle,
+                                position: "relative",
+                                zIndex: 2,
+                            }}
+                        >
                             <div style={subTitleStyle}>내 신청 정보</div>
                             <div
                                 style={cardStyle}
@@ -1051,193 +1025,28 @@ export default function ApplicationGatePage(props: Props) {
                                     </div>
                                 )}
                             </div>
-                        </div>
-                    )}
 
-                    <div style={bottomContainerStyle}>
-                        <button
-                            style={{
-                                ...buttonStyle,
-                                backgroundColor: "#F2F4F6",
-                                color: "#191F28",
-                                marginBottom: "12px",
-                            }}
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                handleContinueWriting()
-                            }}
-                        >
-                            이어서 작성하기
-                        </button>
-                        <button
-                            style={buttonStyle}
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                handleComplete()
-                            }}
-                        >
-                            작성 완료
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {!showMustRead && !showReturnMessage && !showCompletionCheck && (
-                <>
-                    <div style={stepContainerStyle}>
-                        <div style={stepItemStyle}>
-                            <div
-                                style={{
-                                    ...stepCircleStyle,
-                                    ...activeStepStyle,
-                                }}
-                            >
-                                <CheckIcon />
-                            </div>
-                            <span
-                                style={{ ...stepTextStyle, color: "#191F28" }}
-                            >
-                                구매 신청
-                            </span>
-                        </div>
-                        <div style={stepLineStyle(true)} />
-                        <div style={stepItemStyle}>
-                            <div
-                                style={{
-                                    ...stepCircleStyle,
-                                    ...activeStepStyle,
-                                }}
-                            >
-                                2
-                            </div>
-                            <span
-                                style={{
-                                    ...stepTextStyle,
-                                    color: "#0066FF",
-                                    fontWeight: 700,
-                                }}
-                            >
-                                신청서 작성
-                            </span>
-                        </div>
-                        <div style={stepLineStyle(false)} />
-                        <div style={stepItemStyle}>
-                            <div style={stepCircleStyle}>3</div>
-                            <span style={stepTextStyle}>신청서 확인 요청</span>
-                        </div>
-                    </div>
-
-                    <div style={titleContainerStyle}>
-                        <h1 style={titleStyle}>
-                            이제 신청서 작성을
-                            <br />
-                            하러 다녀올게요
-                        </h1>
-                    </div>
-
-                    {orderInfo && (
-                        <div
-                            style={{
-                                ...contentContainerStyle,
-                                position: "relative",
-                                zIndex: 2,
-                            }}
-                        >
-                            {/* ✅ 공지 박스 — 내 신청 정보 위로 이동 + 내용 업데이트 */}
                             <div style={priceAlertContainerStyle}>
-                                <div style={priceAlertHeaderStyle}>
-                                    📋 신청서 작성 전 꼭 읽어주세요
+                                <div style={priceAlertLabelStyle}>
+                                    금액 안내
                                 </div>
-                                <div style={priceAlertWarningTextStyle}>
-                                    <strong>
-                                        KT 공식 신청서에는
-                                        <br />
-                                        추가지원금이 반영되지 않아
-                                        <br />
-                                        월요금이 높게 보일 수 있어요.
-                                    </strong>
-                                </div>
-                                <div style={priceAlertCheckTextStyle}>
-                                    ✔ 실제 개통은
+                                <div style={priceAlertMainTextStyle}>
+                                    지금 선택하신 요금제/옵션을
                                     <br />
-                                    지금 안내받으신 조건 그대로
+                                    공식신청서에서도 동일하게 선택하시면,
                                     <br />
-                                    진행됩니다.
+                                    <span style={priceAlertHighlightStyle}>
+                                        최종 개통은 KT마켓 가격표 기준으로
+                                        진행됩니다.
+                                    </span>
                                 </div>
-                                <div style={priceAlertReassureTextStyle}>
-                                    <strong>걱정하지 마시고 작성해주세요!</strong>
+                                <div style={priceAlertSubTextStyle}>
+                                    <br />
+                                    공식신청서 화면 지원금 표시는 다르게 보일 수
+                                    있으나,
+                                    <br />
+                                    개통 시 가격표 기준으로 적용됩니다.
                                 </div>
-                                <div style={priceAlertDisclaimerStyle}>
-                                    *개통 완료 후에는 할부원금·요금제·결합할인 등 모든 정보가 고객센터
-                                    앱에서 확인 가능합니다.
-                                </div>
-                            </div>
-
-                            {/* ✅ 내 신청 정보 — 공지 박스 아래로 */}
-                            <div style={{ ...subTitleStyle, marginTop: "28px" }}>
-                                내 신청 정보
-                            </div>
-                            <div
-                                style={cardStyle}
-                                onClick={() => setIsExpanded(!isExpanded)}
-                            >
-                                <div style={cardHeaderStyle}>
-                                    <div style={imageWrapperStyle}>
-                                        {orderInfo.imageUrl ? (
-                                            <img
-                                                src={orderInfo.imageUrl}
-                                                alt="Device"
-                                                style={imgStyle}
-                                            />
-                                        ) : (
-                                            <div
-                                                style={{
-                                                    width: "100%",
-                                                    height: "100%",
-                                                    background: "#eee",
-                                                }}
-                                            />
-                                        )}
-                                    </div>
-                                    <div style={infoWrapperStyle}>
-                                        <div style={deviceNameStyle}>
-                                            {orderInfo.petName}
-                                        </div>
-                                        <div style={deviceOptionStyle}>
-                                            {orderInfo.capacity} ·{" "}
-                                            {orderInfo.color}
-                                        </div>
-                                        <div style={priceStyleBlue}>
-                                            월{" "}
-                                            {formatPrice(
-                                                orderInfo.totalMonthPayment
-                                            )}
-                                            원
-                                        </div>
-                                    </div>
-                                    <div style={arrowIconStyle}>
-                                        <ChevronDown
-                                            style={{
-                                                transform: isExpanded
-                                                    ? "rotate(180deg)"
-                                                    : "rotate(0deg)",
-                                                transition: "transform 0.3s",
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-
-                                {isExpanded && <ExpandedDetails />}
-
-                                {!isExpanded && (
-                                    <div style={noticeBoxStyle}>
-                                        <InfoIcon />
-                                        <span>
-                                            신청서 작성 전에는 가격이 바뀔 수
-                                            있어요
-                                        </span>
-                                    </div>
-                                )}
                             </div>
 
                             <div
@@ -1442,57 +1251,38 @@ const noticeBoxStyle: React.CSSProperties = {
     marginTop: "10px",
 }
 
-// ✅ 공지 박스 컨테이너
 const priceAlertContainerStyle: React.CSSProperties = {
-    backgroundColor: "#EEF3FF",
+    backgroundColor: "#F5F7FF",
     borderRadius: "20px",
-    padding: "28px 24px",
+    padding: "30px 20px",
+    marginTop: "24px",
     textAlign: "center",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    justifyContent: "center",
 }
-
-// ✅ "📋 신청서 작성 전 꼭 읽어주세요" 헤더
-const priceAlertHeaderStyle: React.CSSProperties = {
-    fontSize: "13px",
+const priceAlertLabelStyle: React.CSSProperties = {
+    fontSize: "14px",
+    fontWeight: 600,
     color: "#8B95A1",
-    fontWeight: 500,
-    marginBottom: "20px",
+    marginBottom: "16px",
 }
-
-// ✅ KT 공식 신청서 경고 텍스트 (굵음, 어두운 색)
-const priceAlertWarningTextStyle: React.CSSProperties = {
-    fontSize: "16px",
-    fontWeight: 400,
-    color: "#191F28",
-    lineHeight: "1.7",
-    marginBottom: "20px",
-}
-
-// ✅ ✔ 실제 개통은 ... 파란색 텍스트
-const priceAlertCheckTextStyle: React.CSSProperties = {
+const priceAlertMainTextStyle: React.CSSProperties = {
     fontSize: "16px",
     fontWeight: 700,
-    color: "#446DF6",
-    lineHeight: "1.7",
-    marginBottom: "20px",
-}
-
-// ✅ 걱정하지 마시고 작성해주세요!
-const priceAlertReassureTextStyle: React.CSSProperties = {
-    fontSize: "16px",
-    fontWeight: 400,
     color: "#191F28",
-    marginBottom: "20px",
+    lineHeight: "1.5",
+    marginBottom: "16px",
 }
-
-// ✅ 작은 주석 텍스트
-const priceAlertDisclaimerStyle: React.CSSProperties = {
+const priceAlertHighlightStyle: React.CSSProperties = {
+    color: "#446DF6",
+}
+const priceAlertSubTextStyle: React.CSSProperties = {
     fontSize: "12px",
-    color: "#8B95A1",
+    fontWeight: 500,
+    color: "#4E5968",
     lineHeight: "1.6",
-    textAlign: "center",
     wordBreak: "keep-all",
 }
 
@@ -1537,7 +1327,6 @@ const rowStyle: React.CSSProperties = {
     justifyContent: "flex-start",
     height: "24px",
 }
-
 const labelStyle: React.CSSProperties = {
     fontSize: "15px",
     color: "#8B95A1",
@@ -1546,7 +1335,6 @@ const labelStyle: React.CSSProperties = {
     textAlign: "left",
     flexShrink: 0,
 }
-
 const valueContainerStyle: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
@@ -1825,16 +1613,6 @@ const guideLinkTextStyle: React.CSSProperties = {
     fontWeight: 500,
 }
 
-const completionCheckContainerStyle: React.CSSProperties = {
-    width: "100%",
-    minHeight: "100vh",
-    backgroundColor: "#FFFFFF",
-    display: "flex",
-    flexDirection: "column",
-    maxWidth: "440px",
-    margin: "0 auto",
-}
-
 if (typeof document !== "undefined") {
     const styleSheet = document.createElement("style")
     styleSheet.innerText = `
@@ -1874,5 +1652,11 @@ addPropertyControls(ApplicationGatePage, {
         title: "다음 페이지 경로",
         defaultValue: "/phone/write/confirm",
         description: "작성 완료 확인 페이지의 URL입니다.",
+    },
+    completionPageUrl: {
+        type: ControlType.String,
+        title: "완료 확인 페이지 경로",
+        defaultValue: "/phone/write/completion",
+        description: "KT 신청서 작성 후 돌아올 완료 확인 페이지 URL입니다.",
     },
 })

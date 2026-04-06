@@ -15,8 +15,9 @@ function isAdultFromBirth6(birth6: string): boolean {
     const fullYear = yy <= new Date().getFullYear() % 100 ? 2000 + yy : 1900 + yy
     const today = new Date()
 
-    if (fullYear < 2006) return true
-    if (fullYear > 2006) return false
+    const adultBirthYear = today.getFullYear() - 19
+    if (fullYear < adultBirthYear) return true
+    if (fullYear > adultBirthYear) return false
     const birthdayThisYear = new Date(today.getFullYear(), mm - 1, dd)
     return today >= birthdayThisYear
 }
@@ -75,7 +76,9 @@ export default function UserInfoForm(props: Props) {
 
     const [showTermsModal, setShowTermsModal] = useState(false)
     const [isTermExpanded, setIsTermExpanded] = useState(false)
-    const [isAgreed, setIsAgreed] = useState(true)
+    const [isAgreed, setIsAgreed] = useState(false)
+    const [inlineError, setInlineError] = useState("")
+    const [modalError, setModalError] = useState("")
 
     const [touched, setTouched] = useState({
         userName: false,
@@ -85,6 +88,12 @@ export default function UserInfoForm(props: Props) {
 
     const subscriberRef = useRef<HTMLDivElement>(null)
     const isProcessing = useRef(false)
+
+    useEffect(() => {
+        if (!inlineError) return
+        const t = setTimeout(() => setInlineError(""), 4000)
+        return () => clearTimeout(t)
+    }, [inlineError])
 
     useEffect(() => {
         setIsMounted(true)
@@ -221,7 +230,7 @@ export default function UserInfoForm(props: Props) {
             setIsInitialEntry(false)
             sessionStorage.setItem("user-info", JSON.stringify(formData))
         } else {
-            alert("이름, 생년월일, 연락처를 모두 올바르게 입력해주세요.")
+            setInlineError("이름, 생년월일, 연락처를 모두 올바르게 입력해주세요.")
         }
     }, [isFormComplete, formData])
 
@@ -254,49 +263,31 @@ export default function UserInfoForm(props: Props) {
         }
 
         if (!isAdultFromBirth6(formData.userDob)) {
-            alert(
-                "미성년자는 법정대리인 정보를 동반하여야 신청 하실 수 있습니다.\\n(현재 페이지에서는 미성년자 신청이 제한됩니다.)"
-            )
+            setInlineError("미성년자는 법정대리인 동반이 필요합니다. 직접 방문 또는 전화 상담을 이용해주세요.")
             return
         }
 
+        setModalError("")
         setShowTermsModal(true)
     }
 
     const handleFinalSubmit = async () => {
-        if (isLoading || isProcessing.current) {
-            return
-        }
-
-        if (!isAgreed) {
-            alert("개인정보 수집 및 이용 동의는 필수입니다.")
-            return
-        }
-
-        if (!formData.userName || formData.userName.trim() === "") {
-            alert("이름을 입력해주세요.")
-            return
-        }
-
-        if (!formData.userDob || formData.userDob.length !== 6) {
-            alert("생년월일 6자리를 정확히 입력해주세요.")
-            return
-        }
-
-        if (
-            !formData.userPhone ||
-            formData.userPhone.replace(/-/g, "").length < 10
-        ) {
-            alert("휴대폰 번호를 정확히 입력해주세요.")
-            return
-        }
+        if (isLoading || isProcessing.current) return
 
         isProcessing.current = true
         setIsLoading(true)
+        setModalError("")
 
         try {
             const parsedData = JSON.parse(sessionStorage.getItem("data") ?? "null")
             const parsedSheet = JSON.parse(sessionStorage.getItem("sheet") ?? "null")
+
+            if (!parsedData || !parsedSheet) {
+                setModalError("주문 정보를 찾을 수 없습니다. 이전 페이지로 돌아가 다시 시도해주세요.")
+                setIsLoading(false)
+                isProcessing.current = false
+                return
+            }
 
             const res = await fetch(`${API_URL}/api/my/orders`, {
                 method: "POST",
@@ -321,7 +312,7 @@ export default function UserInfoForm(props: Props) {
             window.location.href = props.nextPageUrl
         } catch (e: any) {
             console.error("Submit error:", e)
-            alert(`저장 중 오류가 발생했습니다: ${e.message}`)
+            setModalError("저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
             setIsLoading(false)
             isProcessing.current = false
         }
@@ -594,6 +585,21 @@ export default function UserInfoForm(props: Props) {
                 </div>
             </div>
 
+            {inlineError && (
+                <div style={{
+                    margin: "0 20px",
+                    padding: "12px 16px",
+                    backgroundColor: "#FFF1F1",
+                    border: "1px solid #FFCDD2",
+                    borderRadius: "10px",
+                    fontSize: "13px",
+                    color: "#D32F2F",
+                    lineHeight: "1.5",
+                }}>
+                    {inlineError}
+                </div>
+            )}
+
             <div style={bottomContainerStyle}>
                 <button style={confirmButtonStyle} onClick={handleApplyClick}>
                     신청하기
@@ -663,7 +669,22 @@ export default function UserInfoForm(props: Props) {
                             </div>
                         )}
 
-                        <div style={{ marginTop: "30px" }}>
+                        {modalError && (
+                            <div style={{
+                                margin: "16px 0 0",
+                                padding: "10px 14px",
+                                backgroundColor: "#FFF1F1",
+                                border: "1px solid #FFCDD2",
+                                borderRadius: "8px",
+                                fontSize: "13px",
+                                color: "#D32F2F",
+                                lineHeight: "1.5",
+                            }}>
+                                {modalError}
+                            </div>
+                        )}
+
+                        <div style={{ marginTop: "16px" }}>
                             <button
                                 style={{
                                     ...confirmButtonStyle,

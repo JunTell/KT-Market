@@ -448,6 +448,19 @@ export default function PlanSelectorComponent(props) {
             .finally(() => setFreebieLoading(false))
     }, [selectedPlanPid])
 
+    // selectedPlanPid가 고정 플랜이 아닌 경우 ALL_PLANS에서 찾아 customPlan 초기화
+    React.useEffect(() => {
+        if (!selectedPlanPid) return
+        if (FIXED_PLAN_PIDS.includes(selectedPlanPid)) {
+            setCustomPlan(null)
+            return
+        }
+        setCustomPlan((prev) => {
+            if (prev?.pid === selectedPlanPid) return prev
+            return ALL_PLANS.find((p) => p.pid === selectedPlanPid) ?? null
+        })
+    }, [selectedPlanPid])
+
     const selectedFreebie = store?.freebie ?? null
     const handleFreebieSelect = (freebie: any) => {
         if (!setStore) return

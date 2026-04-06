@@ -116,6 +116,17 @@ export async function POST(request: NextRequest) {
     const model: string = parsedData?.device?.model ?? ''
     const admin = createSupabaseAdminClient()
 
+    // carrier fallback: withRegister가 초기 기기변경 상태일 때 store.carrier가 undefined일 수 있음
+    const carrier: string | null =
+      parsedData?.carrier ??
+      (parsedData?.register === '기기변경'
+        ? 'KT'
+        : parsedData?.register === '번호이동'
+          ? (parsedData?.currentCarrier ?? 'SKT')
+          : parsedData?.register === '신규가입'
+            ? '신규가입'
+            : 'KT')
+
     // 1. 아이폰 17 사전예약 분기
     if (model && PREORDER_MODELS.includes(model)) {
       const { error } = await admin.from('iphone17_order').insert([{
@@ -125,12 +136,12 @@ export async function POST(request: NextRequest) {
         color: parsedData?.color?.kr,
         pet_name: parsedData?.device?.pet_name,
         name: formData.userName,
-        phone: formData.userPhone,
+        phone: normalizePhone(formData.userPhone),
         birthday: formData.userDob,
         register: parsedData?.register,
         plan: parsedData?.selectedPlan?.name || parsedSheet?.planName,
         discount: parsedSheet?.discount,
-        carrier: parsedData?.carrier,
+        carrier,
         benefit: parsedSheet?.ktmarketSubsidy,
         installment: parsedSheet?.installment,
         form_link: parsedData?.form_link || parsedSheet?.formLink,
@@ -148,6 +159,7 @@ export async function POST(request: NextRequest) {
         profile_id: profileId,
         "petName": parsedData?.device?.pet_name,
         device: model,
+        model,
         capacity: parsedData?.device?.capacity ?? '',
         color: parsedData?.color?.kr,
         name: formData.userName,
@@ -156,7 +168,7 @@ export async function POST(request: NextRequest) {
         register: parsedData?.register,
         plan: parsedSheet?.planName,
         discount: parsedSheet?.discount,
-        carrier: parsedData?.carrier,
+        carrier,
         benefit: parsedData?.ktmarketSubsidy || parsedSheet?.ktmarketSubsidy,
         installment: parsedData?.installment || parsedSheet?.installment,
         freebie: parsedSheet?.freebie,
@@ -183,7 +195,7 @@ export async function POST(request: NextRequest) {
         register: parsedData?.register,
         plan: parsedSheet?.planName,
         discount: parsedSheet?.discount,
-        carrier: parsedData?.carrier,
+        carrier,
         benefit: parsedData?.ktmarketSubsidy || parsedSheet?.ktmarketSubsidy,
         installment: parsedData?.installment || parsedSheet?.installment,
         installment_principal: parsedSheet?.installmentPrincipal,
@@ -201,17 +213,18 @@ export async function POST(request: NextRequest) {
         profile_id: profileId,
         "petName": parsedData?.device?.pet_name,
         device: model,
+        model,
         capacity: parsedData?.device?.capacity ?? '',
         color: parsedData?.color?.kr,
         name: formData.userName,
-        phone: formData.userPhone,
+        phone: normalizePhone(formData.userPhone),
         birthday: formData.userDob,
         register: parsedData?.register,
-        carrier: parsedData?.carrier,
+        carrier,
         plan: parsedSheet?.planName,
         discount: parsedSheet?.discount,
-        benefit: parsedData?.ktmarketSubsidy,
-        installment: parsedData?.installment,
+        benefit: parsedData?.ktmarketSubsidy || parsedSheet?.ktmarketSubsidy,
+        installment: parsedData?.installment || parsedSheet?.installment,
         freebie: parsedSheet?.freebie,
         installment_principal: parsedSheet?.installmentPrincipal,
         is_consultation: false,

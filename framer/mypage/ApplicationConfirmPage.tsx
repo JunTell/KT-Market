@@ -348,7 +348,9 @@ export default function ApplicationConfirmPage(props: Props) {
 
                 const registerType = parsedData.register || "기기변경"
                 const telecomStr =
-                    registerType === "번호이동" ? "타사 -> KT" : "기기변경 (KT)"
+                    registerType === "번호이동" ? "타사 -> KT" :
+                    registerType === "신규가입" ? "신규가입 (KT)" :
+                    "기기변경 (KT)"
 
                 // 카카오 로그인 이용자: sessionStorage 미설정 시 auth/me 값으로 보완
                 const resolvedName =
@@ -373,7 +375,7 @@ export default function ApplicationConfirmPage(props: Props) {
                     discountType: parsedSheet.discount || "공시지원금",
                     contract: parsedSheet.installment || 24,
                     planName: parsedSheet.planName || "요금제 정보 없음",
-                    planData: "무제한",
+                    planData: parsedData.selectedPlanInfo?.data || "무제한",
                     monthlyPayment: parsedSheet.planPrice || 0,
                     devicePrice: devicePrice,
                     publicSubsidy: publicSubsidy > 0 ? publicSubsidy : 0,
@@ -439,6 +441,9 @@ export default function ApplicationConfirmPage(props: Props) {
     }
 
     const handleHomeClick = () => {
+        sessionStorage.removeItem("data")
+        sessionStorage.removeItem("sheet")
+        sessionStorage.removeItem("user-info")
         window.location.href = props.homeUrl
     }
 
