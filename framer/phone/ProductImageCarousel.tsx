@@ -97,10 +97,17 @@ export default function ProductImageCarousel(props) {
     const [dragOffset, setDragOffset] = useState(0)
     const [isDragging, setIsDragging] = useState(false)
     const [isHorizontalScroll, setIsHorizontalScroll] = useState(false)
+    // 즉각적인 시각 피드백을 위한 내부 active color 상태
+    const [activeColorLocal, setActiveColorLocal] = useState(activeColor ?? null)
 
     useEffect(() => { setIsMounted(true) }, [])
 
-    // urls 변경 시(색상 변경 등) 슬라이드 초기화
+    // 외부 activeColor prop 변경 시 내부 상태 동기화 (override에서 초기값 주입)
+    useEffect(() => {
+        if (activeColor) setActiveColorLocal(activeColor)
+    }, [activeColor])
+
+    // urls prop 변경 시(override에서 색상 변경 후 업데이트) 슬라이드 초기화
     useEffect(() => {
         setItems(urls)
         setCurrentIndex(0)
@@ -148,6 +155,12 @@ export default function ProductImageCarousel(props) {
 
     const handleColorClick = (color) => {
         if (color.isSoldOut) return
+        // override 응답을 기다리지 않고 즉시 내부 상태 업데이트
+        setActiveColorLocal(color)
+        if (Array.isArray(color.urls) && color.urls.length > 0) {
+            setItems(color.urls)
+            setCurrentIndex(0)
+        }
         if (onColorChange) onColorChange(color)
     }
 
@@ -312,7 +325,7 @@ export default function ProductImageCarousel(props) {
                     }}
                 >
                     {colors.map((color, index) => {
-                        const isActive = activeColor ? activeColor.code === color.code : index === 0
+                        const isActive = activeColorLocal ? activeColorLocal.code === color.code : index === 0
                         return (
                             <motion.div
                                 key={index}

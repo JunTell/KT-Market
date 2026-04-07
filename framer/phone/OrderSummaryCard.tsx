@@ -109,6 +109,33 @@ const OSTooltip = ({ text, children }: { text: string; children: React.ReactNode
     )
 }
 
+// ─── 토글 스위치 ──────────────────────────────────────────────────────
+const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) => (
+    <motion.div
+        onClick={() => onChange(!checked)}
+        style={{
+            width: 44, height: 26, borderRadius: 13,
+            padding: 3,
+            display: "flex", alignItems: "center",
+            cursor: "pointer", flexShrink: 0,
+        }}
+        animate={{ backgroundColor: checked ? "#0055FF" : "#D1D5DB" }}
+        initial={false}
+        transition={{ duration: 0.2 }}
+    >
+        <motion.div
+            layout
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            style={{
+                width: 20, height: 20, borderRadius: "50%",
+                backgroundColor: "#FFFFFF",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+                marginLeft: checked ? "auto" : 0,
+            }}
+        />
+    </motion.div>
+)
+
 const OSQuestionIcon = () => (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
         <circle cx="7" cy="7" r="6.5" stroke="#9CA3AF" />
@@ -192,6 +219,9 @@ function OrderSheetContent({
     installmentPaymentDescription,
     installmentPrincipal,
     installmentPayment,
+    installmentPaymentNoInterest = 0,
+    totalMonthPaymentNoInterest = 0,
+    showInterest = true,
     devicePrice,
     disclosureSubsidy,
     ktmarketSubsidy,
@@ -213,6 +243,9 @@ function OrderSheetContent({
     installmentPaymentDescription: string
     installmentPrincipal: number
     installmentPayment: string | number
+    installmentPaymentNoInterest?: number
+    totalMonthPaymentNoInterest?: number
+    showInterest?: boolean
     devicePrice: number
     disclosureSubsidy: number
     ktmarketSubsidy: number
@@ -240,6 +273,15 @@ function OrderSheetContent({
         ? `${installmentPayment.toLocaleString()}원`
         : installmentPayment
 
+    // 토글 기준 표시값 분기
+    const displayInstallmentValue = showInterest
+        ? installmentPaymentStr
+        : `${installmentPaymentNoInterest.toLocaleString()}원`
+    const displayDescription = showInterest ? installmentPaymentDescription : ""
+    const displayTotalMonthPayment = showInterest
+        ? Math.round(totalMonthPayment)
+        : totalMonthPaymentNoInterest
+
     if (isLoading) {
         return (
             <OSCard>
@@ -257,8 +299,8 @@ function OrderSheetContent({
             <OSCard>
                 <OSSectionHeader
                     label={installmentPaymentTitle}
-                    value={installmentPaymentStr}
-                    description={installmentPaymentDescription}
+                    value={displayInstallmentValue}
+                    description={displayDescription}
                 />
                 <OSRow label="출고가" value={`${devicePrice.toLocaleString()}원`} />
                 {disclosureSubsidy > 0 && (
@@ -313,7 +355,7 @@ function OrderSheetContent({
             }}>
                 <span style={{ fontSize: 15, fontWeight: 500, color: "#374151" }}>월 예상 금액</span>
                 <span style={{ fontSize: 20, fontWeight: 700, color: "#0055FF" }}>
-                    {Math.round(totalMonthPayment).toLocaleString()}원
+                    {displayTotalMonthPayment.toLocaleString()}원
                 </span>
             </div>
         </div>
@@ -333,6 +375,8 @@ function OrderSheetModal({
     installmentPaymentDescription: string
     installmentPrincipal: number
     installmentPayment: string | number
+    installmentPaymentNoInterest?: number
+    totalMonthPaymentNoInterest?: number
     devicePrice: number
     disclosureSubsidy: number
     ktmarketSubsidy: number
@@ -350,6 +394,7 @@ function OrderSheetModal({
     isLoading: boolean
 }) {
     const FONT = '"Pretendard", "Inter", sans-serif'
+    const [showInterest, setShowInterest] = React.useState(true)
 
     const modal = (
         <AnimatePresence>
@@ -403,28 +448,14 @@ function OrderSheetModal({
                         alignItems: "center",
                         marginBottom: 20,
                     }}>
-                        <span style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>최종 신청서</span>
-                        <button
-                            onClick={onClose}
-                            style={{
-                                background: "none",
-                                border: "none",
-                                cursor: "pointer",
-                                padding: "4px",
-                                color: "#6B7280",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                                <line x1="18" y1="6" x2="6" y2="18" />
-                                <line x1="6" y1="6" x2="18" y2="18" />
-                            </svg>
-                        </button>
+                        <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: FONT }}>최종 주문서</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ fontSize: 12, color: "#6B7280", fontFamily: FONT }}>할부이자 표시</span>
+                            <ToggleSwitch checked={showInterest} onChange={setShowInterest} />
+                        </div>
                     </div>
 
-                    <OrderSheetContent {...sheetProps} />
+                    <OrderSheetContent {...sheetProps} showInterest={showInterest} />
                 </motion.div>
             </motion.div>
         </AnimatePresence>
@@ -645,6 +676,8 @@ export default function OrderSummaryCard(props) {
         plan = "",
         totalMonthPlanPrice = 0,
         totalMonthPayment = 0,
+        installmentPaymentNoInterest = 0,
+        totalMonthPaymentNoInterest = 0,
     } = props
 
     const [isMounted, setIsMounted] = useState(false)
@@ -652,8 +685,19 @@ export default function OrderSummaryCard(props) {
     const [showOrderSheet, setShowOrderSheet] = useState(false)
     const prevFinalPrice = useRef(finalPrice)
     const [direction, setDirection] = useState<"up" | "down" | null>(null)
+    const [isBefore3PM, setIsBefore3PM] = useState(true)
 
-    useEffect(() => { setIsMounted(true) }, [])
+    useEffect(() => {
+        setIsMounted(true)
+        const checkTime = () => {
+            const now = new Date()
+            setIsBefore3PM(now.getHours() < 15)
+        }
+        checkTime()
+        // 분 단위로 체크 (3시 경계 즉시 반영)
+        const timer = setInterval(checkTime, 60000)
+        return () => clearInterval(timer)
+    }, [])
 
     useEffect(() => {
         if (!isMounted) return
@@ -677,13 +721,13 @@ export default function OrderSummaryCard(props) {
     if (isLoading) {
         return (
             <div style={{ ...wrapperStyle, gap: "16px" }}>
+                <Skeleton width="52%" height={28} style={{ borderRadius: 20 }} />
                 <Skeleton width="40%" height={18} />
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <Skeleton width="55%" height={28} />
-                    <Skeleton width="12%" height={18} />
+                    <Skeleton width="22%" height={16} />
                 </div>
-                <Skeleton width="70%" height={16} style={{ margin: "0 auto" }} />
-                <Skeleton width="100%" height={48} />
+                <Skeleton width="100%" height={52} style={{ borderRadius: 12 }} />
             </div>
         )
     }
@@ -693,9 +737,31 @@ export default function OrderSummaryCard(props) {
     return (
         <>
             <div style={wrapperStyle}>
+                {/* ── 배송 배지 ── */}
+                <div style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    border: "1.5px solid #D1D5DB",
+                    borderRadius: "20px",
+                    padding: "5px 10px",
+                    alignSelf: "flex-start",
+                    fontFamily: FONT,
+                }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <rect x="1" y="3" width="15" height="13" rx="1" stroke="#374151" strokeWidth="1.8" />
+                        <path d="M16 8h4l3 4v4h-7V8z" stroke="#374151" strokeWidth="1.8" strokeLinejoin="round" />
+                        <circle cx="5.5" cy="18.5" r="2" stroke="#374151" strokeWidth="1.8" />
+                        <circle cx="18.5" cy="18.5" r="2" stroke="#374151" strokeWidth="1.8" />
+                    </svg>
+                    <span style={{ fontSize: "12px", fontWeight: 600, color: "#374151" }}>
+                        {isBefore3PM ? "오후 3시 전 주문시 당일 출발" : "내일 출발"}
+                    </span>
+                </div>
+
                 {/* ── 기기명 ── */}
                 {devicePetName && (
-                    <span style={{ fontSize: "15px", fontWeight: 600, color: "#111827", fontFamily: FONT }}>
+                    <span style={{ fontSize: "16px", fontWeight: 700, color: "#111827", fontFamily: FONT }}>
                         {devicePetName}
                     </span>
                 )}
@@ -703,7 +769,7 @@ export default function OrderSummaryCard(props) {
                 {/* ── 가격 행 ── */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
-                        <span style={{ fontSize: "13px", fontWeight: 600, color: "#0055FF" }}>최저가</span>
+                        <span style={{ fontSize: "13px", fontWeight: 600, color: "#EF4444" }}>최저가</span>
                         <motion.span
                             key={animatedPrice}
                             style={{
@@ -713,14 +779,15 @@ export default function OrderSummaryCard(props) {
                                 transition: "color 0.4s ease",
                                 letterSpacing: "-0.5px",
                                 fontVariantNumeric: "tabular-nums",
+                                fontFamily: FONT,
                             }}
                         >
                             {animatedPrice.toLocaleString()}
                         </motion.span>
-                        <span style={{ fontSize: "15px", fontWeight: 500, color: "#374151" }}>원</span>
+                        <span style={{ fontSize: "15px", fontWeight: 500, color: "#374151", fontFamily: FONT }}>원</span>
                     </div>
 
-                    {/* 월 납부금액 > 버튼 */}
+                    {/* 월 납부금 확인 > 버튼 */}
                     <button
                         onClick={() => setShowPopup(true)}
                         style={{
@@ -735,42 +802,41 @@ export default function OrderSummaryCard(props) {
                             fontSize: "13px",
                             fontWeight: 500,
                             fontFamily: FONT,
+                            flexShrink: 0,
                         }}
                     >
-                        월 납부금액
+                        월 납부금 확인
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="9 18 15 12 9 6" />
                         </svg>
                     </button>
                 </div>
 
-                {/*
-                ── 최종 신청서 보기 버튼 ──
-                <button
-                    onClick={() => setShowOrderSheet(true)}
+                {/* ── 공식 신청서 작성하기 버튼 ── */}
+                <a
+                    href={formLink || "#"}
+                    target={formLink ? "_blank" : undefined}
+                    rel="noopener noreferrer"
                     style={{
-                        width: "100%",
-                        height: 44,
-                        backgroundColor: "#F9FAFB",
-                        border: "1.5px solid #E5E7EB",
-                        borderRadius: 10,
-                        fontSize: 14,
-                        fontWeight: 600,
-                        color: "#374151",
-                        cursor: "pointer",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        gap: 6,
+                        width: "100%",
+                        height: "52px",
+                        backgroundColor: "#0055FF",
+                        color: "#FFFFFF",
+                        borderRadius: "12px",
+                        fontSize: "16px",
+                        fontWeight: 700,
+                        textDecoration: "none",
+                        cursor: formLink ? "pointer" : "default",
                         fontFamily: FONT,
+                        boxSizing: "border-box",
+                        opacity: formLink ? 1 : 0.5,
                     }}
                 >
-                    최종 신청서 보기
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                </button>
-                */}
+                    공식 신청서 작성하기
+                </a>
             </div>
 
             {/* ── 월 할부 팝업 ── */}
@@ -810,6 +876,8 @@ export default function OrderSummaryCard(props) {
                     totalMonthPayment={totalMonthPayment}
                     discount={discount}
                     isLoading={isLoading}
+                    installmentPaymentNoInterest={installmentPaymentNoInterest}
+                    totalMonthPaymentNoInterest={totalMonthPaymentNoInterest}
                 />
             )}
         </>

@@ -881,6 +881,8 @@ export function withOrderSheet(Component): ComponentType {
         const [specialPriceChg, setSpecialPriceChg] = useState(0)
 
         const [installmentPayment, setInstallmentPayment] = useState("")
+        const [installmentPaymentNoInterest, setInstallmentPaymentNoInterest] = useState(0)
+        const [totalMonthPaymentNoInterest, setTotalMonthPaymentNoInterest] = useState(0)
         const [planName, setPlanName] = useState("")
         const [benefit, setBenefit] = useState("")
         const [discount, setDiscount] = useState("")
@@ -1188,6 +1190,12 @@ export function withOrderSheet(Component): ComponentType {
             setSpecialPriceChg(result.special_price_chg)
             setDoubleStorageDiscount(result.doubleStorageDiscount)
 
+            const noInterestMonthly = result.installmentPrincipal > 0 && store.installment > 0
+                ? Math.round(result.installmentPrincipal / store.installment)
+                : result.installmentPrincipal
+            setInstallmentPaymentNoInterest(noInterestMonthly)
+            setTotalMonthPaymentNoInterest(Math.round(noInterestMonthly + (result.totalMonthPlanPrice ?? 0)))
+
             const data = {
                 ...result,
                 installmentPayment: `${result.installmentPayment.toLocaleString()}원`,
@@ -1266,6 +1274,8 @@ export function withOrderSheet(Component): ComponentType {
                 migrationSubsidy={migrationSubsidy}
                 installmentPrincipal={installmentPrincipal}
                 installmentPayment={installmentPayment}
+                installmentPaymentNoInterest={installmentPaymentNoInterest}
+                totalMonthPaymentNoInterest={totalMonthPaymentNoInterest}
                 planPrice={planPrice}
                 totalPlanDiscountAmount={totalPlanDiscountAmount}
                 planDiscountAmount={planDiscountAmount}
@@ -1893,40 +1903,6 @@ export function withCarousel(Component): ComponentType {
     }
 }
 
-// @deprecated — ColorCapacitySelector.tsx + withColorCapacity로 통합됨
-export function withCapacity(Component): ComponentType {
-    return (props) => {
-        const [store, setStore] = useStore()
-        const [capacities, setCapacities] = useState([])
-
-        useEffect(() => {
-            if (store.device && Array.isArray(store.device.capacities)) {
-                const formattedCapacities = store.device.capacities.map(
-                    (item, index) => ({
-                        capacity: item || "",
-                        path: store.device.paths[index] || "",
-                    })
-                )
-                setCapacities(formattedCapacities)
-            }
-        }, [store.device])
-
-        const handleCapacitySelect = (path: string) => {
-            window.history.pushState({}, "", `/phone/${path}`)
-            setStore({ currentModelId: path })
-        }
-
-        return (
-            <Component
-                {...props}
-                capacities={capacities}
-                currentModelId={store.currentModelId}
-                isLoading={store.isLoading}
-                onCapacitySelect={handleCapacitySelect}
-            />
-        )
-    }
-}
 
 // ─── withColorCapacity ────────────────────────────────────────────────
 // ColorCapacitySelector.tsx 전용 통합 override
@@ -2021,49 +1997,6 @@ export function withStock(Component): ComponentType {
     }
 }
 
-// @deprecated — ColorCapacitySelector.tsx + withColorCapacity로 통합됨
-export function withColor(Component): ComponentType {
-    return (props) => {
-        const [store, setStore] = useStore()
-        const [colors, setColors] = useState([])
-
-        useEffect(() => {
-            if (!Array.isArray(store.colors)) return
-            setColors(store.colors)
-            if (store.colors.length > 0) {
-                handleColorChange(store.colors[0])
-            }
-        }, [store.colors])
-
-        const handleColorChange = (color) => {
-            setStore({ color: color })
-
-            if (store.stocks) {
-                const selectedStock = store.stocks?.find(
-                    (stock) => stock.colorEn === color.en
-                )
-
-                const quantity = selectedStock?.quantity ?? 0
-                if (quantity <= 0) {
-                    // 재고 없는 기능 추가: 품절 알림을 띄우거나 UI 제어를 위한 Store 업데이트
-                    alert(
-                        "해당 색상은 현재 재고가 없습니다. 입고 알림을 신청해주세요."
-                    )
-                }
-            }
-        }
-
-        return (
-            <Component
-                {...props}
-                colors={colors}
-                activeColor={store.color}
-                onColorChange={handleColorChange}
-                isLoading={store.isLoading ?? false}
-            />
-        )
-    }
-}
 
 // 해당 코드는 초기 통신사의 로직
 export function withRegister(Component): ComponentType {
@@ -2249,64 +2182,6 @@ export function withSelectedPlan(Component): ComponentType {
     }
 }
 
-// @deprecated — PlanBenefitSelector (withPlanGrid)에 사은품 로직 통합됨. FreebiesSectionComponent.tsx 미사용 시 제거 가능
-export function withFreebiesSection(Component): ComponentType {
-    return (props) => {
-        const [store, setStore] = useStore()
-
-        const sections = [
-            "ppllistobj_0865",
-            "ppllistobj_0864",
-            "ppllistobj_0863",
-            "ppllistobj_0850",
-            "ppllistobj_0851",
-            "ppllistobj_0852",
-            "ppllistobj_0994",
-            "ppllistobj_0993",
-            "ppllistobj_0992",
-        ]
-
-        const pid = store.selectedPlanInfo?.pid
-
-        if (!pid || !sections.includes(pid)) return null
-
-        return (
-            <Component
-                {...props}
-                plan={pid}
-                store={store}
-                setStore={setStore}
-                isLoading={store.isLoading}
-            />
-        )
-    }
-}
-
-// @deprecated — withPlanGrid로 대체됨
-export function withFreebies(Component): ComponentType {
-    return (props) => {
-        const [store, setStore] = useStore()
-
-        if (!store.planInfo) return null
-        return (
-            <Component
-                {...props}
-                plan={store.planInfo?.pid}
-                store={store}
-                setStore={setStore}
-            />
-        )
-    }
-}
-
-// @deprecated — 로직 없음, withPlanGrid로 대체됨
-export function withFreebiesSecondSection(Component): ComponentType {
-    return (props) => {
-        const [store, setStore] = useStore()
-
-        return <Component {...props} />
-    }
-}
 
 export function withPlan(Component): ComponentType {
     return (props) => {
@@ -2418,53 +2293,6 @@ export function withPlanInfo(Component): ComponentType {
     }
 }
 
-export function withBenefitSection(Component): ComponentType {
-    return (props) => {
-        const [store, setStore] = useStore()
-        const [isVisible, setIsVisible] = useState(true)
-
-        useEffect(() => {
-            var isVisible = store.ktmarketSubsidy > 0
-            setIsVisible(isVisible)
-        }, [store.ktmarketSubsidy])
-
-        return (
-            <Component
-                {...props}
-                style={{ display: isVisible ? "flex" : "none" }}
-            />
-        )
-    }
-}
-
-export function withBenefit(Component): ComponentType {
-    return (props) => {
-        const [store, setStore] = useStore()
-        const [variant, setVariant] = useState(
-            props.title === store.benefit ? "active" : "inactive"
-        )
-
-        useEffect(() => {
-            const variant =
-                props.title === store.benefit ? "active" : "inactive"
-            setVariant(variant)
-        }, [store.benefit])
-
-        const handleOnClick = () => {
-            event.preventDefault()
-            setStore({ benefit: props.title })
-            // console.log(`Clicked benefit: ${benefit}`)
-        }
-
-        return (
-            <Component
-                {...props}
-                onClick={handleOnClick} // 클릭된 capacity 전달
-                variant={variant}
-            />
-        )
-    }
-}
 
 function discount_en(discount_kr) {
     switch (discount_kr) {
@@ -2622,14 +2450,6 @@ export function withInstallmentSection(Component): ComponentType {
     }
 }
 
-export function withGuaranteedReturnWarning(Component): ComponentType {
-    return (props) => {
-        const [store, setStore] = useStore()
-
-        if (!store.isGuaranteedReturn) return null
-        return <Component {...props} />
-    }
-}
 
 export function withInstallment(Component): ComponentType {
     return (props) => {
@@ -2755,258 +2575,6 @@ export function withDiscount(Component): ComponentType {
     }
 }
 
-export function withGuaranteedReturnComponent(Component): ComponentType {
-    return (props) => {
-        const [store, setStore] = useStore()
-        const variant = (isGuaranteedReturn: Boolean) => {
-            if (isGuaranteedReturn) {
-                if (props.title == "신청하기") {
-                    return "active"
-                } else {
-                    return "inactive"
-                }
-            } else {
-                if (props.title == "신청하기") {
-                    return "inactive"
-                } else {
-                    return "active"
-                }
-            }
-        }
-
-        const handleOnClick = (event) => {
-            if (props.title == "신청하기") {
-                setStore({ isGuaranteedReturn: true })
-            } else {
-                setStore({ isGuaranteedReturn: false })
-            }
-        }
-
-        return (
-            <Component
-                {...props}
-                variant={variant(store.isGuaranteedReturn)}
-                onClick={handleOnClick}
-            />
-        )
-    }
-}
-
-export function withDiscountWarning(Component): ComponentType {
-    return (props) => {
-        // console.log(props)
-        const [store, setStore] = useStore()
-        const [variant, setVariant] = useState("")
-        const [hydrated, setHydrated] = useState(false)
-
-        const calcVariant = (discount) => {
-            const samsungDevice = [
-                "ppllistobj_0850",
-                "ppllistobj_0851",
-                "ppllistobj_0852", // 삼성 초이스
-                "ppllistobj_0863",
-                "ppllistobj_0864",
-                "ppllistobj_0865", // 디바이스 초이스
-            ]
-
-            const phoneCare = [
-                "ppllistobj_0956",
-                "ppllistobj_0957",
-                "ppllistobj_0958", // 폰케어 초이스
-            ]
-
-            const planId = store.selectedPlan?.plan_id
-
-            if (phoneCare.includes(planId)) {
-                if (discount === "선택약정할인") {
-                    setVariant("폰케어_요금")
-                } else {
-                    setVariant("폰케어_공시")
-                }
-            } else if (samsungDevice.includes(planId)) {
-                setVariant("삼성디바이스")
-            } else {
-                setVariant(discount)
-            }
-        }
-        useEffect(() => {
-            setHydrated(true)
-        }, [])
-
-        useEffect(() => {
-            calcVariant(store.discount)
-        }, [store.discount, store.selectedPlan])
-
-        if (!hydrated) return null
-        return <Component {...props} variant={variant} />
-    }
-}
-
-// @deprecated — 로직 없음 (no-op), 제거 가능
-export function withFreebie(Component): ComponentType {
-    return (props) => {
-        const [store, setStore] = useStore()
-
-        return <Component {...props} />
-    }
-}
-
-export function withConditionalText(Component): ComponentType {
-    return (props) => {
-        const [store] = useStore()
-        const plan = store.selectedPlanInfo?.pid
-
-        // 특정 plan일 때 다른 텍스트 표시
-        const appliancePlans = [
-            "ppllistobj_0994",
-            "ppllistobj_0993",
-            "ppllistobj_0992",
-        ]
-
-        let displayText = "할인 제품을 확인해주세요." // 기본 텍스트
-
-        if (plan && appliancePlans.includes(plan)) {
-            displayText = "가전 제품을 확인해주세요." // 가전 요금제용 텍스트
-        }
-
-        return (
-            <Component
-                {...props}
-                text={displayText}
-                style={{ marginTop: "6px" }}
-            />
-        )
-    }
-}
-
-export function withConditionalSubText(Component): ComponentType {
-    return (props: any) => {
-        const [store] = useStore()
-        const plan = store.selectedPlanInfo?.pid
-
-        // 36개월 조건 요금제
-        const plan36Months = [
-            "ppllistobj_0994",
-            "ppllistobj_0993",
-            "ppllistobj_0992",
-        ]
-
-        // 24개월 조건 요금제
-        const plan24Months = [
-            "ppllistobj_0863",
-            "ppllistobj_0864",
-            "ppllistobj_0865",
-            "ppllistobj_0852",
-            "ppllistobj_0850",
-            "ppllistobj_0851",
-        ]
-
-        // 기본 텍스트
-        let displayText = `해당 요금제 가입 후 유지 시
-아래 선택하신 제품의 할부금을 매월 할인해드립니다.`
-
-        if (plan && plan36Months.includes(plan)) {
-            displayText = `할인 제품 안내를 꼭 확인해주세요.
-아래 상품의 가격은 휴대폰 개통조건 최소 유지기간(6개월)과 별도로, 상품 조건 기간(36개월) 기준입니다.
-개통 완료 후 2~3일 이내 해당 제품의 신청서를 보내드립니다.`
-        } else if (plan && plan24Months.includes(plan)) {
-            displayText = `할인 제품 안내를 꼭 확인해주세요.
-아래 상품의 가격은 휴대폰 개통조건 최소 유지기간(6개월)과 별도로, 상품 조건 기간(24개월) 기준입니다.
-개통 완료 후 2~3일 이내 해당 제품의 신청서를 보내드립니다.`
-        }
-
-        return (
-            <Component
-                {...props}
-                text={displayText}
-                style={{ ...props.style, whiteSpace: "pre-wrap" }}
-            />
-        )
-    }
-}
-
-export function withApplianceText(Component): ComponentType {
-    return (props) => {
-        const [store, setStore] = useStore()
-        const { navigate, routes } = useRouter()
-        const plan = store.selectedPlanInfo?.pid
-
-        // 가전 요금제 목록
-        const appliancePlans = [
-            "ppllistobj_0994",
-            "ppllistobj_0993",
-            "ppllistobj_0992",
-        ]
-
-        const isAppliancePlan = plan && appliancePlans.includes(plan)
-
-        // 텍스트 설정
-        let displayText = null
-        if (isAppliancePlan) {
-            displayText = "가전구독 신청하기 >"
-        }
-
-        // Route ID 찾기 함수
-        const getRouteId = (allRoutes, path) => {
-            for (const [key, value] of Object.entries(allRoutes)) {
-                if (value?.path === path) return key
-            }
-            return null
-        }
-
-        const handleOnClick = (event) => {
-            // 가전 요금제가 아니면 클릭 무시
-            if (!isAppliancePlan) {
-                return
-            }
-
-            // 이벤트 버블링 방지
-            event.preventDefault()
-            event.stopPropagation()
-
-            console.log("====가전구독 신청 클릭====")
-            console.log("Store:", store)
-            console.log("Routes:", routes)
-
-            // sessionStorage에 데이터 저장
-            if (typeof window !== "undefined") {
-                const storeJson = JSON.stringify(store)
-                sessionStorage.removeItem("data")
-                sessionStorage.setItem("data", storeJson)
-                localStorage.setItem("kt_data", storeJson)
-            }
-
-            // 페이지 이동
-            const targetPath = "/event/home-appliance-subscription"
-            const routeId = getRouteId(routes, targetPath)
-
-            if (routeId) {
-                console.log("Route ID 찾음:", routeId)
-                navigate(routeId)
-            } else {
-                console.error("Route를 찾을 수 없음:", targetPath)
-                console.log("사용 가능한 routes:", routes)
-
-                // 대체 방법: 직접 URL 이동
-                if (typeof window !== "undefined") {
-                    window.location.href = targetPath
-                }
-            }
-        }
-
-        return (
-            <Component
-                {...props}
-                text={displayText}
-                onClick={isAppliancePlan ? handleOnClick : props.onClick}
-                style={{
-                    ...props.style,
-                    cursor: isAppliancePlan ? "pointer" : props.style?.cursor,
-                }}
-            />
-        )
-    }
-}
 
 export function withOnlineButton(Component): ComponentType {
     return (props) => {
@@ -3211,261 +2779,6 @@ export function withSubmitButton(Component): ComponentType {
     }
 }
 
-export function withShareButton(Component): ComponentType {
-    return (props) => {
-        const shareURL = async () => {
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: document.title,
-                        // text: "이 페이지를 공유합니다!",
-                        url: window.location.href,
-                    })
-                    console.log("공유 성공")
-                } catch (error) {
-                    console.log("공유 실패:", error)
-                }
-            } else {
-                try {
-                    await navigator.clipboard.writeText(window.location.href)
-                    alert("URL이 클립보드에 복사되었습니다!")
-                } catch (err) {
-                    console.error("URL 복사 실패:", err)
-                }
-            }
-        }
-
-        return <Component {...props} onClick={() => shareURL()} />
-    }
-}
-
-export function withDetailCategoryButton(Component): ComponentType {
-    return (props) => {
-        const [store, setStore] = useStore()
-        const handleOnClick = () => {
-            setStore({ isExpanded: true })
-        }
-
-        return <Component {...props} onClick={() => handleOnClick()} />
-    }
-}
-
-export function withReadMoreButton(Component): ComponentType {
-    return (props) => {
-        const [store, setStore] = useStore()
-        const handleOnClick = () => {
-            setStore({ isExpanded: !store.isExpanded })
-        }
-
-        return (
-            <Component
-                {...props}
-                title={store.isExpanded ? "상세정보 접기" : "상세정보 펼처보기"}
-                onClick={() => handleOnClick()}
-            />
-        )
-    }
-}
-
-export function withDetailSection(Component): ComponentType {
-    return (props) => {
-        const [store, setStore] = useStore()
-        const [height, setHeight] = useState("1800px")
-
-        useEffect(() => {
-            if (store.isExpanded) {
-                setHeight("auto")
-            } else {
-                setHeight("1800px")
-            }
-        }, [store.isExpanded])
-
-        return (
-            <Component
-                {...props}
-                style={{
-                    ...(props.style || {}),
-                    height: height,
-                    overflow: "hidden",
-                }}
-            />
-        )
-    }
-}
-
-export function GoToCategory(): Override {
-    const [store, setStore] = useStore()
-
-    const scrollToCategory = () => {
-        const el = document.querySelector("#category")
-        if (!el) return
-        el.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-        })
-    }
-
-    return {
-        onTap() {
-            if (!store.isExpanded) {
-                setStore({ ...store, isExpanded: true })
-
-                setTimeout(() => {
-                    requestAnimationFrame(scrollToCategory)
-                }, 50)
-            } else {
-                scrollToCategory()
-            }
-        },
-    }
-}
-
-export function withReviewCard(Component): ComponentType {
-    return (props) => {
-        return (
-            <Component
-                {...props}
-                image={`https://juntell.s3.ap-northeast-2.amazonaws.com/reviews/${props.rid}.png`}
-            />
-        )
-    }
-}
-
-export function withAddtionalBenefit(Component): ComponentType {
-    return (props) => {
-        const handleOnClick = () => {
-            alert("준비중입니다.")
-        }
-        return <Component {...props} onClick={handleOnClick} />
-    }
-}
-
-export function withStockComponent(Component): ComponentType {
-    return (props) => {
-        const [store, setStore] = useStore()
-        const { quantity, colorEn, colorKr } = props
-
-        useEffect(() => {
-            // 상태 업데이트를 함수형으로 처리
-            setStore((prevStore) => {
-                const currentStocks = prevStore.stocks || []
-
-                const updatedStocks = [
-                    ...currentStocks,
-                    { quantity, colorEn, colorKr },
-                ]
-                return {
-                    ...prevStore,
-                    stocks: updatedStocks,
-                }
-            })
-        }, [quantity, colorEn, colorKr]) // 의존성 추가
-
-        return <Component {...props} />
-    }
-}
-
-export function withPreorderVisibleSection(Component): ComponentType {
-    return (props) => {
-        const lastSegment =
-            typeof window !== "undefined"
-                ? window.location.pathname.split("/").filter(Boolean).pop()
-                : ""
-
-        if (!preorderModel.includes(lastSegment)) return null
-
-        return <Component {...props} />
-    }
-}
-
-export function withPreorderInVisibleSection(Component): ComponentType {
-    return (props) => {
-        const lastSegment =
-            typeof window !== "undefined"
-                ? window.location.pathname.split("/").filter(Boolean).pop()
-                : ""
-
-        if (preorderModel.includes(lastSegment)) return null
-
-        return <Component {...props} />
-    }
-}
-
-export function withBackButton(): Override {
-    return {
-        onClick: () => {
-            if (typeof window !== "undefined") {
-                window.history.back()
-            }
-        },
-        style: {
-            cursor: "pointer",
-        },
-    }
-}
-
-export function withDepositMessage(Component): ComponentType {
-    return (props) => {
-        const [store] = useStore()
-
-        // 1. 안전 장치: 데이터가 로딩 전이면 숨김
-        if (!store || !store.device || !store.selectedPlan) return null
-
-        // 2. 모델명 체크: 대상 모델이 아니면 렌더링 안 함 (숨김)
-        const targetModels = ["sm-m366k", "sm-a366nk"]
-
-        if (!targetModels.includes(store.device.model)) {
-            return null
-        }
-
-        // 3. 금액 계산 로직
-        // 기기 출고가
-        const devicePrice = store.selectedPlan?.model_price ?? 0
-
-        // 공시지원금 (할인 유형이 '공통지원금'일 때만 적용)
-        const disclosureSubsidy =
-            store.discount === "공통지원금"
-                ? (store.selectedPlan?.disclosure_subsidy ?? 0)
-                : 0
-
-        // KT마켓 단독지원금 (혜택이 'KT마켓 단독혜택'일 때만 적용)
-        const ktmarketSubsidy =
-            store.benefit === "KT마켓 단독혜택"
-                ? (store.ktmarketSubsidy ?? 0)
-                : 0
-
-        // 총 할인 금액 (필요시 추가지원금 등 다른 변수도 더할 수 있음)
-        const totalDiscount = disclosureSubsidy + ktmarketSubsidy
-
-        // ★ 차액 계산 (할인액 - 기기값)
-        const difference = totalDiscount - devicePrice
-
-        // 차액이 0원 이하(입금받을 돈이 없음)라면 숨길지, 아니면 그냥 0원으로 띄울지 결정
-        // 아래 코드는 "받을 돈이 있을 때만" 띄웁니다.
-        if (difference <= 0) return null
-
-        // 4. 텍스트 변경하여 렌더링
-        return (
-            <Component
-                {...props}
-                text={`※ 지원금이 단말기 출고가를 초과하여\n    초과 금액은 개통 완료 후\n    고객 명의 계좌로 다음달에 환급됩니다.`}
-            />
-        )
-    }
-}
-
-export function withHiddenDetailSection(Component): ComponentType {
-    return (props) => {
-        const [store, setStore] = useStore()
-
-        // isExpanded가 false면 아예 렌더링하지 않음
-        if (!store.isExpanded) {
-            return null
-        }
-
-        return <Component {...props} />
-    }
-}
 
 // 0227
 // export function withSubsidyNoticeVisibility(Component): ComponentType {
@@ -3488,37 +2801,6 @@ export function withHiddenDetailSection(Component): ComponentType {
 //     }
 // }
 
-export function withYoutubePremiumCondition(Component): ComponentType {
-    const YOUTUBE_PREMIUM_PLANS = [
-        "ppllistobj_0939",
-
-        "ppllistobj_0938",
-
-        "ppllistobj_0937",
-    ]
-
-    return (props) => {
-        const [store] = useStore()
-
-        // 스토어에서 요금제 PID 가져오기
-
-        const plan = store?.selectedPlanInfo?.pid
-
-        // 1. 현재 선택된 요금제가 유튜브 프리미엄 대상인지 확인
-
-        const isYoutubePlan = plan && YOUTUBE_PREMIUM_PLANS.includes(plan)
-
-        // 2. 대상 요금제가 아니면 렌더링하지 않음 (null 반환 = 숨김)
-
-        if (!isYoutubePlan) {
-            return null
-        }
-
-        // 3. 대상 요금제면 컴포넌트 보여줌
-
-        return <Component {...props} />
-    }
-}
 
 // ─── withPlanGrid ─────────────────────────────────────────────────────
 // PlanBenefitSelector 전용 Override

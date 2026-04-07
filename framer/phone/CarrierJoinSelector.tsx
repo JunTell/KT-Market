@@ -1,102 +1,84 @@
 // withRegister override와 함께 사용
-// 현재 통신사 선택 — 세로 카드 리스트 UI
-// 라디오 + 로고 + (통신사 | 가입유형) + 설명
+// 현재 통신사 선택 — 수평 4분할 버튼 + 하단 설명 텍스트 UI
 
 import * as React from "react"
 import { addPropertyControls, ControlType } from "framer"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 
 const FONT = '"Pretendard", "Inter", sans-serif'
 
+// ─── 통신사 데이터 ─────────────────────────────────────────────────────
+const CARRIERS = [
+    {
+        id: "KT",
+        label: "kt",
+        labelColor: "#0055FF",
+        fontWeight: 800,
+        fontSize: 20,
+        letterSpacing: "-0.5px",
+        joinType: "기기변경",
+        description: "이용 중인 KT 번호 그대로 핸드폰만 바꿀 수 있어요",
+    },
+    {
+        id: "SKT",
+        label: "T",
+        labelColor: "#EA002C",
+        fontWeight: 800,
+        fontSize: 22,
+        letterSpacing: "-0.5px",
+        joinType: "번호이동",
+        description: "쓰던 번호 그대로 통신사만 KT로 바꿀 수 있어요",
+    },
+    {
+        id: "LG U+",
+        label: "U+",
+        labelColor: "#E6007E",
+        fontWeight: 800,
+        fontSize: 18,
+        letterSpacing: "-0.5px",
+        joinType: "번호이동",
+        description: "쓰던 번호 그대로 통신사만 KT로 바꿀 수 있어요",
+    },
+    {
+        id: "알뜰폰",
+        label: "알뜰폰",
+        labelColor: "#374151",
+        fontWeight: 700,
+        fontSize: 14,
+        letterSpacing: "0",
+        joinType: "번호이동",
+        description: "쓰던 번호 그대로 통신사만 KT로 바꿀 수 있어요",
+    },
+]
+
 // ─── 스켈레톤 ────────────────────────────────────────────────────────
-const SkeletonCard = ({ delay = 0 }: { delay?: number }) => (
-    <motion.div
-        style={{ width: "100%", height: 72, borderRadius: 12, backgroundColor: "#E5E7EB" }}
-        animate={{ opacity: [0.4, 1, 0.4] }}
-        transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay }}
-    />
-)
-
-// ─── 개별 통신사 카드 ─────────────────────────────────────────────────
-function CarrierCard({
-    id, displayName, joinType, description,
-    logo, textLogo, textColor,
-    isActive, onClick,
-}: {
-    id: string
-    displayName: string
-    joinType: string
-    description: string
-    logo?: string
-    textLogo?: string
-    textColor?: string
-    isActive: boolean
-    onClick: () => void
-}) {
-    return (
+const Skeleton = () => (
+    <div style={wrapperStyle}>
+        {/* 타이틀 스켈레톤 */}
         <motion.div
-            onClick={onClick}
-            whileTap={{ scale: 0.985 }}
-            style={{
-                width: "100%",
-                display: "flex", alignItems: "center", gap: 14,
-                padding: "14px 16px",
-                border: isActive ? "1.5px solid #0055FF" : "1px solid #E5E7EB",
-                borderRadius: 12,
-                backgroundColor: isActive ? "#EEF4FF" : "#FFFFFF",
-                cursor: "pointer", boxSizing: "border-box",
-            }}
-        >
-            {/* 라디오 */}
-            <div style={{
-                width: 22, height: 22, borderRadius: "50%",
-                border: `2px solid ${isActive ? "#0055FF" : "#D1D5DB"}`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                flexShrink: 0, boxSizing: "border-box",
-            }}>
-                {isActive && (
-                    <div style={{ width: 11, height: 11, borderRadius: "50%", backgroundColor: "#0055FF" }} />
-                )}
-            </div>
-
-            {/* 로고 영역 (고정 너비) — 알뜰폰은 제외 */}
-            {id !== "알뜰폰" && (
-                <div style={{ width: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    {logo ? (
-                        <img src={logo} alt={displayName} style={{ maxWidth: 44, maxHeight: 28, objectFit: "contain" }} />
-                    ) : (
-                        <span style={{
-                            fontSize: 20,
-                            fontWeight: 800,
-                            color: textColor ?? "#111827",
-                            fontFamily: FONT,
-                            letterSpacing: "-0.5px",
-                            lineHeight: 1,
-                        }}>
-                            {textLogo ?? displayName}
-                        </span>
-                    )}
-                </div>
-            )}
-
-            {/* 텍스트 */}
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
-                        {displayName}
-                    </span>
-                    <span style={{ fontSize: 13, color: "#9CA3AF", fontFamily: FONT }}>|</span>
-                    <span style={{ fontSize: 13, fontWeight: 500, color: "#6B7280", fontFamily: FONT }}>
-                        {joinType}
-                    </span>
-                </div>
-                <span style={{ fontSize: 13, color: "#9CA3AF", lineHeight: 1.5, fontFamily: FONT }}>
-                    {description}
-                </span>
-            </div>
-        </motion.div>
-    )
-}
+            style={{ width: 80, height: 18, borderRadius: 6, backgroundColor: "#E5E7EB" }}
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* 버튼 4개 스켈레톤 */}
+        <div style={{ display: "flex", gap: 8 }}>
+            {[0, 1, 2, 3].map((i) => (
+                <motion.div
+                    key={i}
+                    style={{ width: 75, height: 40, borderRadius: 7, backgroundColor: "#E5E7EB", flexShrink: 0 }}
+                    animate={{ opacity: [0.4, 1, 0.4] }}
+                    transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: i * 0.08 }}
+                />
+            ))}
+        </div>
+        {/* 설명 텍스트 스켈레톤 */}
+        <motion.div
+            style={{ width: "70%", height: 14, borderRadius: 6, backgroundColor: "#E5E7EB" }}
+            animate={{ opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+        />
+    </div>
+)
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────
 
@@ -116,96 +98,124 @@ export default function CarrierJoinSelector(props) {
         isLoading = false,
     } = props
 
+    // 이미지가 있으면 이미지 우선, 없으면 텍스트 로고 사용
+    const logoMap: Record<string, string | undefined> = {
+        KT: logoKT,
+        SKT: logoSK,
+        "LG U+": logoLG,
+    }
+
     const activeId = defaultCarrier
 
     const handleSelect = (id: string) => {
         if (onValueChange) onValueChange(id)
     }
 
-    const carriers = [
-        {
-            id: "KT",
-            displayName: "KT",
-            joinType: "기기변경",
-            description: "이용 중인 KT 번호 그대로 핸드폰만 바꿀 수 있어요",
-            logo: logoKT,
-            textLogo: "kt",
-            textColor: "#0055FF",
-        },
-        {
-            id: "SKT",
-            displayName: "SKT",
-            joinType: "번호이동",
-            description: "쓰던 번호 그대로 통신사만 KT로 바꿀 수 있어요",
-            logo: logoSK,
-            textLogo: "T",
-            textColor: "#EA002C",
-        },
-        {
-            id: "LG U+",
-            displayName: "U+",
-            joinType: "번호이동",
-            description: "쓰던 번호 그대로 통신사만 KT로 바꿀 수 있어요",
-            logo: logoLG,
-            textLogo: "U+",
-            textColor: "#E6007E",
-        },
-        {
-            id: "알뜰폰",
-            displayName: "알뜰폰",
-            joinType: "번호이동",
-            description: "쓰던 번호 그대로 통신사만 KT로 바꿀 수 있어요",
-            logo: undefined,
-            textLogo: "알뜰폰",
-            textColor: "#111827",
-        },
-    ]
+    const allCarriers = showNewSubscription
+        ? [...CARRIERS, {
+            id: "신규가입",
+            label: "신규",
+            labelColor: "#111827",
+            fontWeight: 700,
+            fontSize: 14,
+            letterSpacing: "0",
+            joinType: "신규가입",
+            description: "KT에서 새로운 번호로 가입할 수 있어요",
+        }]
+        : CARRIERS
 
-    // ── 스켈레톤 ──
-    if (isLoading) {
-        return (
-            <div style={wrapperStyle}>
-                <motion.div
-                    style={{ width: 100, height: 18, borderRadius: 6, backgroundColor: "#E5E7EB" }}
-                    animate={{ opacity: [0.4, 1, 0.4] }}
-                    transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-                />
-                {[0, 1, 2, 3].map((i) => <SkeletonCard key={i} delay={i * 0.08} />)}
-            </div>
-        )
-    }
+    const activeCarrier = allCarriers.find((c) => c.id === activeId) ?? allCarriers[0]
 
-    // ── 실제 렌더 ──
+    if (isLoading) return <Skeleton />
+
     return (
         <div style={wrapperStyle}>
             {/* 타이틀 */}
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+            <span style={{ fontSize: 18, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
                 {title}
             </span>
 
-            {/* 통신사 카드 목록 */}
-            {carriers.map((c) => (
-                <CarrierCard
-                    key={c.id}
-                    {...c}
-                    isActive={activeId === c.id}
-                    onClick={() => handleSelect(c.id)}
-                />
-            ))}
+            {/* 수평 버튼 그리드 */}
+            <div style={{ display: "flex", gap: 8 }}>
+                {allCarriers.map((c) => {
+                    const isActive = activeId === c.id
+                    return (
+                        <motion.button
+                            key={c.id}
+                            onClick={() => handleSelect(c.id)}
+                            whileTap={{ scale: 0.96 }}
+                            style={{
+                                display: "flex",
+                                width: 75,
+                                height: 40,
+                                padding: "8.972px 12.194px",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                gap: 11.77,
+                                borderRadius: 7,
+                                border: isActive ? "1.2px solid #0066FF" : "1.2px solid #E5E7EB",
+                                backgroundColor: isActive ? "#ECF4FF" : "#FFFFFF",
+                                cursor: "pointer",
+                                boxSizing: "border-box",
+                                fontFamily: FONT,
+                                flexShrink: 0,
+                                transition: "border-color 0.15s, background-color 0.15s",
+                            }}
+                        >
+                            {logoMap[c.id] ? (
+                                <img
+                                    src={logoMap[c.id]}
+                                    alt={c.id}
+                                    style={{
+                                        width: 17,
+                                        height: 14,
+                                        flexShrink: 0,
+                                        aspectRatio: "17 / 14",
+                                        objectFit: "contain",
+                                        opacity: isActive ? 1 : 0.35,
+                                        transition: "opacity 0.15s",
+                                        userSelect: "none",
+                                        pointerEvents: "none",
+                                    }}
+                                />
+                            ) : (
+                                <span style={{
+                                    fontSize: c.fontSize,
+                                    fontWeight: c.fontWeight,
+                                    color: isActive ? c.labelColor : "#9CA3AF",
+                                    letterSpacing: c.letterSpacing,
+                                    lineHeight: 1,
+                                    fontFamily: FONT,
+                                    transition: "color 0.15s",
+                                    userSelect: "none",
+                                }}>
+                                    {c.label}
+                                </span>
+                            )}
+                        </motion.button>
+                    )
+                })}
+            </div>
 
-            {/* 신규가입 (조건부) */}
-            {showNewSubscription && (
-                <CarrierCard
-                    id="신규가입"
-                    displayName="신규가입"
-                    joinType="신규가입"
-                    description="KT에서 새로운 번호로 가입할 수 있어요"
-                    textLogo="신규"
-                    textColor="#111827"
-                    isActive={activeId === "신규가입"}
-                    onClick={() => handleSelect("신규가입")}
-                />
-            )}
+            {/* 선택된 통신사 설명 */}
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={activeCarrier.id}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.18 }}
+                    style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: FONT }}
+                >
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
+                        {activeCarrier.joinType}
+                    </span>
+                    <span style={{ fontSize: 13, color: "#9CA3AF" }}>|</span>
+                    <span style={{ fontSize: 13, color: "#9CA3AF", lineHeight: 1.5 }}>
+                        {activeCarrier.description}
+                    </span>
+                </motion.div>
+            </AnimatePresence>
         </div>
     )
 }
@@ -214,7 +224,7 @@ const wrapperStyle: React.CSSProperties = {
     width: "100%",
     display: "flex",
     flexDirection: "column",
-    gap: 10,
+    gap: 12,
     boxSizing: "border-box",
     fontFamily: FONT,
 }
@@ -225,11 +235,12 @@ addPropertyControls(CarrierJoinSelector, {
     defaultCarrier: {
         type: ControlType.Enum,
         options: ["KT", "SKT", "LG U+", "알뜰폰", "신규가입"],
+        optionTitles: ["KT", "SKT", "LG U+", "알뜰폰", "신규가입"],
         defaultValue: "KT",
         title: "Default Carrier",
     },
     showNewSubscription: { type: ControlType.Boolean, title: "신규가입 표시", defaultValue: false },
-    logoKT: { type: ControlType.Image, title: "KT Logo" },
-    logoSK: { type: ControlType.Image, title: "SKT Logo" },
-    logoLG: { type: ControlType.Image, title: "LG U+ Logo" },
+    logoKT: { type: ControlType.Image, title: "KT 로고" },
+    logoSK: { type: ControlType.Image, title: "SKT 로고" },
+    logoLG: { type: ControlType.Image, title: "LG U+ 로고" },
 })

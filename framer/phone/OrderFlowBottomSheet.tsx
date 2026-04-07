@@ -82,6 +82,33 @@ const Tooltip = ({ text, children }: { text: string; children: React.ReactNode }
     )
 }
 
+// ─── 토글 스위치 ──────────────────────────────────────────────────────
+const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) => (
+    <motion.div
+        onClick={() => onChange(!checked)}
+        style={{
+            width: 44, height: 26, borderRadius: 13,
+            padding: 3,
+            display: "flex", alignItems: "center",
+            cursor: "pointer", flexShrink: 0,
+        }}
+        animate={{ backgroundColor: checked ? "#0055FF" : "#D1D5DB" }}
+        initial={false}
+        transition={{ duration: 0.2 }}
+    >
+        <motion.div
+            layout
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            style={{
+                width: 20, height: 20, borderRadius: "50%",
+                backgroundColor: "#FFFFFF",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+                marginLeft: checked ? "auto" : 0,
+            }}
+        />
+    </motion.div>
+)
+
 const QuestionIcon = () => (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
         <circle cx="7" cy="7" r="6.5" stroke="#9CA3AF" />
@@ -170,6 +197,9 @@ function OrderSheetContent({
     installmentPaymentDescription,
     installmentPrincipal,
     installmentPayment,
+    installmentPaymentNoInterest = 0,
+    totalMonthPaymentNoInterest = 0,
+    showInterest = true,
     devicePrice,
     disclosureSubsidy,
     ktmarketSubsidy,
@@ -191,6 +221,9 @@ function OrderSheetContent({
     installmentPaymentDescription: string
     installmentPrincipal: number
     installmentPayment: string | number
+    installmentPaymentNoInterest?: number
+    totalMonthPaymentNoInterest?: number
+    showInterest?: boolean
     devicePrice: number
     disclosureSubsidy: number
     ktmarketSubsidy: number
@@ -218,6 +251,15 @@ function OrderSheetContent({
         ? `${installmentPayment.toLocaleString()}원`
         : installmentPayment
 
+    // 토글 기준 표시값 분기
+    const displayInstallmentValue = showInterest
+        ? installmentPaymentStr
+        : `${installmentPaymentNoInterest.toLocaleString()}원`
+    const displayDescription = showInterest ? installmentPaymentDescription : ""
+    const displayTotalMonthPayment = showInterest
+        ? Math.round(totalMonthPayment)
+        : totalMonthPaymentNoInterest
+
     if (isLoading) {
         return (
             <Card>
@@ -235,8 +277,8 @@ function OrderSheetContent({
             <Card>
                 <SectionHeader
                     label={installmentPaymentTitle}
-                    value={installmentPaymentStr}
-                    description={installmentPaymentDescription}
+                    value={displayInstallmentValue}
+                    description={displayDescription}
                 />
                 <Row label="출고가" value={`${devicePrice.toLocaleString()}원`} />
                 {disclosureSubsidy > 0 && (
@@ -292,7 +334,7 @@ function OrderSheetContent({
             }}>
                 <span style={{ fontSize: 15, fontWeight: 500, color: "#374151" }}>월 예상 금액</span>
                 <span style={{ fontSize: 20, fontWeight: 700, color: "#0055FF" }}>
-                    {Math.round(totalMonthPayment).toLocaleString()}원
+                    {displayTotalMonthPayment.toLocaleString()}원
                 </span>
             </div>
         </>
@@ -311,6 +353,7 @@ function DetailBottomSheet({
     sheetProps: any
     FONT: string
 }) {
+    const [showInterest, setShowInterest] = useState(true)
     const touchStartY = useRef(0)
     const handleSheetTouchStart = (e: React.TouchEvent) => {
         touchStartY.current = e.touches[0].clientY
@@ -381,25 +424,13 @@ function DetailBottomSheet({
                         backgroundColor: "#E5E7EB",
                         margin: "0 auto 16px",
                     }} />
-                    {/* 제목 + 닫기 */}
+                    {/* 제목 + 토글 */}
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <span style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>최종 신청서</span>
+                        <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: FONT }}>최종 주문서</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ fontSize: 12, color: "#6B7280", fontFamily: FONT }}>할부이자 표시</span>
+                            <ToggleSwitch checked={showInterest} onChange={setShowInterest} />
                         </div>
-                        <button
-                            onClick={onClose}
-                            style={{
-                                background: "none", border: "none",
-                                cursor: "pointer", padding: 4,
-                                color: "#6B7280", display: "flex",
-                                alignItems: "center", justifyContent: "center",
-                            }}
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                                <line x1="18" y1="6" x2="6" y2="18" />
-                                <line x1="6" y1="6" x2="18" y2="18" />
-                            </svg>
-                        </button>
                     </div>
                 </div>
 
@@ -410,7 +441,7 @@ function DetailBottomSheet({
                     padding: "16px 20px 8px",
                     boxSizing: "border-box",
                 }}>
-                    <OrderSheetContent {...sheetProps} />
+                    <OrderSheetContent {...sheetProps} showInterest={showInterest} />
                 </div>
 
                 {/* CTA 버튼 */}
@@ -475,9 +506,13 @@ export default function OrderFlowBottomSheet(props) {
         deviceCapacity = "",
         formLink = "",
         phoneOrderLink = "tel:15880661",
-        kakaoTalkLink = "https://pf.kakao.com/_xjxhxnj",
+        kakaoTalkLink = "http://pf.kakao.com/_HfItxj/chat",
         onKakaoOrderClick,
         onSaveOrderSession,
+        onPhoneClick,
+        onRestockClick,
+        installmentPaymentNoInterest = 0,
+        totalMonthPaymentNoInterest = 0,
     } = props
 
     const [mounted, setMounted] = useState(false)
@@ -545,6 +580,22 @@ export default function OrderFlowBottomSheet(props) {
         totalMonthPayment,
         discount,
         isLoading,
+        installmentPaymentNoInterest,
+        totalMonthPaymentNoInterest,
+    }
+
+    const handlePhoneClick = () => {
+        if (typeof onPhoneClick === "function") {
+            onPhoneClick()
+        } else {
+            window.location.href = phoneOrderLink
+        }
+    }
+
+    const handleRestockClick = () => {
+        if (typeof onRestockClick === "function") {
+            onRestockClick()
+        }
     }
 
     const bar = (
@@ -572,20 +623,18 @@ export default function OrderFlowBottomSheet(props) {
                 </svg>
             </button>
 
-            {/* 금액 + 신청하기 버튼 한 행 */}
+            {/* 월 예상 금액 행 */}
             <div style={{
                 display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "8px 16px",
-                paddingBottom: "calc(14px + env(safe-area-inset-bottom, 10px))",
+                padding: "4px 20px 10px",
             }}>
-                {/* 왼쪽: 레이블 + 금액 */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    <span style={{ fontSize: 13, color: "#9CA3AF", fontFamily: FONT }}>
-                        월 예상 금액 <span style={{ fontSize: 11 }}>(부가세 포함)</span>
-                    </span>
-                    <motion.div
+                <span style={{ fontSize: 14, color: "#374151", fontWeight: 500, fontFamily: FONT }}>
+                    월 예상 금액
+                </span>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
+                    <motion.span
                         style={{
-                            fontSize: 22,
+                            fontSize: 20,
                             fontWeight: 700,
                             lineHeight: 1.2,
                             color: direction === "up" ? "#EF4444" : direction === "down" ? "#0055FF" : "#111827",
@@ -595,23 +644,69 @@ export default function OrderFlowBottomSheet(props) {
                         }}
                     >
                         {animatedPayment.toLocaleString()}원
-                    </motion.div>
+                    </motion.span>
+                    <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>부가세 포함</span>
                 </div>
+            </div>
 
-                {/* 오른쪽: 신청하기 버튼 */}
+            {/* 버튼 행: 전화 | 카카오톡 상담 | 입고 알림 */}
+            <div style={{
+                display: "flex", gap: 8,
+                padding: "0 16px",
+                paddingBottom: "calc(16px + env(safe-area-inset-bottom, 10px))",
+            }}>
+                {/* 전화 아이콘 버튼 */}
                 <button
-                    onClick={handleFormLink}
+                    onClick={handlePhoneClick}
                     style={{
-                        height: 48, paddingLeft: 28, paddingRight: 28,
-                        borderRadius: 14, border: "none",
-                        backgroundColor: "#0055FF",
-                        color: "#FFFFFF", fontSize: 16, fontWeight: 700,
-                        cursor: "pointer", fontFamily: FONT,
+                        width: 52, height: 52, borderRadius: 14,
+                        border: "1.5px solid #E5E7EB",
+                        backgroundColor: "#FFFFFF",
+                        cursor: "pointer", flexShrink: 0,
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        flexShrink: 0,
                     }}
                 >
-                    신청하기
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                        <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V20a1 1 0 01-1 1C9.61 21 3 14.39 3 6a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.25 1.01l-2.2 2.2z"
+                            fill="#3B82F6" />
+                    </svg>
+                </button>
+
+                {/* 카카오톡 상담 버튼 */}
+                <a
+                    href={kakaoTalkLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                        flex: 1, height: 52, borderRadius: 14,
+                        border: "none", backgroundColor: "#FEE500",
+                        color: "#191919", fontSize: 15, fontWeight: 700,
+                        cursor: "pointer", fontFamily: FONT,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        textDecoration: "none",
+                        gap: 6,
+                    }}
+                >
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <ellipse cx="9" cy="8.1" rx="7.5" ry="6.3" fill="#191919" />
+                        <ellipse cx="9" cy="13.5" rx="3" ry="1.8" fill="#FEE500" />
+                        <path d="M5.4 7.2c0-.5.4-.9.9-.9s.9.4.9.9-.4.9-.9.9-.9-.4-.9-.9zM8.1 7.2c0-.5.4-.9.9-.9s.9.4.9.9-.4.9-.9.9-.9-.4-.9-.9zM10.8 7.2c0-.5.4-.9.9-.9s.9.4.9.9-.4.9-.9.9-.9-.4-.9-.9z" fill="#FEE500" />
+                    </svg>
+                    카카오톡 상담
+                </a>
+
+                {/* 입고 알림 버튼 */}
+                <button
+                    onClick={handleRestockClick}
+                    style={{
+                        flex: 1, height: 52, borderRadius: 14,
+                        border: "none", backgroundColor: "#0055FF",
+                        color: "#FFFFFF", fontSize: 15, fontWeight: 700,
+                        cursor: "pointer", fontFamily: FONT,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
+                >
+                    입고 알림
                 </button>
             </div>
         </div>
@@ -674,5 +769,5 @@ addPropertyControls(OrderFlowBottomSheet, {
     // CTA 링크
     formLink: { type: ControlType.String, title: "신청서 링크", defaultValue: "" },
     phoneOrderLink: { type: ControlType.String, title: "전화 주문 링크", defaultValue: "tel:15880661" },
-    kakaoTalkLink: { type: ControlType.String, title: "카카오톡 채널 링크", defaultValue: "https://pf.kakao.com/_xjxhxnj" },
+    kakaoTalkLink: { type: ControlType.String, title: "카카오톡 채널 링크", defaultValue: "http://pf.kakao.com/_HfItxj/chat" },
 })
