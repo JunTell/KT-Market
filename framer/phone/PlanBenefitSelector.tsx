@@ -269,7 +269,7 @@ const SelectableCard = ({
     const hasFreebie = plan ? FREEBIE_PLAN_PIDS.has(plan.pid) : false
     const showFreebie = isActive && hasFreebie
 
-    // 요금제 미선택: 기존 row 레이아웃
+    // 요금제 미선택: 다크 카드
     if (!plan) {
         return (
             <motion.div
@@ -277,16 +277,12 @@ const SelectableCard = ({
                 whileTap={{ scale: 0.98 }}
                 style={{
                     width: "100%", display: "flex", flexDirection: "row", alignItems: "center", gap: 10, padding: "14px 16px",
-                    border: "1.5px solid #E5E7EB",
-                    borderRadius: 8, backgroundColor: "#FFFFFF", cursor: "pointer", boxSizing: "border-box",
+                    border: "none",
+                    borderRadius: 8, backgroundColor: "#1C1C1E", cursor: "pointer", boxSizing: "border-box",
                 }}
             >
-                <div style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid #D1D5DB", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxSizing: "border-box" }} />
-                <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "#6B7280" }}>직접 선택</span>
-                    <span style={{ fontSize: 11, color: "#9CA3AF" }}>탭하여 요금제 선택 →</span>
-                </div>
-                <span style={{ fontSize: 18, color: "#9CA3AF", flexShrink: 0 }}>›</span>
+                <div style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.4)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxSizing: "border-box" }} />
+                <span style={{ fontSize: 15, fontWeight: 600, color: "#FFFFFF", flex: 1 }}>직접 선택할래요</span>
             </motion.div>
         )
     }
