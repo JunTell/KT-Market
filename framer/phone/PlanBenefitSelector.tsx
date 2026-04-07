@@ -411,7 +411,7 @@ const PopupPlanCard = ({ plan, isSelected, onSelect }: { plan: Plan; isSelected:
  * @framerSupportedLayoutWidth any
  * @framerSupportedLayoutHeight auto
  */
-export default function PlanSelectorComponent(props) {
+export default function PlanBenefitSelector(props) {
     const {
         isLoading = false,
         selectedPlanPid = "",
@@ -710,7 +710,7 @@ const stepBadge: React.CSSProperties = { width: 24, height: 24, borderRadius: 6,
 const stepText: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "#FFFFFF" }
 
 // ─── Framer 컨트롤 ────────────────────────────────────────────────────
-addPropertyControls(PlanSelectorComponent, {
+addPropertyControls(PlanBenefitSelector, {
     isLoading: { type: ControlType.Boolean, title: "Loading", defaultValue: false },
     stepNumber: { type: ControlType.Number, title: "Step No.", defaultValue: 4, min: 1, max: 9 },
     title: { type: ControlType.String, title: "Title", defaultValue: "원하시는 요금제" },

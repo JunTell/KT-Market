@@ -73,7 +73,7 @@ function InstallmentBtn({
  * @framerSupportedLayoutWidth any
  * @framerSupportedLayoutHeight auto
  */
-export default function InstallmentSectionComponent(props) {
+export default function InstallmentSelectorSection(props) {
     const {
         installment = 24,
         onInstallmentChange = null,
@@ -205,7 +205,7 @@ const wrapperStyle: React.CSSProperties = {
     fontFamily: FONT,
 }
 
-addPropertyControls(InstallmentSectionComponent, {
+addPropertyControls(InstallmentSelectorSection, {
     isLoading: { type: ControlType.Boolean, title: "Loading", defaultValue: false },
     title: { type: ControlType.String, title: "Title", defaultValue: "단말기 할부 기간" },
     installment: {

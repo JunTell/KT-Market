@@ -13,23 +13,23 @@ Figma 원본: `수정 2차_KT마켓_상세 페이지_MO` (node-id: 1151:840)
 ├── [Framer 네이티브] Header (KT마켓 로고 + 뒤로가기 + 공유)
 ├── [Framer 네이티브] KT 공식대리점 배너 (파란 그라디언트)
 │
-├── 1. JunCarousel.tsx          ─ 상품 이미지 캐러셀
-├── 2. PhoneColorComponent.tsx  ─ 용량 + 색상 선택 (바텀시트 통합)
-├── 3. CarrierSelectionContainer.tsx ─ 현재 통신사 / 가입유형
-├── 4. PlanSelectorComponent.tsx     ─ 할인 방법 + 요금제 선택
-├── 5. InstallmentSectionComponent.tsx ─ 단말기 할부 기간
-├── 6. PhonePriceCard.tsx            ─ 최종 주문서 (가격 요약)
-├── 7. BottomSheetOrderSheetComponent.tsx ─ 신청하기 바텀시트
+├── 1. ProductImageCarousel.tsx      ─ 상품 이미지 캐러셀
+├── 2. ColorCapacitySelector.tsx     ─ 용량 + 색상 선택 (바텀시트 통합)
+├── 3. CarrierJoinSelector.tsx       ─ 현재 통신사 / 가입유형
+├── 4. PlanBenefitSelector.tsx       ─ 할인 방법 + 요금제 선택
+├── 5. InstallmentSelectorSection.tsx ─ 단말기 할부 기간
+├── 6. OrderSummaryCard.tsx          ─ 최종 주문서 (가격 요약)
+├── 7. OrderFlowBottomSheet.tsx      ─ 신청하기 바텀시트
 │
 ```
 
-모든 컴포넌트는 `phoneDetailOverride.tsx`의 **전역 Store**를 공유합니다.
+모든 컴포넌트는 `phoneDetailOverridesV2.tsx`의 **전역 Store**를 공유합니다.
 
 ---
 
 ## 전역 Store (useStore)
 
-`phoneDetailOverride.tsx` 상단에 정의된 공유 상태입니다.
+`phoneDetailOverridesV2.tsx` 상단에 정의된 공유 상태입니다.
 모든 override 함수는 이 store를 읽고 씁니다.
 
 ```ts
@@ -70,7 +70,7 @@ const useStore = createStore({
 
 ---
 
-### 1. JunCarousel.tsx
+### 1. ProductImageCarousel.tsx
 **역할:** 상품 이미지 캐러셀 (스와이프 가능)
 
 **화면 위치:** 헤더 바로 아래, 색상 선택 위
@@ -83,12 +83,12 @@ const useStore = createStore({
 | `withThumbnail` | 현재 선택 색상의 첫 번째 이미지를 썸네일로 전달 |
 
 ```
-store.color.urls[]  →  withCarousel  →  JunCarousel (images prop)
+store.color.urls[]  →  withCarousel  →  ProductImageCarousel (images prop)
 ```
 
 ---
 
-### 2. PhoneColorComponent.tsx (ColorCapacitySelector)
+### 2. ColorCapacitySelector.tsx
 **역할:** 용량 + 색상 통합 선택 UI
 - 평소: 요약 카드 (이미지 + 색상명 + 용량 + 화살표)
 - 클릭 시: 바텀시트 모달 (용량 세그먼트 탭 + 색상 리스트)
@@ -99,7 +99,7 @@ store.color.urls[]  →  withCarousel  →  JunCarousel (images prop)
 
 ```
 store.device.capacities[] ──┐
-store.device.paths[]        ├──→ withColorCapacity ──→ PhoneColorComponent
+store.device.paths[]        ├──→ withColorCapacity ──→ ColorCapacitySelector
 store.colors[]              │     ├─ onCapacitySelect(path) → pushState + setStore
 store.color (선택된 색상) ───┘     └─ onColorChange(color)  → setStore({ color })
 ```
@@ -119,7 +119,7 @@ store.color (선택된 색상) ───┘     └─ onColorChange(color)  →
 
 ---
 
-### 3. CarrierSelectionContainer.tsx
+### 3. CarrierJoinSelector.tsx
 **역할:** 현재 통신사(KT/SKT/U+/알뜰폰) + 가입유형(기기변경/번호이동/신규가입) 라디오 선택
 
 **화면 위치:** 용량·색상 선택 아래 `현재 통신사` 섹션
@@ -139,7 +139,7 @@ withRegister
 
 ---
 
-### 4. PlanSelectorComponent.tsx
+### 4. PlanBenefitSelector.tsx
 **역할:** 할인 방법 탭(기기 할인/요금 할인) + 요금제 카드 목록
 
 **화면 위치:** 통신사 선택 아래 `할인 방법` + `요금제` 섹션
@@ -160,12 +160,12 @@ store.register + store.discount
   → withPhoneDetail.fetchMainPlanData()
   → Supabase device_plans_{new|mnp|chg} 쿼리
   → store.planInfo (선택된 요금제)
-  → withPlan → PlanSelectorComponent (variant: active/inactive)
+  → withPlan → PlanBenefitSelector (variant: active/inactive)
 ```
 
 ---
 
-### 5. InstallmentSectionComponent.tsx
+### 5. InstallmentSelectorSection.tsx
 **역할:** 단말기 할부 기간 선택 (일시불 / 24개월 / 36개월 / 기타)
 
 **화면 위치:** 요금제 선택 아래 `단말기 할부 기간` 섹션
@@ -184,7 +184,7 @@ store.register + store.discount
 
 ---
 
-### 6. PhonePriceCard.tsx
+### 6. OrderSummaryCard.tsx
 **역할:** 최종 주문서 — 가격 산출 요약
 (월 할부금 · 출고가 · KT마켓 지원금 · 할부원금 / 월 통신요금 · 요금할인 / 월 예상 금액)
 
@@ -203,7 +203,7 @@ store.register + store.discount
 
 ---
 
-### 7. BottomSheetOrderSheetComponent.tsx
+### 7. OrderFlowBottomSheet.tsx
 **역할:** 하단 고정 CTA 영역
 - 기본: "신청하기" 버튼 + 간략 가격 표시
 - 클릭 시: 바텀시트 모달 상승 (상세 주문서 + 카카오 주문 / 일반 주문 분기)
@@ -245,7 +245,7 @@ sessionStorage.setItem("data", JSON.stringify({
 
 ---
 
-## Override 전체 목록 (phoneDetailOverride.tsx)
+## Override 전체 목록 (phoneDetailOverridesV2.tsx)
 
 ### 핵심 (모든 페이지 필수)
 | Override | 연결 대상 | 역할 |
@@ -255,7 +255,7 @@ sessionStorage.setItem("data", JSON.stringify({
 ### 이미지·정보
 | Override | 연결 대상 | 역할 |
 |---|---|---|
-| `withCarousel` | JunCarousel | 색상별 이미지 배열 주입 |
+| `withCarousel` | ProductImageCarousel | 색상별 이미지 배열 주입 |
 | `withThumbnail` | 썸네일 이미지 | 첫 번째 이미지 URL |
 | `withDeviceInfo` | 기기 정보 텍스트 | 모델명·색상·용량 |
 | `withMainInfo` | 상단 가격 표시 | 최저가 텍스트 |
@@ -265,10 +265,10 @@ sessionStorage.setItem("data", JSON.stringify({
 ### 선택 컨트롤
 | Override | 연결 대상 | 역할 |
 |---|---|---|
-| `withColorCapacity` | PhoneColorComponent | 색상+용량 통합 선택 |
+| `withColorCapacity` | ColorCapacitySelector | 색상+용량 통합 선택 |
 | `withCapacity` | ~~PhoneCapacitySectionComponent~~ | @deprecated — `withColorCapacity`로 통합됨 |
 | `withColor` | 색상 선택 (단독) | 색상만 변경 |
-| `withRegister` | CarrierSelectionContainer | 통신사·가입유형 |
+| `withRegister` | CarrierJoinSelector | 통신사·가입유형 |
 | `withDiscount` | 할인방법 탭 | 공통지원금/선택약정 토글 |
 | `withInstallment` | 할부 기간 버튼 개별 | 개월 선택 |
 | `withInstallmentSection` | 할부 섹션 전체 | 표시 여부 |
@@ -304,10 +304,10 @@ sessionStorage.setItem("data", JSON.stringify({
 ### 주문서·버튼
 | Override | 연결 대상 | 역할 |
 |---|---|---|
-| `withOrderSheet` | BottomSheetOrderSheetComponent | 가격 계산 + 주문 처리 |
+| `withOrderSheet` | OrderFlowBottomSheet | 가격 계산 + 주문 처리 |
 | `withSubmitButton` | 주문하기 버튼 | `/phone/user-info` 이동 |
 | `withOnlineButton` | 카카오 간편 주문 버튼 | 로그인 분기 |
-| `withPriceCard` | PhonePriceCard | 가격 요약 |
+| `withPriceCard` | OrderSummaryCard | 가격 요약 |
 | `withConfirmDeviceInfo` | 기기 확인 카드 | 모델 정보 |
 | `withConfirmOrderSheet` | 주문 확인 | 전체 데이터 |
 | `withConfirmTotalPaymentOrderSheet` | 최종 금액 | 월 납부액 |
@@ -341,7 +341,7 @@ sessionStorage.setItem("data", JSON.stringify({
 ## 주문 플로우 전체
 
 ```
-/phone/[model]  (BottomSheetOrderSheetComponent)
+/phone/[model]  (OrderFlowBottomSheet)
   │  ↓ sessionStorage: "sheet", "data" 저장
   ▼
 /phone/user-info  (UserInfoForm.tsx)

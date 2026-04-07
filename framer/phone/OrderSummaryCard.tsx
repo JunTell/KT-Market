@@ -616,7 +616,7 @@ function MonthlyPopup({
  * @framerSupportedLayoutWidth any
  * @framerSupportedLayoutHeight auto
  */
-export default function PhonePriceCard(props) {
+export default function OrderSummaryCard(props) {
     const {
         finalPrice = 0,
         originPrice = 0,
@@ -744,7 +744,8 @@ export default function PhonePriceCard(props) {
                     </button>
                 </div>
 
-                {/* ── 최종 신청서 보기 버튼 ── */}
+                {/*
+                ── 최종 신청서 보기 버튼 ──
                 <button
                     onClick={() => setShowOrderSheet(true)}
                     style={{
@@ -769,6 +770,7 @@ export default function PhonePriceCard(props) {
                         <polyline points="9 18 15 12 9 6" />
                     </svg>
                 </button>
+                */}
             </div>
 
             {/* ── 월 할부 팝업 ── */}
@@ -824,7 +826,7 @@ const wrapperStyle: React.CSSProperties = {
     backgroundColor: "#FFFFFF",
 }
 
-addPropertyControls(PhonePriceCard, {
+addPropertyControls(OrderSummaryCard, {
     isLoading: {
         type: ControlType.Boolean,
         title: "Loading",

@@ -583,7 +583,7 @@ export function withPriceComponent(Component): ComponentType {
     }
 }
 
-// PhonePriceCard 전용 override
+// OrderSummaryCard 전용 override
 // finalPrice 카운트 애니메이션 + 월 할부 팝업 + 스켈레톤 통합 + 최종 주문서 모달 props
 export function withPriceCard(Component): ComponentType {
     return (props) => {
@@ -1855,7 +1855,7 @@ export function withThumbnail(Component): ComponentType {
     }
 }
 
-// JunCarousel 전용: 이미지 + 색상 선택 + 스켈레톤 통합
+// ProductImageCarousel 전용: 이미지 + 색상 선택 + 스켈레톤 통합
 export function withCarousel(Component): ComponentType {
     return (props) => {
         const [store, setStore] = useStore()
@@ -1893,7 +1893,7 @@ export function withCarousel(Component): ComponentType {
     }
 }
 
-// @deprecated — PhoneColorComponent.tsx (ColorCapacitySelector) + withColorCapacity로 통합됨
+// @deprecated — ColorCapacitySelector.tsx + withColorCapacity로 통합됨
 export function withCapacity(Component): ComponentType {
     return (props) => {
         const [store, setStore] = useStore()
@@ -1929,7 +1929,7 @@ export function withCapacity(Component): ComponentType {
 }
 
 // ─── withColorCapacity ────────────────────────────────────────────────
-// PhoneColorComponent.tsx (ColorCapacitySelector) 전용 통합 override
+// ColorCapacitySelector.tsx 전용 통합 override
 // withColor + withCapacity 기능 합산
 export function withColorCapacity(Component): ComponentType {
     return (props) => {
@@ -2021,7 +2021,7 @@ export function withStock(Component): ComponentType {
     }
 }
 
-// @deprecated — PhoneColorComponent.tsx (ColorCapacitySelector) + withColorCapacity로 통합됨
+// @deprecated — ColorCapacitySelector.tsx + withColorCapacity로 통합됨
 export function withColor(Component): ComponentType {
     return (props) => {
         const [store, setStore] = useStore()
@@ -2249,7 +2249,7 @@ export function withSelectedPlan(Component): ComponentType {
     }
 }
 
-// @deprecated — PlanSelectorComponent (withPlanGrid)에 사은품 로직 통합됨. FreebiesSectionComponent.tsx 미사용 시 제거 가능
+// @deprecated — PlanBenefitSelector (withPlanGrid)에 사은품 로직 통합됨. FreebiesSectionComponent.tsx 미사용 시 제거 가능
 export function withFreebiesSection(Component): ComponentType {
     return (props) => {
         const [store, setStore] = useStore()
@@ -3521,7 +3521,7 @@ export function withYoutubePremiumCondition(Component): ComponentType {
 }
 
 // ─── withPlanGrid ─────────────────────────────────────────────────────
-// PlanSelectorComponent 전용 Override
+// PlanBenefitSelector 전용 Override
 // store의 planInfo / selectedPlanInfo 연동 + 카드별 할인 금액 계산
 // ──────────────────────────────────────────────────────────────────────
 export function withPlanGrid(Component): ComponentType {

@@ -6,22 +6,6 @@ import { useState, useEffect, useRef, useCallback } from "react"
 
 const API_URL = "https://kt-market-puce.vercel.app"
 
-
-function isAdultFromBirth6(birth6: string): boolean {
-    if (!/^\d{6}$/.test(birth6)) return false
-    const yy = parseInt(birth6.slice(0, 2), 10)
-    const mm = parseInt(birth6.slice(2, 4), 10)
-    const dd = parseInt(birth6.slice(4, 6), 10)
-    const fullYear = yy <= new Date().getFullYear() % 100 ? 2000 + yy : 1900 + yy
-    const today = new Date()
-
-    const adultBirthYear = today.getFullYear() - 19
-    if (fullYear < adultBirthYear) return true
-    if (fullYear > adultBirthYear) return false
-    const birthdayThisYear = new Date(today.getFullYear(), mm - 1, dd)
-    return today >= birthdayThisYear
-}
-
 const formatPhoneNumber = (value: string) => {
     const numbers = value.replace(/[^0-9]/g, "")
     if (numbers.length <= 3) return numbers
@@ -74,9 +58,8 @@ export default function UserInfoForm(props: Props) {
     const [isEditing, setIsEditing] = useState(false)
     const [isInitialEntry, setIsInitialEntry] = useState(true)
 
-    const [showTermsModal, setShowTermsModal] = useState(false)
     const [isTermExpanded, setIsTermExpanded] = useState(false)
-    const [isAgreed, setIsAgreed] = useState(false)
+    const [isAgreed, setIsAgreed] = useState(true)
     const [inlineError, setInlineError] = useState("")
     const [modalError, setModalError] = useState("")
 
@@ -262,13 +245,12 @@ export default function UserInfoForm(props: Props) {
             return
         }
 
-        if (!isAdultFromBirth6(formData.userDob)) {
-            setInlineError("미성년자는 법정대리인 동반이 필요합니다. 직접 방문 또는 전화 상담을 이용해주세요.")
+        if (!isAgreed) {
+            setModalError("개인정보 수집 및 이용 동의가 필요합니다.")
             return
         }
 
-        setModalError("")
-        setShowTermsModal(true)
+        handleFinalSubmit()
     }
 
     const handleFinalSubmit = async () => {
@@ -464,6 +446,9 @@ export default function UserInfoForm(props: Props) {
                                 label="생년월일 (6자리)"
                                 placeholder="예: 900101"
                                 value={formData.userDob}
+                                inputMode="numeric"
+                                autoComplete="bday"
+                                pattern="[0-9]*"
                                 onChange={(e: any) =>
                                     handleInputChange("userDob", e.target.value)
                                 }
@@ -478,6 +463,9 @@ export default function UserInfoForm(props: Props) {
                                 label="휴대폰 번호"
                                 placeholder="숫자만 입력"
                                 value={formData.userPhone}
+                                type="tel"
+                                inputMode="tel"
+                                autoComplete="tel-national"
                                 onChange={(e: any) =>
                                     handleInputChange(
                                         "userPhone",
@@ -601,113 +589,83 @@ export default function UserInfoForm(props: Props) {
             )}
 
             <div style={bottomContainerStyle}>
-                <button style={confirmButtonStyle} onClick={handleApplyClick}>
-                    신청하기
-                </button>
-            </div>
-
-            {showTermsModal && (
-                <div style={overlayStyle}>
-                    <div style={modalSheetStyle}>
+                <div style={termsSectionStyle}>
+                    <div
+                        style={termHeaderContainerStyle}
+                        onClick={() => {
+                            setIsAgreed(!isAgreed)
+                            setModalError("")
+                        }}
+                    >
+                        <Checkbox checked={isAgreed} />
+                        <span style={termHeaderTitleStyle}>
+                            개인정보 수집 및 이용 동의 (필수)
+                        </span>
                         <div
-                            style={termHeaderContainerStyle}
-                            onClick={() => setIsAgreed(!isAgreed)}
+                            style={termExpandIconStyle}
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                setIsTermExpanded(!isTermExpanded)
+                            }}
                         >
-                            <Checkbox checked={isAgreed} />
-                            <span style={termHeaderTitleStyle}>
-                                개인정보 수집 및 이용 동의 (필수)
-                            </span>
-                            <div
-                                style={termExpandIconStyle}
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    setIsTermExpanded(!isTermExpanded)
-                                }}
-                            >
-                                <ChevronDown
-                                    style={{
-                                        transform: isTermExpanded
-                                            ? "rotate(180deg)"
-                                            : "rotate(0deg)",
-                                        transition: "transform 0.2s",
-                                    }}
-                                />
-                            </div>
-                        </div>
-
-                        {isTermExpanded && (
-                            <div style={termDetailContainerStyle}>
-                                <div style={termDescriptionStyle}>
-                                    고객님이 입력한 개인정보는 상담, 개통,
-                                    배송을 위해 수집되며,
-                                    <br />
-                                    관계 법령에 따라 6개월간 보관 후 파기됩니다.
-                                </div>
-                                <div style={termTableStyle}>
-                                    <div style={termTableRowStyle}>
-                                        <div style={termTableHeaderStyle}>
-                                            수집목적
-                                        </div>
-                                        <div style={termTableCellStyle}>
-                                            가입상담, 개통, 배송
-                                        </div>
-                                    </div>
-                                    <div
-                                        style={{
-                                            ...termTableRowStyle,
-                                            borderBottom: "none",
-                                        }}
-                                    >
-                                        <div style={termTableHeaderStyle}>
-                                            수집항목
-                                        </div>
-                                        <div style={termTableCellStyle}>
-                                            이름, 생년월일, 연락처
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {modalError && (
-                            <div style={{
-                                margin: "16px 0 0",
-                                padding: "10px 14px",
-                                backgroundColor: "#FFF1F1",
-                                border: "1px solid #FFCDD2",
-                                borderRadius: "8px",
-                                fontSize: "13px",
-                                color: "#D32F2F",
-                                lineHeight: "1.5",
-                            }}>
-                                {modalError}
-                            </div>
-                        )}
-
-                        <div style={{ marginTop: "16px" }}>
-                            <button
+                            <ChevronDown
                                 style={{
-                                    ...confirmButtonStyle,
-                                    backgroundColor: isAgreed
-                                        ? "#4285F4"
-                                        : "#A0C3FF",
-                                    cursor: isAgreed
-                                        ? "pointer"
-                                        : "not-allowed",
+                                    transform: isTermExpanded
+                                        ? "rotate(180deg)"
+                                        : "rotate(0deg)",
+                                    transition: "transform 0.2s",
                                 }}
-                                onClick={handleFinalSubmit}
-                                disabled={isLoading || !isAgreed}
-                            >
-                                {isLoading ? "접수 중..." : "동의하고 신청완료"}
-                            </button>
+                            />
                         </div>
                     </div>
-                    <div
-                        style={overlayBackgroundStyle}
-                        onClick={() => !isLoading && setShowTermsModal(false)}
-                    />
+
+                    {isTermExpanded && (
+                        <div style={termDetailContainerStyle}>
+                            <div style={termDescriptionStyle}>
+                                고객님이 입력한 개인정보는 상담, 개통,
+                                배송을 위해 수집되며,
+                                <br />
+                                관계 법령에 따라 6개월간 보관 후 파기됩니다.
+                            </div>
+                            <div style={termTableStyle}>
+                                <div style={termTableRowStyle}>
+                                    <div style={termTableHeaderStyle}>
+                                        수집목적
+                                    </div>
+                                    <div style={termTableCellStyle}>
+                                        가입상담, 개통, 배송
+                                    </div>
+                                </div>
+                                <div
+                                    style={{
+                                        ...termTableRowStyle,
+                                        borderBottom: "none",
+                                    }}
+                                >
+                                    <div style={termTableHeaderStyle}>
+                                        수집항목
+                                    </div>
+                                    <div style={termTableCellStyle}>
+                                        이름, 생년월일, 연락처
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {modalError && (
+                        <div style={bottomErrorStyle}>{modalError}</div>
+                    )}
                 </div>
-            )}
+
+                <button
+                    style={confirmButtonStyle}
+                    onClick={handleApplyClick}
+                    disabled={isLoading}
+                >
+                    {isLoading ? "접수 중..." : "주문하기"}
+                </button>
+            </div>
         </div>
     )
 }
@@ -791,10 +749,18 @@ const InputGroup = ({
     onBlur,
     placeholder,
     error,
+    type = "text",
+    inputMode,
+    autoComplete,
+    pattern,
 }: any) => (
     <div style={{ marginBottom: "20px" }}>
         <div style={{ ...inputLabelStyle, marginBottom: "8px" }}>{label}</div>
         <input
+            type={type}
+            inputMode={inputMode}
+            autoComplete={autoComplete}
+            pattern={pattern}
             style={{
                 ...inputStyle,
                 padding: "16px",
@@ -1110,47 +1076,17 @@ const bottomContainerStyle: React.CSSProperties = {
     marginTop: "auto",
     padding: "20px 20px 40px 20px",
 }
-
-// Modal
-const overlayStyle: React.CSSProperties = {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 9999,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "flex-end",
-}
-const overlayBackgroundStyle: React.CSSProperties = {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(0,0,0,0.4)",
-    zIndex: 1,
-}
-const modalSheetStyle: React.CSSProperties = {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: "24px",
-    borderTopRightRadius: "24px",
-    padding: "30px 24px 40px 24px",
-    zIndex: 2,
-    boxShadow: "0 -4px 20px rgba(0,0,0,0.1)",
-    animation: "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-    position: "relative",
-    maxHeight: "80vh",
-    display: "flex",
-    flexDirection: "column",
-    overflowY: "auto",
+const termsSectionStyle: React.CSSProperties = {
+    backgroundColor: "#FFFFFF",
+    border: "1px solid #E5E8EB",
+    borderRadius: "16px",
+    padding: "18px 16px",
+    marginBottom: "14px",
 }
 const termHeaderContainerStyle: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: "16px",
     cursor: "pointer",
 }
 const termHeaderTitleStyle: React.CSSProperties = {
@@ -1201,6 +1137,16 @@ const termTableCellStyle: React.CSSProperties = {
     lineHeight: "1.5",
     backgroundColor: "#FFFFFF",
     boxSizing: "border-box",
+}
+const bottomErrorStyle: React.CSSProperties = {
+    marginTop: "16px",
+    padding: "10px 14px",
+    backgroundColor: "#FFF1F1",
+    border: "1px solid #FFCDD2",
+    borderRadius: "8px",
+    fontSize: "13px",
+    color: "#D32F2F",
+    lineHeight: "1.5",
 }
 
 // Warning Box

@@ -1,6 +1,6 @@
 // withOrderSheet override와 함께 사용
 // 하단 고정 BottomSheet — 신청하기 버튼 클릭 시 모달 (카카오 로그인 / 비회원)
-// 상세 신청서 탭 → 위로 올라오는 바텀시트로 OrderSheetComponent UI 표시
+// 상세 신청서 탭 → 위로 올라오는 바텀시트로 OrderSummarySheet UI 표시
 
 import { addPropertyControls, ControlType } from "framer"
 import React, { useState, useEffect, useRef } from "react"
@@ -447,7 +447,7 @@ const API_URL = "https://kt-market-puce.vercel.app"
  * @framerSupportedLayoutWidth any
  * @framerSupportedLayoutHeight auto
  */
-export default function BottomSheetOrderSheetComponent(props) {
+export default function OrderFlowBottomSheet(props) {
     const {
         installment = 24,
         installmentPaymentTitle = "월 할부원금 (24개월)",
@@ -638,7 +638,7 @@ export default function BottomSheetOrderSheetComponent(props) {
     )
 }
 
-addPropertyControls(BottomSheetOrderSheetComponent, {
+addPropertyControls(OrderFlowBottomSheet, {
     isLoading: { type: ControlType.Boolean, title: "Loading", defaultValue: false },
     // 기기 정보 (preview용 — 실제 사용 시 withOrderSheet이 주입)
     devicePetName: { type: ControlType.String, title: "기기명", defaultValue: "갤S26 울트라" },

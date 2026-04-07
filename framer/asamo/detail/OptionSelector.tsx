@@ -5,15 +5,15 @@ import { addPropertyControls, ControlType } from "framer"
 // 재고 현황 (재고.md 기준 2026-04-06)
 // key: "${modelPrefix}-${capacity}" | value: { [colorValue]: 잔여수량 }
 const STOCK_MAP: Record<string, Record<string, number>> = {
-    "aip17-256":   { blue: 5, black: 16, purple: 4, white: 55 },
+    "aip17-256":   { black: 16, lavender: 4, white: 55, mist_blue: 5 },
     "aip17e-256":  { black: 13, pink: 23, white: 14 },
-    "aip17p-256":  { blue: 12 },
+    "aip17p-256":  { deep_blue: 12 },
     "aip17p-512":  { silver: 4 },
-    "aip17pm-256": { blue: 5 },
+    "aip17pm-256": { deep_blue: 5 },
     "aip17pm-512": { silver: 18 },
-    "aipa-1t":     { blue: 1, black: 1 },
-    "aipa-256":    { blue: 6, black: 5, gold: 8, white: 6 },
-    "aipa-512":    { blue: 5, black: 14, gold: 4, white: 11 },
+    "aipa-1t":     { sky_blue: 1, space_black: 1 },
+    "aipa-256":    { sky_blue: 6, space_black: 5, light_gold: 8, cloud_white: 6 },
+    "aipa-512":    { sky_blue: 5, space_black: 14, light_gold: 4, cloud_white: 11 },
 }
 
 // 데이터 구조 정의
@@ -65,67 +65,73 @@ export default function OptionSelector(props: Props) {
     // ✅ [핵심 1] 품절 여부 계산 및 정렬 로직 (재고 수량 포함)
     const processedOptions = useMemo(() => {
         const stockKey = `${currentModelPrefix}-${selectedCapacity}`
-        const stockForModel = STOCK_MAP[stockKey] ?? {}
+        const stockForModel = STOCK_MAP[stockKey] // undefined = 재고.md에 없음 → 전체 품절
+        const modelHasStockData = stockForModel !== undefined
 
         return [...colorOptions]
             .map((color) => {
+                // 모델-용량 자체가 STOCK_MAP에 없으면 → 전체 품절
+                if (!modelHasStockData) {
+                    return { ...color, isDisabled: true, stock: null }
+                }
+
                 let isSoldOutByRule = false
 
-                // 규칙 1: 아이폰 17 (aip17) + 256GB -> 미스트블루, 라벤더 품절
-                if (
-                    currentModelPrefix === "aip17" &&
-                    selectedCapacity === "256"
-                ) {
-                    if (["mist_blue", "lavender"].includes(color.value)) {
+                // 아이폰 17 (aip17) 256GB
+                // 색상: black, lavender, mist_blue, sage, white
+                // 재고: black(16), lavender(4), mist_blue(5), white(55) → sage 품절
+                if (currentModelPrefix === "aip17" && selectedCapacity === "256") {
+                    if (color.value === "sage") {
                         isSoldOutByRule = true
                     }
                 }
 
-                // 규칙 2: 아이폰 17 (aip17) + 512GB -> 블랙 품절
-                if (
-                    currentModelPrefix === "aip17" &&
-                    selectedCapacity === "512"
-                ) {
-                    if (["black"].includes(color.value)) {
+                // 아이폰 17 프로 (aip17p) 256GB
+                // 색상: deep_blue, cosmic_orange, silver → deep_blue(12)만 재고
+                if (currentModelPrefix === "aip17p" && selectedCapacity === "256") {
+                    if (color.value !== "deep_blue") {
                         isSoldOutByRule = true
                     }
                 }
 
-                // 규칙 3: 아이폰 17 프로 (aip17p) + 1TB -> 실버 제외 전체 품절
-                if (
-                    currentModelPrefix === "aip17p" &&
-                    selectedCapacity === "1t"
-                ) {
+                // 아이폰 17 프로 (aip17p) 512GB
+                // 색상: deep_blue, cosmic_orange, silver → silver(4)만 재고
+                if (currentModelPrefix === "aip17p" && selectedCapacity === "512") {
                     if (color.value !== "silver") {
                         isSoldOutByRule = true
                     }
                 }
 
-                // ✅ [수정된 규칙] 아이폰 17 프로 맥스 (aip17pm)
-                if (currentModelPrefix === "aip17pm") {
-                    // 4-1. 1TB 용량이면 -> 색상 불문하고 전체 품절
-                    if (selectedCapacity === "1t") {
+                // 아이폰 17 프로 맥스 (aip17pm) 256GB
+                // 색상: deep_blue, cosmic_orange, silver → deep_blue(5)만 재고
+                if (currentModelPrefix === "aip17pm" && selectedCapacity === "256") {
+                    if (color.value !== "deep_blue") {
                         isSoldOutByRule = true
                     }
-                    // 4-2. 그 외 용량(256, 512, 2T)이면 -> 실버 제외하고 품절
-                    else {
-                        if (color.value !== "silver") {
-                            isSoldOutByRule = true
-                        }
+                }
+
+                // 아이폰 17 프로 맥스 (aip17pm) 512GB
+                // 색상: deep_blue, cosmic_orange, silver → silver(18)만 재고
+                if (currentModelPrefix === "aip17pm" && selectedCapacity === "512") {
+                    if (color.value !== "silver") {
+                        isSoldOutByRule = true
+                    }
+                }
+
+                // 아이폰 에어 (aipa) 1TB
+                // 색상: sky_blue, light_gold, cloud_white, space_black → sky_blue(1), space_black(1)만 재고
+                if (currentModelPrefix === "aipa" && selectedCapacity === "1t") {
+                    if (!["sky_blue", "space_black"].includes(color.value)) {
+                        isSoldOutByRule = true
                     }
                 }
 
                 const isDisabled = color.isSoldOut || isSoldOutByRule
-                // 재고 수량: STOCK_MAP에 있으면 사용, 없으면 null (표시 안 함)
                 const stock = isDisabled
                     ? null
-                    : (stockForModel[color.value] ?? null)
+                    : (stockForModel![color.value] ?? null)
 
-                return {
-                    ...color,
-                    isDisabled,
-                    stock,
-                }
+                return { ...color, isDisabled, stock }
             })
             .sort((a, b) => {
                 // 판매중 먼저, 품절 나중에

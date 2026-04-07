@@ -79,7 +79,7 @@ const SkeletonView = ({ imageHeight }: { imageHeight: number }) => (
     </div>
 )
 
-export default function JunCarousel(props) {
+export default function ProductImageCarousel(props) {
     const {
         urls = [],
         colors = [],
@@ -344,7 +344,7 @@ export default function JunCarousel(props) {
     )
 }
 
-addPropertyControls(JunCarousel, {
+addPropertyControls(ProductImageCarousel, {
     isLoading: {
         type: ControlType.Boolean,
         title: "Loading",

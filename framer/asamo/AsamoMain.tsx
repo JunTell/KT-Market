@@ -16,7 +16,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // 재고 현황 (재고.md 기준 2026-04-06) — 모델별 총 잔여 수량
 const TOTAL_STOCK_MAP: Record<string, number> = {
-    "aip17-256":   80,  // BE5 + BK16 + PE4 + WE55
+    "aip17-256":   75,  // BK16 + PE4 + WE55 (BE 품절)
     "aip17e-256":  50,  // BK13 + PK23 + WE14
     "aip17p-256":  12,  // BE12
     "aip17p-512":  4,   // SR4
@@ -215,7 +215,7 @@ export default function AsamoList(props: Props) {
                     planMonthlyDiscount,
                     imageUrl: getDeviceImageUrl(device),
                     imageUrls: imageUrls,
-                    totalStock: TOTAL_STOCK_MAP[device.model] ?? -1,
+                    totalStock: TOTAL_STOCK_MAP[device.model] ?? 0,
                 }
             })
             .filter(Boolean)
@@ -341,27 +341,48 @@ export default function AsamoList(props: Props) {
                 {!loading && !error && deals.length > 0 && (
                     <div style={groupContainerStyle}>
                         <div style={groupHeaderStyle}>최신 모델</div>
-                        {deals.map((deal, idx) => (
-                            <div key={`deal-${deal.model}-${idx}`}>
-                                <StockUrgencyBanner
-                                    totalStock={deal.totalStock}
-                                />
-                                <GongguDealCard
-                                    title={deal.title}
-                                    capacity={deal.capacity}
-                                    originPrice={deal.originPrice}
-                                    disclosureSubsidy={deal.disclosureSubsidy}
-                                    ktmarketDiscount={deal.ktmarketDiscount}
-                                    specialDiscount={deal.specialDiscount}
-                                    planMonthlyDiscount={deal.planMonthlyDiscount}
-                                    mode={mode}
-                                    model={deal.model}
-                                    detailPath={`/asamo-page/asamo-detail`}
-                                    imageUrl={deal.imageUrl}
-                                    imageUrls={deal.imageUrls}
-                                />
-                            </div>
-                        ))}
+                        {deals.map((deal, idx) => {
+                            const isSoldOut = deal.totalStock === 0
+                            return (
+                                <div key={`deal-${deal.model}-${idx}`}>
+                                    <StockUrgencyBanner
+                                        totalStock={deal.totalStock}
+                                    />
+                                    <div
+                                        style={{
+                                            position: "relative",
+                                            opacity: isSoldOut ? 0.45 : 1,
+                                            transition: "opacity 0.2s",
+                                        }}
+                                    >
+                                        <GongguDealCard
+                                            title={deal.title}
+                                            capacity={deal.capacity}
+                                            originPrice={deal.originPrice}
+                                            disclosureSubsidy={deal.disclosureSubsidy}
+                                            ktmarketDiscount={deal.ktmarketDiscount}
+                                            specialDiscount={deal.specialDiscount}
+                                            planMonthlyDiscount={deal.planMonthlyDiscount}
+                                            mode={mode}
+                                            model={deal.model}
+                                            detailPath={isSoldOut ? "" : `/asamo-page/asamo-detail`}
+                                            imageUrl={deal.imageUrl}
+                                            imageUrls={deal.imageUrls}
+                                        />
+                                        {isSoldOut && (
+                                            <div
+                                                style={{
+                                                    position: "absolute",
+                                                    inset: 0,
+                                                    cursor: "not-allowed",
+                                                    borderRadius: "inherit",
+                                                }}
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+                            )
+                        })}
                     </div>
                 )}
             </div>
@@ -371,7 +392,7 @@ export default function AsamoList(props: Props) {
 
 // --- Stock Urgency Banner ---
 function StockUrgencyBanner({ totalStock }: { totalStock: number }) {
-    if (totalStock < 0 || totalStock > 20) return null
+    if (totalStock > 20) return null
 
     const isUrgent = totalStock <= 5
     const isSoldOut = totalStock === 0

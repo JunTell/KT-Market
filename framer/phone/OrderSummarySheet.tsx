@@ -145,7 +145,7 @@ const SectionHeader = ({
  * @framerSupportedLayoutWidth any
  * @framerSupportedLayoutHeight auto
  */
-export default function OrderSheetComponent(props) {
+export default function OrderSummarySheet(props) {
     const {
         installment = 24,
         installmentPaymentTitle = "월 할부원금 (24개월)",
@@ -352,7 +352,7 @@ const totalCardStyle: React.CSSProperties = {
     alignItems: "center",
 }
 
-addPropertyControls(OrderSheetComponent, {
+addPropertyControls(OrderSummarySheet, {
     isLoading: { type: ControlType.Boolean, title: "Loading", defaultValue: false },
     stepNumber: { type: ControlType.Number, title: "Step No.", defaultValue: 7, min: 1, max: 9 },
     title: { type: ControlType.String, title: "Title", defaultValue: "최종 주문서" },

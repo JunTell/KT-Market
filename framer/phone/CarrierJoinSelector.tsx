@@ -104,7 +104,7 @@ function CarrierCard({
  * @framerSupportedLayoutWidth any
  * @framerSupportedLayoutHeight auto
  */
-export default function CarrierSelectionContainer(props) {
+export default function CarrierJoinSelector(props) {
     const {
         title = "현재 통신사",
         defaultCarrier = "KT",
@@ -219,7 +219,7 @@ const wrapperStyle: React.CSSProperties = {
     fontFamily: FONT,
 }
 
-addPropertyControls(CarrierSelectionContainer, {
+addPropertyControls(CarrierJoinSelector, {
     isLoading: { type: ControlType.Boolean, title: "Loading", defaultValue: false },
     title: { type: ControlType.String, title: "Title", defaultValue: "현재 통신사" },
     defaultCarrier: {
