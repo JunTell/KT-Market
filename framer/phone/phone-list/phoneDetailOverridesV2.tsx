@@ -3181,14 +3181,23 @@ export function withPlanGrid(Component): ComponentType {
             return store.ktmarketSubsidies[key] ?? 0
         }
 
-        // 고정 3개 PID + 선택된 요금제에 대한 총 할인 금액 맵 (KT마켓 + 공시지원금 + 번호이동지원금)
+        // 디바이스 추가지원금 (단독) — withOrderSheet의 calculateDiscounts와 동일 로직
+        const calcPromoDiscount = (pid: string): number => {
+            const promoPlans = [
+                "ppllistobj_0863", "ppllistobj_0864", "ppllistobj_0865",
+                "ppllistobj_0850", "ppllistobj_0851", "ppllistobj_0852",
+            ]
+            return promoPlans.includes(pid) ? 50000 : 0
+        }
+
+        // 고정 3개 PID + 선택된 요금제에 대한 총 할인 금액 맵 (KT마켓 + 공시지원금 + 번호이동지원금 + 디바이스 추가지원금)
         const GRID_PIDS = ["ppllistobj_0942", "ppllistobj_0808", "ppllistobj_0925"]
         const planPriceMap: Record<string, number> = {
             "ppllistobj_0942": 90000, "ppllistobj_0808": 69000, "ppllistobj_0925": 37000,
         }
         const discountAmounts: Record<string, number> = {}
         for (const pid of GRID_PIDS) {
-            discountAmounts[pid] = calcKtmarketForPid(planPriceMap[pid], pid) + (planDisclosures[pid] ?? 0)
+            discountAmounts[pid] = calcKtmarketForPid(planPriceMap[pid], pid) + (planDisclosures[pid] ?? 0) + calcPromoDiscount(pid)
         }
         // 현재 선택된 커스텀 요금제 할인 금액도 포함
         if (store.selectedPlanInfo?.pid && !discountAmounts[store.selectedPlanInfo.pid]) {
@@ -3202,8 +3211,60 @@ export function withPlanGrid(Component): ComponentType {
                     (store.selectedPlan.disclosure_subsidy ?? 0) +
                     (isMnp ? (store.selectedPlan.migration_subsidy ?? 0) : 0)
             }
-            discountAmounts[pid] = ktmarket + disclosure
+            discountAmounts[pid] = ktmarket + disclosure + calcPromoDiscount(pid)
         }
+
+        // KT마켓 지원금 — 할인 타입(device/plan)을 직접 지정하는 버전
+        const calcKtmarketTyped = (planPrice: number, pid: string, discountType: "device" | "plan"): number => {
+            if (!store.ktmarketSubsidies) return 0
+            const register = store.register === "번호이동" ? "mnp" : store.register === "신규가입" ? "new" : "chg"
+            const forceTierByPlanId: Record<string, number> = {
+                ppllistobj_0893: 61000, ppllistobj_0778: 61000, ppllistobj_0844: 61000,
+                ppllistobj_0845: 37000, ppllistobj_0535: 37000, ppllistobj_0765: 37000, ppllistobj_0775: 37000,
+            }
+            const forcedTier = forceTierByPlanId[pid]
+            const priceTiers = [110000, 100000, 90000, 61000, 37000]
+            let key = ""
+            if (forcedTier) {
+                key = `${discountType}_discount_${register}_gte_${forcedTier}`
+            } else {
+                for (const tier of priceTiers) {
+                    if (planPrice >= tier) { key = `${discountType}_discount_${register}_gte_${tier}`; break }
+                }
+                if (!key) key = `${discountType}_discount_${register}_lt_37000`
+            }
+            return store.ktmarketSubsidies[key] ?? 0
+        }
+
+        // 기기할인 vs 요금할인 중 더 저렴한 탭 계산 (선택된 요금제 기준, 무이자 단순 비교)
+        const cheaperTab: "기기 할인" | "요금할인" | null = (() => {
+            if (!store.selectedPlan) return null
+            const devicePrice = store.selectedPlan.model_price ?? 0
+            const planPrice = store.selectedPlan.price ?? 0
+            const installment = store.installment > 0 ? store.installment : 24
+            const isMnp = store.register === "번호이동"
+            const pid = store.selectedPlan.plan_id ?? ""
+            const ktApplied = store.benefit === "KT마켓 단독혜택"
+            const promo = calcPromoDiscount(pid)
+
+            // 기기할인: 공시지원금 + 번이지원금 + KT마켓(device) + 프로모션
+            const disclosureSubsidy = store.selectedPlan.disclosure_subsidy ?? 0
+            const migrationSubsidy = isMnp ? (store.selectedPlan.migration_subsidy ?? 0) : 0
+            const ktDevice = ktApplied ? calcKtmarketTyped(planPrice, pid, "device") : 0
+            const principalDevice = Math.max(0, devicePrice - (disclosureSubsidy + migrationSubsidy + ktDevice + promo))
+
+            // 요금할인: KT마켓(plan) + 프로모션 (공시/번이 없음)
+            const ktPlan = ktApplied ? calcKtmarketTyped(planPrice, pid, "plan") : 0
+            const principalPlan = Math.max(0, devicePrice - (ktPlan + promo))
+
+            // 월 총액 비교
+            const totalDevice = Math.round(principalDevice / installment) + planPrice
+            const totalPlan = Math.round(principalPlan / installment) + Math.round(planPrice * 0.75)
+
+            if (totalDevice < totalPlan) return "기기 할인"
+            if (totalPlan < totalDevice) return "요금할인"
+            return null
+        })()
 
         const handleTabChange = (tab: "기기 할인" | "요금할인") => {
             const discount = tab === "요금할인" ? "선택약정할인" : "공통지원금"
@@ -3216,6 +3277,7 @@ export function withPlanGrid(Component): ComponentType {
                 isLoading={store.isLoading ?? false}
                 selectedPlanPid={store.selectedPlanInfo?.pid ?? ""}
                 discountAmounts={discountAmounts}
+                cheaperTab={cheaperTab}
                 onPlanSelect={handlePlanSelect}
                 onTabChange={handleTabChange}
                 store={store}

@@ -64,8 +64,8 @@ export default function OrderSummarySheet(props) {
     const displayTotalMonthPayment = showInterest
         ? Math.round(totalMonthPayment)
         : installment === 0
-          ? Math.round(totalMonthPayment)
-          : totalMonthPaymentNoInterest
+            ? Math.round(totalMonthPayment)
+            : totalMonthPaymentNoInterest
 
     return (
         <div style={wrapperStyle}>
@@ -132,7 +132,7 @@ export default function OrderSummarySheet(props) {
                         {/* 공시지원금 */}
                         {disclosureSubsidy > 0 && (
                             <RedRow
-                                label="공시지원금"
+                                label="단말할인(공통)"
                                 value={`-${disclosureSubsidy.toLocaleString()}원`}
                                 tooltip="이동통신사가 공시한 단말기 지원금"
                             />
@@ -290,7 +290,7 @@ addPropertyControls(OrderSummarySheet, {
         options: [0, 24, 36, 48], optionTitles: ["일시불", "24개월", "36개월", "48개월"],
     },
     devicePrice: { type: ControlType.Number, title: "출고가", defaultValue: 1287000 },
-    disclosureSubsidy: { type: ControlType.Number, title: "공시지원금", defaultValue: 0 },
+    disclosureSubsidy: { type: ControlType.Number, title: "단말할인(공통)", defaultValue: 0 },
     ktmarketSubsidy: { type: ControlType.Number, title: "KT마켓 단독지원금", defaultValue: 470000 },
     promotionDiscount: { type: ControlType.Number, title: "디바이스 추가지원금", defaultValue: 80000 },
     installmentPrincipal: { type: ControlType.Number, title: "할부원금", defaultValue: 737000 },
