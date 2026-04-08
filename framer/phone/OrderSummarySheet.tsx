@@ -2,10 +2,10 @@
 // [7] 최종 주문서 — 3-카드 레이아웃
 
 import { addPropertyControls, ControlType } from "framer"
-import React from "react"
+import React, { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-    Tooltip, QuestionIcon, SkeletonRow, Dashed,
+    Tooltip, QuestionIcon, SkeletonRow, Dashed, ToggleSwitch,
     Row, RedRow, Card, SectionHeader,
 } from "./shared/orderComponents"
 
@@ -21,6 +21,8 @@ export default function OrderSummarySheet(props) {
         installmentPaymentDescription = "분할 상환 수수료 5.9% 포함",
         installmentPrincipal = 0,
         installmentPayment = "0원",
+        installmentPaymentNoInterest = 0,
+        totalMonthPaymentNoInterest = 0,
         devicePrice = 0,
         disclosureSubsidy = 0,
         ktmarketSubsidy = 0,
@@ -39,6 +41,8 @@ export default function OrderSummarySheet(props) {
         title = "최종 주문서",
     } = props
 
+    const [showInterest, setShowInterest] = useState(false)
+
     const planAfterDiscount = totalMonthPlanPrice > 0 ? totalMonthPlanPrice : planPrice - planDiscountAmount
 
     const planDiscountLabel = discount === "선택약정할인"
@@ -53,11 +57,23 @@ export default function OrderSummarySheet(props) {
         ? `${installmentPayment.toLocaleString()}원`
         : installmentPayment
 
+    const displayInstallmentValue = showInterest
+        ? installmentPaymentStr
+        : `${installmentPaymentNoInterest.toLocaleString()}원`
+    const displayDescription = showInterest ? installmentPaymentDescription : ""
+    const displayTotalMonthPayment = showInterest
+        ? Math.round(totalMonthPayment)
+        : totalMonthPaymentNoInterest
+
     return (
         <div style={wrapperStyle}>
             {/* 헤더 */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
                 <span style={titleStyle}>{title}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 12, color: "#6B7280" }}>할부이자 표시</span>
+                    <ToggleSwitch checked={showInterest} onChange={setShowInterest} />
+                </div>
             </div>
 
             {isLoading ? (
@@ -73,8 +89,8 @@ export default function OrderSummarySheet(props) {
                     <Card>
                         <SectionHeader
                             label={installmentPaymentTitle}
-                            value={installmentPaymentStr}
-                            description={installmentPaymentDescription}
+                            value={displayInstallmentValue}
+                            description={displayDescription}
                         />
 
                         {/* 출고가 */}
@@ -179,7 +195,7 @@ export default function OrderSummarySheet(props) {
                     <div style={totalCardStyle}>
                         <span style={{ fontSize: 15, fontWeight: 500, color: "#374151" }}>월 예상 금액</span>
                         <span style={{ fontSize: 20, fontWeight: 700, color: "#0055FF" }}>
-                            {Math.round(totalMonthPayment).toLocaleString()}원
+                            {displayTotalMonthPayment.toLocaleString()}원
                         </span>
                     </div>
                 </>
@@ -226,6 +242,7 @@ addPropertyControls(OrderSummarySheet, {
     installmentPaymentTitle: { type: ControlType.String, title: "할부 타이틀", defaultValue: "월 할부원금 (24개월)" },
     installmentPaymentDescription: { type: ControlType.String, title: "할부 설명", defaultValue: "분할 상환 수수료 5.9% 포함" },
     installmentPayment: { type: ControlType.String, title: "월 할부금", defaultValue: "32,631원" },
+    installmentPaymentNoInterest: { type: ControlType.Number, title: "월 할부금(무이자표시)", defaultValue: 30800 },
     installment: {
         type: ControlType.Number, title: "할부", defaultValue: 24,
         options: [0, 24, 36, 48], optionTitles: ["일시불", "24개월", "36개월", "48개월"],
@@ -240,6 +257,7 @@ addPropertyControls(OrderSummarySheet, {
     planDiscountAmount: { type: ControlType.Number, title: "요금제 할인액", defaultValue: 27500 },
     totalMonthPlanPrice: { type: ControlType.Number, title: "월 통신요금(할인 후)", defaultValue: 82500 },
     totalMonthPayment: { type: ControlType.Number, title: "월 예상 금액", defaultValue: 115131 },
+    totalMonthPaymentNoInterest: { type: ControlType.Number, title: "월 예상 금액(무이자표시)", defaultValue: 113300 },
     discount: {
         type: ControlType.Enum, title: "할인 유형",
         options: ["공통지원금", "선택약정할인"], defaultValue: "선택약정할인",

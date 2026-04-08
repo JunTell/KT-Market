@@ -613,11 +613,10 @@ export function withPriceCard(Component): ComponentType {
 
         function calculateDiscounts(planId: string) {
             const promo100000Plans = [
-                "ppllistobj_0994", "ppllistobj_0993", "ppllistobj_0992",
                 "ppllistobj_0863", "ppllistobj_0864", "ppllistobj_0865",
                 "ppllistobj_0850", "ppllistobj_0851", "ppllistobj_0852",
             ]
-            return { promo: promo100000Plans.includes(planId) ? 80000 : 0 }
+            return { promo: promo100000Plans.includes(planId) ? 50000 : 0 }
         }
 
         // ── 계산 ────────────────────────────────────────────────────
@@ -1228,6 +1227,13 @@ export function withOrderSheet(Component): ComponentType {
             return null
         }
 
+        const getConfirmRouteId = () => {
+            for (const [key, value] of Object.entries(routes)) {
+                if ((value as any)?.path === "/phone/confirm") return key
+            }
+            return null
+        }
+
         // 이동 전 세션 데이터 저장 (sessionStorage + localStorage 이중 저장)
         // sheet도 여기서 강제 저장 — store.plan이 null이어서 useEffect가 스킵된 경우 방어
         const saveOrderSession = () => {
@@ -1251,6 +1257,40 @@ export function withOrderSheet(Component): ComponentType {
                 window.location.href = "/phone/user-info"
             }
         }
+
+        const handlePhoneOrder = () => {
+            saveOrderSession()
+            const routeId = getConfirmRouteId()
+            if (routeId) {
+                navigate(routeId, "")
+            } else {
+                window.location.href = "/phone/confirm"
+            }
+        }
+
+        const handleRestockOrder = () => {
+            saveOrderSession()
+            const notificationRouteId = Object.entries(routes).find(
+                ([, value]) => (value as any)?.path === "/phone/device-notification"
+            )?.[0]
+
+            if (notificationRouteId) {
+                navigate(notificationRouteId, "")
+            } else {
+                window.location.href = "/phone/device-notification"
+            }
+        }
+
+        const hasStockData =
+            Array.isArray(store.stocks) &&
+            store.stocks.length > 0 &&
+            !!store.color?.en
+        const selectedStock = hasStockData
+            ? store.stocks.find((stock) => stock.colorEn === store.color.en)
+            : null
+        const isSoldOut = hasStockData && selectedStock
+            ? (selectedStock.quantity ?? 0) <= 0
+            : false
 
         if (!hydrated) return null
         return (
@@ -1302,7 +1342,10 @@ export function withOrderSheet(Component): ComponentType {
                 deviceColor={store.color?.kr ?? ""}
                 deviceCapacity={store.device?.capacity ?? ""}
                 formLink={formLink}
+                isSoldOut={isSoldOut}
                 onKakaoOrderClick={handleKakaoOrder}
+                onPhoneClick={handlePhoneOrder}
+                onRestockClick={handleRestockOrder}
                 onSaveOrderSession={saveOrderSession}
             />
         )
@@ -2028,8 +2071,8 @@ export function withStockComponent(Component): ComponentType {
                 const updatedStocks =
                     existingIndex >= 0
                         ? currentStocks.map((stock, index) =>
-                              index === existingIndex ? nextStock : stock
-                          )
+                            index === existingIndex ? nextStock : stock
+                        )
                         : [...currentStocks, nextStock]
 
                 return {
@@ -2658,11 +2701,15 @@ export function withOnlineButton(Component): ComponentType {
         const getQuantity = () => {
             const colorEn = store.color?.en
             const match = store.stocks?.find((item) => item.colorEn === colorEn)
-            return match?.quantity ?? 0
+            return match?.quantity ?? null
         }
 
-        // 기존 하드코딩된 false를 지우고 실제 재고 수량 연동
-        const isSoldOut = getQuantity() <= 0
+        const quantity = getQuantity()
+        const hasStockData =
+            Array.isArray(store.stocks) &&
+            store.stocks.length > 0 &&
+            !!store.color?.en
+        const isSoldOut = hasStockData && quantity !== null ? quantity <= 0 : false
 
         const isSamsungExternalPreorder = (model) => {
             if (releasedModels.includes(model)) return false

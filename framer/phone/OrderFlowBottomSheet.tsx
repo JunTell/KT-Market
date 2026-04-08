@@ -185,7 +185,7 @@ function DetailBottomSheet({
     sheetProps: any
     FONT: string
 }) {
-    const [showInterest, setShowInterest] = useState(true)
+    const [showInterest, setShowInterest] = useState(false)
     const touchStartY = useRef(0)
     const handleSheetTouchStart = (e: React.TouchEvent) => {
         touchStartY.current = e.touches[0].clientY
@@ -343,6 +343,7 @@ export default function OrderFlowBottomSheet(props) {
         onSaveOrderSession,
         onPhoneClick,
         onRestockClick,
+        isSoldOut = false,
         installmentPaymentNoInterest = 0,
         totalMonthPaymentNoInterest = 0,
     } = props
@@ -525,9 +526,9 @@ export default function OrderFlowBottomSheet(props) {
                     카카오톡 상담
                 </a>
 
-                {/* 입고 알림 버튼 */}
+                {/* 신청/입고알림 버튼 */}
                 <button
-                    onClick={handleRestockClick}
+                    onClick={isSoldOut ? handleRestockClick : handleFormLink}
                     style={{
                         flex: 1, height: 52, borderRadius: 14,
                         border: "none", backgroundColor: "#0055FF",
@@ -536,7 +537,7 @@ export default function OrderFlowBottomSheet(props) {
                         display: "flex", alignItems: "center", justifyContent: "center",
                     }}
                 >
-                    입고 알림
+                    {isSoldOut ? "입고 알림" : "신청하기"}
                 </button>
             </div>
         </div>
@@ -592,6 +593,7 @@ addPropertyControls(OrderFlowBottomSheet, {
     planDiscountAmount: { type: ControlType.Number, title: "요금제 할인액", defaultValue: 0 },
     totalMonthPlanPrice: { type: ControlType.Number, title: "월 통신요금(할인 후)", defaultValue: 0 },
     totalMonthPayment: { type: ControlType.Number, title: "월 예상 금액", defaultValue: 0 },
+    isSoldOut: { type: ControlType.Boolean, title: "품절", defaultValue: false },
     discount: {
         type: ControlType.Enum, title: "할인 유형",
         options: ["공통지원금", "선택약정할인"], defaultValue: "공통지원금",
