@@ -2,6 +2,7 @@
 // 현재 통신사 선택 — 수평 4분할 버튼 + 하단 설명 텍스트 UI
 
 import * as React from "react"
+import { useMemo } from "react"
 import { addPropertyControls, ControlType } from "framer"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -111,7 +112,7 @@ export default function CarrierJoinSelector(props) {
         if (onValueChange) onValueChange(id)
     }
 
-    const allCarriers = showNewSubscription
+    const allCarriers = useMemo(() => showNewSubscription
         ? [...CARRIERS, {
             id: "신규가입",
             label: "신규",
@@ -122,7 +123,8 @@ export default function CarrierJoinSelector(props) {
             joinType: "신규가입",
             description: "KT에서 새로운 번호로 가입할 수 있어요",
         }]
-        : CARRIERS
+        : CARRIERS,
+    [showNewSubscription])
 
     const activeCarrier = allCarriers.find((c) => c.id === activeId) ?? allCarriers[0]
 

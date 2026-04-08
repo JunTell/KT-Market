@@ -8,6 +8,17 @@ import React, { useState, useRef, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
 // ─── 타입 ────────────────────────────────────────────────────────────
+type Freebie = {
+    no: number
+    title: string
+    origin_price: number
+    discount_price: number
+    monthly_price: number
+    installment: number
+    plans: string[]
+    is_available: boolean
+}
+
 type Plan = {
     pid: string
     main_plan: "5G" | "LTE"
@@ -20,6 +31,8 @@ type Plan = {
     voiceText: string
     price: number
 }
+
+const CARD_BORDER_RADIUS = 10.526 // px — matches 8dp at 1.316 density
 
 // ─── 전체 요금제 데이터 (준텔DB - plans.csv) ─────────────────────────
 const ALL_PLANS: Plan[] = [
@@ -169,7 +182,7 @@ const PlanCard = ({
     freebies, freebieLoading, selectedFreebie, onFreebieSelect,
 }: {
     plan: Plan; isActive: boolean; discountLabel: string; onSelect: (p: Plan) => void
-    freebies: any[]; freebieLoading: boolean; selectedFreebie: any; onFreebieSelect: (f: any) => void
+    freebies: Freebie[]; freebieLoading: boolean; selectedFreebie: Freebie | null; onFreebieSelect: (f: Freebie) => void
 }) => {
     const hasFreebiePlan = FREEBIE_PLAN_PIDS.has(plan.pid)
     const showFreebie = isActive && hasFreebiePlan
@@ -182,7 +195,7 @@ const PlanCard = ({
             style={{
                 width: "100%", display: "flex", flexDirection: "column", gap: 10, padding: "14px 16px",
                 border: showFreebie ? "1px solid #0066FF" : isActive ? "2px solid #0055FF" : "1.5px solid #E5E7EB",
-                borderRadius: showFreebie ? 10.526 : 8,
+                borderRadius: showFreebie ? CARD_BORDER_RADIUS : 8,
                 backgroundColor: showFreebie ? "#ECF4FF" : "#FFFFFF",
                 cursor: "pointer", boxSizing: "border-box",
             }}
@@ -264,7 +277,7 @@ const SelectableCard = ({
     freebies, freebieLoading, selectedFreebie, onFreebieSelect,
 }: {
     plan: Plan | null; isActive: boolean; discountLabel: string; onOpen: () => void
-    freebies: any[]; freebieLoading: boolean; selectedFreebie: any; onFreebieSelect: (f: any) => void
+    freebies: Freebie[]; freebieLoading: boolean; selectedFreebie: Freebie | null; onFreebieSelect: (f: Freebie) => void
 }) => {
     const hasFreebie = plan ? FREEBIE_PLAN_PIDS.has(plan.pid) : false
     const showFreebie = isActive && hasFreebie
@@ -277,12 +290,12 @@ const SelectableCard = ({
                 whileTap={{ scale: 0.98 }}
                 style={{
                     width: "100%", display: "flex", flexDirection: "row", alignItems: "center", gap: 10, padding: "14px 16px",
-                    border: "none",
-                    borderRadius: 8, backgroundColor: "#1C1C1E", cursor: "pointer", boxSizing: "border-box",
+                    border: "1.5px solid #E5E7EB",
+                    borderRadius: 8, backgroundColor: "#FFFFFF", cursor: "pointer", boxSizing: "border-box",
                 }}
             >
-                <div style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.4)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxSizing: "border-box" }} />
-                <span style={{ fontSize: 15, fontWeight: 600, color: "#FFFFFF", flex: 1 }}>직접 선택할래요</span>
+                <div style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid #D1D5DB", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxSizing: "border-box" }} />
+                <span style={{ fontSize: 15, fontWeight: 600, color: "#374151", flex: 1 }}>직접 선택할래요</span>
             </motion.div>
         )
     }
@@ -297,7 +310,7 @@ const SelectableCard = ({
             style={{
                 width: "100%", display: "flex", flexDirection: "column", gap: 10, padding: "14px 16px",
                 border: showFreebie ? "1px solid #0066FF" : "2px solid #0055FF",
-                borderRadius: showFreebie ? 10.526 : 8,
+                borderRadius: showFreebie ? CARD_BORDER_RADIUS : 8,
                 backgroundColor: showFreebie ? "#ECF4FF" : "#FFFFFF",
                 cursor: "pointer", boxSizing: "border-box",
             }}
@@ -428,7 +441,7 @@ export default function PlanBenefitSelector(props) {
     const scrollRef = useRef<HTMLDivElement>(null)
 
     // ─── 사은품 fetch (선택된 요금제가 사은품 대상일 때만) ───────────────
-    const [freebies, setFreebies] = useState<any[]>([])
+    const [freebies, setFreebies] = useState<Freebie[]>([])
     const [freebieLoading, setFreebieLoading] = useState(false)
 
     React.useEffect(() => {
@@ -458,7 +471,7 @@ export default function PlanBenefitSelector(props) {
     }, [selectedPlanPid])
 
     const selectedFreebie = store?.freebie ?? null
-    const handleFreebieSelect = (freebie: any) => {
+    const handleFreebieSelect = (freebie: Freebie) => {
         if (!setStore) return
         setStore({ freebie: selectedFreebie?.no === freebie.no ? null : freebie })
     }

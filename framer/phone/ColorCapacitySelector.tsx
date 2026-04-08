@@ -7,6 +7,8 @@ import { addPropertyControls, ControlType } from "framer"
 import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
+const CARD_BORDER_RADIUS = 10.526 // px — matches 8dp at 1.316 density
+
 interface Color {
     kr: string
     en: string
@@ -91,7 +93,7 @@ export default function ColorCapacitySelector(props) {
                 <Pulse w={80} h={16} r={4} />
                 <div style={{
                     width: "100%", height: 72,
-                    borderRadius: 10.526, border: "1px solid #DADADA",
+                    borderRadius: CARD_BORDER_RADIUS, border: "1px solid #DADADA",
                     backgroundColor: "#FFF", padding: "0 16px",
                     display: "flex", alignItems: "center", gap: 14, boxSizing: "border-box",
                 }}>
@@ -119,7 +121,7 @@ export default function ColorCapacitySelector(props) {
                     whileTap={{ scale: 0.985 }}
                     style={{
                         width: "100%", height: 72,
-                        borderRadius: 10.526,
+                        borderRadius: CARD_BORDER_RADIUS,
                         border: "1px solid #DADADA",
                         backgroundColor: "#FFF",
                         display: "flex", alignItems: "center",

@@ -4,6 +4,72 @@ Figma 원본: `수정 2차_KT마켓_상세 페이지_MO` (node-id: 1151:840)
 
 ---
 
+## Framer 업데이트 적용 순서
+
+> 파일 간 의존 관계가 있으므로 아래 순서대로 Framer에 올려야 합니다.
+
+### Step 1 — 공유 컴포넌트 파일 먼저 추가 (신규)
+
+`shared/orderComponents.tsx` 를 Framer 코드 에디터에서 **새 파일**로 생성합니다.
+(경로: `framer/phone/shared/orderComponents.tsx`)
+
+이 파일이 없으면 아래 3개 파일의 import가 실패합니다.
+
+| 내보내는 항목 | 설명 |
+|---|---|
+| `FONT` | `"Pretendard", "Inter", sans-serif` 상수 |
+| `useAnimatedNumber` | 숫자 카운트 애니메이션 훅 |
+| `ToggleSwitch` | 토글 스위치 컴포넌트 |
+| `Tooltip` | 물음표 툴팁 컴포넌트 |
+| `QuestionIcon` | 물음표 SVG 아이콘 |
+| `SkeletonRow` | 로딩 스켈레톤 행 |
+| `Dashed` | 점선 구분선 |
+| `Row` | 일반 행 (라벨 + 값) |
+| `RedRow` | 빨간 할인 행 |
+| `Card` | 카드 컨테이너 |
+| `SectionHeader` | 섹션 헤더 |
+
+---
+
+### Step 2 — shared를 import하는 파일 3개 업데이트
+
+순서 무관, 3개 모두 업데이트합니다.
+
+| 파일 | 변경 내용 |
+|---|---|
+| `OrderSummarySheet.tsx` | shared import 적용, `stepNumber` 프롭 제거 |
+| `OrderSummaryCard.tsx` | shared import 적용, OS 접두사 alias로 import (로컬 정의 제거) |
+| `OrderFlowBottomSheet.tsx` | shared import 적용, 로컬 정의 제거 (Card는 marginBottom 유지로 로컬 유지) |
+
+---
+
+### Step 3 — Override 파일 업데이트
+
+| 파일 | 변경 내용 |
+|---|---|
+| `phoneDetailOverridesV2.tsx` | `SPECIAL_PRICES`·`DELAYED_MODELS` 제거, 공유 헬퍼 추출, `officialMonthlyPrice` 계산 추가 |
+
+---
+
+### Step 4 — 나머지 컴포넌트 파일 업데이트 (독립, 순서 무관)
+
+| 파일 | 변경 내용 |
+|---|---|
+| `PlanBenefitSelector.tsx` | `Freebie` 타입 추가, `any` 제거 |
+| `ProductImageCarousel.tsx` | 터치 핸들러 타입 추가 |
+| `ColorCapacitySelector.tsx` | `CARD_BORDER_RADIUS` 상수로 매직넘버 교체 |
+| `CarrierJoinSelector.tsx` | `allCarriers` useMemo 적용 |
+
+---
+
+### 주의사항
+
+- `shared/orderComponents.tsx`를 먼저 추가하지 않으면 Step 2 파일들이 **빌드 에러** 납니다.
+- `phoneDetailOverridesV2.tsx`에서 삭제된 override 함수들(예: `withPhoneDetail`, `withThumbnail` 등)은 Framer 캔버스에서 해당 컴포넌트의 override 설정을 초기화해야 합니다. 현재 남아있는 override는 아래 7개뿐입니다.
+- `OrderSummarySheet`의 `stepNumber` 프롭은 Framer 프롭 패널에서 더 이상 표시되지 않으므로 기존 설정값은 무시됩니다.
+
+---
+
 ## 페이지 전체 구조
 
 ```
@@ -59,10 +125,37 @@ const useStore = createStore({
   → handleCapacitySelect(path)
   → window.history.pushState({}, "", "/phone/" + path)  // URL 조용히 변경
   → setStore({ currentModelId: path })                  // store 업데이트
-  → withPhoneDetail useEffect([store.currentModelId])
-  → setStore({ isLoading: true }) → Supabase fetch → setStore({ isLoading: false })
-  → 모든 컴포넌트 리렌더링 (하드 리로드 없음)
+  → withCarousel, withColorCapacity, withRegister, withPlanGrid ... 리렌더링
 ```
+
+---
+
+## Override 전체 목록 (phoneDetailOverridesV2.tsx)
+
+현재 존재하는 override는 **7개**입니다.
+
+| Override | 연결 컴포넌트 | 역할 |
+|---|---|---|
+| `withPriceCard` | `OrderSummaryCard` | 할부금·출고가·할인 계산 → 가격 카드 주입, `officialMonthlyPrice` 계산 포함 |
+| `withOrderSheet` | `OrderFlowBottomSheet` | 가격 계산 전체 + sessionStorage 저장 + 주문 처리, `officialMonthlyPrice` 계산 포함 |
+| `withCarousel` | `ProductImageCarousel` | store.color 변경 시 이미지 배열 주입 |
+| `withColorCapacity` | `ColorCapacitySelector` | 색상·용량 선택 통합, 용량 변경 시 SPA URL 교체 |
+| `withRegister` | `CarrierJoinSelector` | 통신사·가입유형 선택 → `setStore({ register })` |
+| `withInstallmentSection` | `InstallmentSelectorSection` | 할부 기간 선택 → `setStore({ installment })` |
+| `withPlanGrid` | `PlanBenefitSelector` | Supabase에서 요금제 fetch, 선택 → `setStore({ selectedPlan })` |
+
+---
+
+### officialMonthlyPrice (공식신청서 월 금액)
+
+`withPriceCard`와 `withOrderSheet` 모두에서 계산되어 각 컴포넌트로 전달됩니다.
+
+```
+KT마켓 지원금 제외 할부원금 = 출고가 - (전체 단말 할인 - KT마켓 단독지원금)
+officialMonthlyPrice = 위 원금의 월 할부금(5.9%) + 월 요금제 금액
+```
+
+`LaunchNotice.tsx` 컴포넌트에 `officialMonthlyPrice` 프롭으로 주입하면 공식신청서 안내 텍스트에 금액이 자동으로 표시됩니다.
 
 ---
 
@@ -75,12 +168,7 @@ const useStore = createStore({
 
 **화면 위치:** 헤더 바로 아래, 색상 선택 위
 
-**연결 Override:**
-| Override | 역할 |
-|---|---|
-| `withPhoneDetail` | 페이지 마운트 시 Supabase에서 기기 데이터 fetch, `currentModelId` 변경 시 재호출 |
-| `withCarousel` | store.color 변경 시 해당 색상의 이미지 배열을 캐러셀에 주입 |
-| `withThumbnail` | 현재 선택 색상의 첫 번째 이미지를 썸네일로 전달 |
+**연결 Override: `withCarousel`**
 
 ```
 store.color.urls[]  →  withCarousel  →  ProductImageCarousel (images prop)
@@ -102,19 +190,6 @@ store.device.capacities[] ──┐
 store.device.paths[]        ├──→ withColorCapacity ──→ ColorCapacitySelector
 store.colors[]              │     ├─ onCapacitySelect(path) → pushState + setStore
 store.color (선택된 색상) ───┘     └─ onColorChange(color)  → setStore({ color })
-```
-
-**Props 주입:**
-```ts
-{
-    capacities: { capacity: string, path: string }[],
-    currentModelId: string,
-    colors: Color[],
-    selectedColor: Color,
-    isLoading: boolean,
-    onCapacitySelect: (path) => void,
-    onColorChange: (color) => void,
-}
 ```
 
 ---
@@ -140,27 +215,17 @@ withRegister
 ---
 
 ### 4. PlanBenefitSelector.tsx
-**역할:** 할인 방법 탭(기기 할인/요금 할인) + 요금제 카드 목록
+**역할:** 할인 방법 탭(기기 할인/요금 할인) + 요금제 카드 목록 + 사은품 선택
 
 **화면 위치:** 통신사 선택 아래 `할인 방법` + `요금제` 섹션
 
-**연결 Override:**
-| Override | 역할 |
-|---|---|
-| `withDiscount` | `기기 할인` / `요금 할인` 탭 → `setStore({ discount })` |
-| `withPlan` | 요금제 카드 개별 (메인 요금제) active/inactive 상태 + 클릭 핸들러 |
-| `withSubPlan` | 초이스 요금제 등 서브 요금제 카드 |
-| `withPlanButton` | 요금제 선택 버튼 variant 관리 |
-| `withPlanGrid` | 요금제 그리드 전체 렌더링 |
-| `withSelectedPlan` | 현재 선택된 요금제 요약 표시 |
-| `withPlanInfo` | 선택 요금제 상세 정보 표시 |
+**연결 Override: `withPlanGrid`**
 
 ```
 store.register + store.discount
-  → withPhoneDetail.fetchMainPlanData()
+  → withPlanGrid.fetchPlans()
   → Supabase device_plans_{new|mnp|chg} 쿼리
-  → store.planInfo (선택된 요금제)
-  → withPlan → PlanBenefitSelector (variant: active/inactive)
+  → selectedPlan → setStore({ selectedPlan })
 ```
 
 ---
@@ -170,17 +235,7 @@ store.register + store.discount
 
 **화면 위치:** 요금제 선택 아래 `단말기 할부 기간` 섹션
 
-**연결 Override:**
-| Override | 역할 |
-|---|---|
-| `withInstallmentSection` | 섹션 전체 표시 여부 제어 (일부 모델 숨김) |
-| `withInstallment` | 선택 버튼 클릭 → `setStore({ installment })` + variant 관리 |
-| `withGuaranteedReturnWarning` | 미리보상 선택 시 경고 텍스트 표시 |
-| `withGuaranteedReturnComponent` | 미리보상 토글 컴포넌트 |
-
-**피그마 디자인:**
-- 선택됨: `#ecf4ff` 배경 + `#0066ff` 텍스트 + 파란 테두리
-- 미선택: 흰 배경 + `#dadada` 테두리
+**연결 Override: `withInstallmentSection`**
 
 ---
 
@@ -190,16 +245,7 @@ store.register + store.discount
 
 **화면 위치:** 할부 기간 아래 `최종 주문서` 섹션
 
-**연결 Override:**
-| Override | 역할 |
-|---|---|
-| `withPriceCard` | 할부금·출고가·할인 계산 결과를 컴포넌트에 주입 |
-| `withOrderSheetFreebie` | 사은품 항목 표시 (freebie, freebieSecond) |
-| `withKTMarketSubsidy` | KT마켓 추가지원금 금액 표시 |
-| `withKTMarketBenefit` | KT마켓 혜택 설명 텍스트 |
-| `withConfirmDeviceInfo` | 기기 정보 요약 (모델명·색상·용량) |
-| `withConfirmOrderSheet` | 주문서 전체 데이터 주입 |
-| `withConfirmTotalPaymentOrderSheet` | 최종 월 납부 금액 |
+**연결 Override: `withPriceCard`**
 
 ---
 
@@ -210,12 +256,7 @@ store.register + store.discount
 
 **화면 위치:** 화면 하단 고정 (`position: fixed`)
 
-**연결 Override:**
-| Override | 역할 |
-|---|---|
-| `withOrderSheet` | 가격 계산 전체 (할부금·요금·지원금 합산) + sessionStorage 저장 |
-| `withSubmitButton` | "주문하기" 버튼 → `/phone/user-info` 이동 |
-| `withOnlineButton` | "카카오로 10초 간편 주문" → 로그인 여부에 따라 분기 |
+**연결 Override: `withOrderSheet`**
 
 **주문 버튼 분기 로직:**
 ```
@@ -234,7 +275,7 @@ sessionStorage.setItem("sheet", JSON.stringify({
     installmentPrincipal, ktmarketSubsidy,
     doubleStorageDiscount, promotionDiscount,
     totalMonthPayment, installment, discount,
-    formLink, ...
+    officialMonthlyPrice, formLink, ...
 }))
 sessionStorage.setItem("data", JSON.stringify({
     device: { model, pet_name, capacity, form_link },
@@ -242,99 +283,6 @@ sessionStorage.setItem("data", JSON.stringify({
     register,
 }))
 ```
-
----
-
-## Override 전체 목록 (phoneDetailOverridesV2.tsx)
-
-### 핵심 (모든 페이지 필수)
-| Override | 연결 대상 | 역할 |
-|---|---|---|
-| `withPhoneDetail` | 페이지 루트 컨테이너 | Supabase 데이터 fetch, `currentModelId` 감시, isLoading 토글 |
-
-### 이미지·정보
-| Override | 연결 대상 | 역할 |
-|---|---|---|
-| `withCarousel` | ProductImageCarousel | 색상별 이미지 배열 주입 |
-| `withThumbnail` | 썸네일 이미지 | 첫 번째 이미지 URL |
-| `withDeviceInfo` | 기기 정보 텍스트 | 모델명·색상·용량 |
-| `withMainInfo` | 상단 가격 표시 | 최저가 텍스트 |
-| `withPriceComponent` | 가격 숫자 | 실시간 가격 계산 |
-| `withTempBanner` | 이벤트 배너 | 모델별 배너 텍스트 |
-
-### 선택 컨트롤
-| Override | 연결 대상 | 역할 |
-|---|---|---|
-| `withColorCapacity` | ColorCapacitySelector | 색상+용량 통합 선택 |
-| `withCapacity` | ~~PhoneCapacitySectionComponent~~ | @deprecated — `withColorCapacity`로 통합됨 |
-| `withColor` | 색상 선택 (단독) | 색상만 변경 |
-| `withRegister` | CarrierJoinSelector | 통신사·가입유형 |
-| `withDiscount` | 할인방법 탭 | 공통지원금/선택약정 토글 |
-| `withInstallment` | 할부 기간 버튼 개별 | 개월 선택 |
-| `withInstallmentSection` | 할부 섹션 전체 | 표시 여부 |
-
-### 요금제
-| Override | 연결 대상 | 역할 |
-|---|---|---|
-| `withPlan` | 요금제 카드 (메인) | active/inactive + 선택 |
-| `withSubPlan` | 요금제 카드 (서브) | 초이스 등 |
-| `withPlanButton` | 요금제 선택 버튼 | variant |
-| `withPlanGrid` | 요금제 전체 그리드 | 렌더링 제어 |
-| `withPlanInfo` | 요금제 상세 정보 | 데이터·테더링 등 |
-| `withSelectedPlan` | 선택 요금제 요약 | 현재 선택 표시 |
-
-### 사은품
-| Override | 연결 대상 | 역할 |
-|---|---|---|
-| `withFreebie` | 사은품 버튼 개별 | active/inactive |
-| `withFreebiesSection` | 사은품 섹션 전체 | 표시 여부 |
-| `withFreebies` | 사은품 목록 | freebies 배열 주입 |
-| `withFreebiesSecondSection` | 2번 사은품 섹션 | 표시 여부 |
-| `withOrderSheetFreebie` | 주문서 내 사은품 | 선택 사은품 표시 |
-
-### 혜택·지원금
-| Override | 연결 대상 | 역할 |
-|---|---|---|
-| `withKTMarketSubsidy` | KT마켓 지원금 텍스트 | 금액 표시 |
-| `withKTMarketBenefit` | 혜택 설명 | 텍스트 주입 |
-| `withBenefit` | 혜택 버튼 개별 | active/inactive |
-| `withBenefitSection` | 혜택 섹션 | 표시 여부 |
-| `withAddtionalBenefit` | 추가 혜택 | 조건부 표시 |
-
-### 주문서·버튼
-| Override | 연결 대상 | 역할 |
-|---|---|---|
-| `withOrderSheet` | OrderFlowBottomSheet | 가격 계산 + 주문 처리 |
-| `withSubmitButton` | 주문하기 버튼 | `/phone/user-info` 이동 |
-| `withOnlineButton` | 카카오 간편 주문 버튼 | 로그인 분기 |
-| `withPriceCard` | OrderSummaryCard | 가격 요약 |
-| `withConfirmDeviceInfo` | 기기 확인 카드 | 모델 정보 |
-| `withConfirmOrderSheet` | 주문 확인 | 전체 데이터 |
-| `withConfirmTotalPaymentOrderSheet` | 최종 금액 | 월 납부액 |
-
-### 기타
-| Override | 연결 대상 | 역할 |
-|---|---|---|
-| `withStock` | 재고 표시 | 품절 여부 |
-| `withStockComponent` | 재고 컴포넌트 | 표시 제어 |
-| `withShareButton` | 공유 버튼 | 링크 복사 |
-| `withBackButton` | 뒤로가기 | history.back() |
-| `withDiscountWarning` | 할인 경고 | 조건부 텍스트 |
-| `withGuaranteedReturnWarning` | 미리보상 경고 | 조건부 표시 |
-| `withGuaranteedReturnComponent` | 미리보상 토글 | 체크박스 |
-| `withPreorderVisibleSection` | 사전예약 섹션 | 표시 |
-| `withPreorderInVisibleSection` | 사전예약 섹션 | 숨김 |
-| `withDetailSection` | 상세 설명 섹션 | 접기/펼치기 |
-| `withHiddenDetailSection` | 숨겨진 상세 | 조건부 표시 |
-| `withReadMoreButton` | 더보기 버튼 | 토글 |
-| `withDetailCategoryButton` | 카테고리 버튼 | 이동 |
-| `GoToCategory` | 카테고리 이동 | Override (HOC 아님) |
-| `withReviewCard` | 리뷰 카드 | 별점 데이터 |
-| `withConditionalText` | 조건부 텍스트 | 모델별 분기 |
-| `withConditionalSubText` | 조건부 서브텍스트 | 모델별 분기 |
-| `withApplianceText` | 가전구독 텍스트 | 초이스 관련 |
-| `withYoutubePremiumCondition` | 유튜브 프리미엄 조건 | 표시 여부 |
-| `withDepositMessage` | 입금 메시지 | S26 전용 |
 
 ---
 
@@ -370,7 +318,7 @@ sessionStorage.setItem("data", JSON.stringify({
 | Text Muted | `#70737c` / `#939393` | 서브 텍스트 |
 | Discount Red | `#d83232` | 할인 금액 강조 |
 | Divider BG | `#f8f9fa` | 섹션 구분선 |
-| Font | Pretendard | 전체 |
-| Border Radius (카드) | `10.526px` | 라디오 선택 카드 |
+| Font | Pretendard | 전체 (`FONT` 상수 → `shared/orderComponents.tsx`) |
+| Border Radius (카드) | `CARD_BORDER_RADIUS = 10.526px` | 라디오 선택 카드 |
 | Border Radius (버튼) | `8px` | 일반 버튼 |
 | Button Height | `43px` (CTA) / `32px` (소형) | — |

@@ -125,14 +125,14 @@ export default function ProductImageCarousel(props) {
         if (currentIndex > 0) setCurrentIndex((i) => i - 1)
     }, [currentIndex])
 
-    const handleTouchStart = (e) => {
+    const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
         setTouchStartX(e.touches[0].clientX)
         setTouchStartY(e.touches[0].clientY)
         setIsDragging(true)
         setIsHorizontalScroll(false)
     }
 
-    const handleTouchMove = (e) => {
+    const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
         if (!touchStartX || !touchStartY) return
         const deltaX = e.touches[0].clientX - touchStartX
         const deltaY = e.touches[0].clientY - touchStartY

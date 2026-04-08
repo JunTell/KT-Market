@@ -2,143 +2,12 @@
 // [7] 최종 주문서 — 3-카드 레이아웃
 
 import { addPropertyControls, ControlType } from "framer"
-import React, { useState } from "react"
+import React from "react"
 import { motion, AnimatePresence } from "framer-motion"
-
-// ─── 툴팁 ─────────────────────────────────────────────────────────────
-const Tooltip = ({ text, children }: { text: string; children: React.ReactNode }) => {
-    const [visible, setVisible] = useState(false)
-    return (
-        <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
-            <span
-                onMouseEnter={() => setVisible(true)}
-                onMouseLeave={() => setVisible(false)}
-                onClick={() => setVisible((v) => !v)}
-                style={{ cursor: "pointer", lineHeight: 1 }}
-            >
-                {children}
-            </span>
-            <AnimatePresence>
-                {visible && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 4 }}
-                        style={{
-                            position: "absolute",
-                            bottom: "calc(100% + 6px)",
-                            left: "50%",
-                            transform: "translateX(-50%)",
-                            backgroundColor: "#1F2937",
-                            color: "#FFFFFF",
-                            fontSize: 11,
-                            padding: "6px 10px",
-                            borderRadius: 6,
-                            whiteSpace: "nowrap",
-                            zIndex: 100,
-                            pointerEvents: "none",
-                            boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                        }}
-                    >
-                        {text}
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-    )
-}
-
-const QuestionIcon = () => (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
-        <circle cx="7" cy="7" r="6.5" stroke="#9CA3AF" />
-        <text x="7" y="11" textAnchor="middle" fontSize="9" fill="#9CA3AF" fontWeight="600">?</text>
-    </svg>
-)
-
-// ─── 스켈레톤 ────────────────────────────────────────────────────────
-const SkeletonRow = ({ delay = 0, width = "45%" }: { delay?: number; width?: string }) => (
-    <div style={{ display: "flex", justifyContent: "space-between", paddingBottom: 10 }}>
-        <motion.div style={{ width: "50%", height: 13, borderRadius: 4, backgroundColor: "#E5E7EB" }}
-            animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay }} />
-        <motion.div style={{ width, height: 13, borderRadius: 4, backgroundColor: "#E5E7EB" }}
-            animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: delay + 0.08 }} />
-    </div>
-)
-
-// ─── 구분선 ──────────────────────────────────────────────────────────
-const Dashed = () => (
-    <div style={{ width: "100%", height: 0, borderTop: "1.5px dashed #E5E7EB", margin: "10px 0 12px" }} />
-)
-
-// ─── 일반 행 ─────────────────────────────────────────────────────────
-const Row = ({
-    label, value, bold = false, large = false,
-    labelColor = "#374151", valueColor = "#111827", tooltip,
-}: {
-    label: string; value: string; bold?: boolean; large?: boolean
-    labelColor?: string; valueColor?: string; tooltip?: string
-}) => (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            <span style={{ fontSize: large ? 15 : 14, fontWeight: bold ? 700 : 400, color: labelColor }}>
-                {label}
-            </span>
-            {tooltip && (
-                <Tooltip text={tooltip}><QuestionIcon /></Tooltip>
-            )}
-        </div>
-        <span style={{ fontSize: large ? 17 : 14, fontWeight: bold ? 700 : 500, color: valueColor }}>
-            {value}
-        </span>
-    </div>
-)
-
-// ─── 빨간 할인 행 (기기 할인 섹션용) ─────────────────────────────────
-const RedRow = ({
-    label, value, tooltip,
-}: {
-    label: string; value: string; tooltip?: string
-}) => (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            <span style={{ fontSize: 14, fontWeight: 400, color: "#EF4444" }}>{label}</span>
-            {tooltip && (
-                <Tooltip text={tooltip}><QuestionIcon /></Tooltip>
-            )}
-        </div>
-        <span style={{ fontSize: 14, fontWeight: 500, color: "#EF4444" }}>{value}</span>
-    </div>
-)
-
-// ─── 카드 컨테이너 ────────────────────────────────────────────────────
-const Card = ({ children }: { children: React.ReactNode }) => (
-    <div style={{
-        width: "100%", backgroundColor: "#FFFFFF",
-        border: "1.5px solid #E5E7EB", borderRadius: 12,
-        padding: "16px 18px 6px", boxSizing: "border-box",
-    }}>
-        {children}
-    </div>
-)
-
-// ─── 섹션 헤더 ────────────────────────────────────────────────────────
-const SectionHeader = ({
-    label, value, description,
-}: {
-    label: string; value?: string; description?: string
-}) => (
-    <div style={{ marginBottom: 14 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>{label}</span>
-            {value && <span style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>{value}</span>}
-        </div>
-        {description && (
-            <span style={{ fontSize: 12, color: "#9CA3AF", display: "block", marginTop: 2 }}>
-                {description}
-            </span>
-        )}
-    </div>
-)
+import {
+    Tooltip, QuestionIcon, SkeletonRow, Dashed,
+    Row, RedRow, Card, SectionHeader,
+} from "./shared/orderComponents"
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────
 /**
@@ -167,7 +36,6 @@ export default function OrderSummarySheet(props) {
         totalMonthPayment = 0,
         discount = "공통지원금",
         isLoading = false,
-        stepNumber = 7,
         title = "최종 주문서",
     } = props
 
@@ -354,7 +222,6 @@ const totalCardStyle: React.CSSProperties = {
 
 addPropertyControls(OrderSummarySheet, {
     isLoading: { type: ControlType.Boolean, title: "Loading", defaultValue: false },
-    stepNumber: { type: ControlType.Number, title: "Step No.", defaultValue: 7, min: 1, max: 9 },
     title: { type: ControlType.String, title: "Title", defaultValue: "최종 주문서" },
     installmentPaymentTitle: { type: ControlType.String, title: "할부 타이틀", defaultValue: "월 할부원금 (24개월)" },
     installmentPaymentDescription: { type: ControlType.String, title: "할부 설명", defaultValue: "분할 상환 수수료 5.9% 포함" },
