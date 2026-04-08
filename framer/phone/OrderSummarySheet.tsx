@@ -63,7 +63,9 @@ export default function OrderSummarySheet(props) {
     const displayDescription = showInterest ? installmentPaymentDescription : ""
     const displayTotalMonthPayment = showInterest
         ? Math.round(totalMonthPayment)
-        : totalMonthPaymentNoInterest
+        : installment === 0
+          ? Math.round(totalMonthPayment)
+          : totalMonthPaymentNoInterest
 
     return (
         <div style={wrapperStyle}>
@@ -87,11 +89,33 @@ export default function OrderSummarySheet(props) {
                 <>
                     {/* ── 카드 1: 월 할부원금 ── */}
                     <Card>
-                        <SectionHeader
-                            label={installmentPaymentTitle}
-                            value={displayInstallmentValue}
-                            description={displayDescription}
-                        />
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+                                <span style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>
+                                    {installmentPaymentTitle}
+                                </span>
+                                <span style={{ fontSize: 18, fontWeight: 700, color: "#111827", textAlign: "right" }}>
+                                    {displayInstallmentValue}
+                                </span>
+                            </div>
+                            <AnimatePresence mode="wait" initial={false}>
+                                <motion.div
+                                    key={displayDescription || "empty-description"}
+                                    initial={{ opacity: 0, y: -4 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 4 }}
+                                    transition={{ duration: 0.8, ease: "easeInOut" }}
+                                    style={{
+                                        minHeight: 18,
+                                        fontSize: 12,
+                                        color: "#8B95A1",
+                                        lineHeight: 1.5,
+                                    }}
+                                >
+                                    {displayDescription}
+                                </motion.div>
+                            </AnimatePresence>
+                        </div>
 
                         {/* 출고가 */}
                         <Row label="출고가" value={`${devicePrice.toLocaleString()}원`} />

@@ -948,9 +948,6 @@ export function withOrderSheet(Component): ComponentType {
         // 💡 초이스 요금제 프로모션 할인 로직 (S26 예외처리 삭제됨)
         function calculateDiscounts(planId: string) {
             const promo100000Plans = [
-                "ppllistobj_0994",
-                "ppllistobj_0993",
-                "ppllistobj_0992",
                 "ppllistobj_0863",
                 "ppllistobj_0864",
                 "ppllistobj_0865",
@@ -962,7 +959,7 @@ export function withOrderSheet(Component): ComponentType {
             let promo = 0
 
             if (promo100000Plans.includes(planId)) {
-                promo = 80000
+                promo = 50000
             }
 
             return { promo }
@@ -1366,7 +1363,7 @@ export function withPlanBasicNotice(Component): ComponentType {
             const n = months
             return Math.floor(
                 (principal * r * Math.pow(1 + r, n)) /
-                    (Math.pow(1 + r, n) - 1)
+                (Math.pow(1 + r, n) - 1)
             )
         }
 
@@ -1423,7 +1420,7 @@ export function withPlanBasicNotice(Component): ComponentType {
         ]
         const guaranteedReturnPrice =
             store.isGuaranteedReturn &&
-            guaranteedReturnModels.includes(store.device?.model ?? "")
+                guaranteedReturnModels.includes(store.device?.model ?? "")
                 ? modelPrice / 2
                 : 0
 
@@ -1435,8 +1432,8 @@ export function withPlanBasicNotice(Component): ComponentType {
             register === "번호이동" || register === "신규가입"
                 ? modelPrices.mnp
                 : register === "기기변경"
-                  ? modelPrices.chg
-                  : 0
+                    ? modelPrices.chg
+                    : 0
 
         const doubleStorageModels = [
             "sm-s942nk512",
@@ -1451,9 +1448,9 @@ export function withPlanBasicNotice(Component): ComponentType {
         ]
         const doubleStorageDiscount =
             doubleStorageModels.includes(store.device?.model ?? "") &&
-            register === "기기변경" &&
-            (store.installment ?? 24) < 36 &&
-            (planPrice >= 37000 || exceptionPlansForDoubleStorage.includes(planId))
+                register === "기기변경" &&
+                (store.installment ?? 24) < 36 &&
+                (planPrice >= 37000 || exceptionPlansForDoubleStorage.includes(planId))
                 ? 0
                 : 0
 
@@ -1485,6 +1482,50 @@ export function withPlanBasicNotice(Component): ComponentType {
             <Component
                 {...props}
                 officialMonthlyPrice={officialMonthlyPrice}
+            />
+        )
+    }
+}
+
+export function withDetailSection(Component): ComponentType {
+    return (props) => {
+        const [store] = useStore()
+        const [height, setHeight] = useState("1800px")
+
+        useEffect(() => {
+            if (store.isExpanded) {
+                setHeight("auto")
+            } else {
+                setHeight("1800px")
+            }
+        }, [store.isExpanded])
+
+        return (
+            <Component
+                {...props}
+                style={{
+                    ...(props.style || {}),
+                    height,
+                    overflow: "hidden",
+                }}
+            />
+        )
+    }
+}
+
+export function withReadMoreButton(Component): ComponentType {
+    return (props) => {
+        const [store, setStore] = useStore()
+
+        const handleOnClick = () => {
+            setStore({ isExpanded: !store.isExpanded })
+        }
+
+        return (
+            <Component
+                {...props}
+                title={store.isExpanded ? "상세정보 접기" : "상세정보 펼처보기"}
+                onClick={handleOnClick}
             />
         )
     }

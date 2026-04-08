@@ -5,7 +5,7 @@
 
 import { addPropertyControls, ControlType } from "framer"
 import React, { useState, useEffect, useRef } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useDragControls } from "framer-motion"
 
 const CARD_BORDER_RADIUS = 10.526 // px — matches 8dp at 1.316 density
 
@@ -53,6 +53,7 @@ export default function ColorCapacitySelector(props) {
 
     const [showModal, setShowModal] = useState(false)
     const touchStartY = useRef(0)
+    const dragControls = useDragControls()
 
     // 모달 열릴 때 배경 스크롤 차단
     useEffect(() => {
@@ -183,6 +184,16 @@ export default function ColorCapacitySelector(props) {
                             key="sheet"
                             initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
                             transition={{ type: "spring", stiffness: 340, damping: 32 }}
+                            drag="y"
+                            dragControls={dragControls}
+                            dragListener={false}
+                            dragConstraints={{ top: 0, bottom: 0 }}
+                            dragElastic={{ top: 0, bottom: 0.18 }}
+                            onDragEnd={(_, info) => {
+                                if (info.offset.y > 120 || info.velocity.y > 700) {
+                                    setShowModal(false)
+                                }
+                            }}
                             style={{
                                 position: "fixed", bottom: 0, left: 0, right: 0,
                                 margin: "0 auto", maxWidth: 440, width: "100%",
@@ -199,6 +210,7 @@ export default function ColorCapacitySelector(props) {
                                 style={{ padding: "14px 20px 0", flexShrink: 0, cursor: "grab" }}
                                 onTouchStart={handleSheetTouchStart}
                                 onTouchEnd={handleSheetTouchEnd}
+                                onPointerDown={(event) => dragControls.start(event)}
                             >
                                 <div style={{
                                     width: 40, height: 4, borderRadius: 9999,

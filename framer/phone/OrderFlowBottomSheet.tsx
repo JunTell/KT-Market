@@ -4,7 +4,7 @@
 
 import { addPropertyControls, ControlType } from "framer"
 import React, { useState, useEffect, useRef } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useDragControls } from "framer-motion"
 import {
     FONT, useAnimatedNumber, ToggleSwitch,
     SkeletonRow, Dashed, Row, RedRow, SectionHeader,
@@ -187,6 +187,7 @@ function DetailBottomSheet({
 }) {
     const [showInterest, setShowInterest] = useState(false)
     const touchStartY = useRef(0)
+    const dragControls = useDragControls()
     const handleSheetTouchStart = (e: React.TouchEvent) => {
         touchStartY.current = e.touches[0].clientY
     }
@@ -220,6 +221,16 @@ function DetailBottomSheet({
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", stiffness: 340, damping: 32 }}
+                drag="y"
+                dragControls={dragControls}
+                dragListener={false}
+                dragConstraints={{ top: 0, bottom: 0 }}
+                dragElastic={{ top: 0, bottom: 0.18 }}
+                onDragEnd={(_, info) => {
+                    if (info.offset.y > 120 || info.velocity.y > 700) {
+                        onClose()
+                    }
+                }}
                 style={{
                     position: "fixed",
                     bottom: 0,
@@ -249,6 +260,7 @@ function DetailBottomSheet({
                     }}
                     onTouchStart={handleSheetTouchStart}
                     onTouchEnd={handleSheetTouchEnd}
+                    onPointerDown={(event) => dragControls.start(event)}
                 >
                     {/* 핸들 */}
                     <div style={{
@@ -285,7 +297,7 @@ function DetailBottomSheet({
                     backgroundColor: "#FFFFFF",
                 }}>
                     <button
-                        onClick={onApply}
+                        onClick={onClose}
                         style={{
                             width: "100%", height: 52, borderRadius: 14,
                             border: "none", backgroundColor: "#0055FF",
@@ -294,7 +306,7 @@ function DetailBottomSheet({
                             display: "flex", alignItems: "center", justifyContent: "center",
                         }}
                     >
-                        신청하기
+                        확인
                     </button>
                 </div>
             </motion.div>
@@ -363,7 +375,11 @@ export default function OrderFlowBottomSheet(props) {
     }, [showDetailSheet])
 
     // ── 금액 변동 애니메이션 ──
-    const roundedPayment = Math.round(totalMonthPayment)
+    const roundedPayment = Math.round(
+        totalMonthPaymentNoInterest > 0
+            ? totalMonthPaymentNoInterest
+            : totalMonthPayment
+    )
     const prevPaymentRef = useRef(roundedPayment)
     const [direction, setDirection] = useState<"up" | "down" | null>(null)
     const animatedPayment = useAnimatedNumber(roundedPayment)

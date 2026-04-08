@@ -164,7 +164,6 @@ export default function InstallmentSelectorSection(props) {
                                     isActive={installment === value}
                                     onClick={() => {
                                         handleClick(value)
-                                        setIsExpanded(false)
                                     }}
                                 />
                             ))}

@@ -5,7 +5,7 @@
 
 import { addPropertyControls, ControlType } from "framer"
 import React, { useState, useRef, useMemo } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useDragControls } from "framer-motion"
 
 // ─── 타입 ────────────────────────────────────────────────────────────
 type Freebie = {
@@ -439,6 +439,7 @@ export default function PlanBenefitSelector(props) {
     const [searchQuery, setSearchQuery] = useState("")
     const [customPlan, setCustomPlan] = useState<Plan | null>(null)
     const scrollRef = useRef<HTMLDivElement>(null)
+    const dragControls = useDragControls()
 
     // ─── 사은품 fetch (선택된 요금제가 사은품 대상일 때만) ───────────────
     const [freebies, setFreebies] = useState<Freebie[]>([])
@@ -612,11 +613,24 @@ export default function PlanBenefitSelector(props) {
                         <motion.div
                             initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
                             transition={{ type: "spring", damping: 28, stiffness: 300 }}
+                            drag="y"
+                            dragControls={dragControls}
+                            dragListener={false}
+                            dragConstraints={{ top: 0, bottom: 0 }}
+                            dragElastic={{ top: 0, bottom: 0.18 }}
+                            onDragEnd={(_, info) => {
+                                if (info.offset.y > 120 || info.velocity.y > 700) {
+                                    setShowPopup(false)
+                                }
+                            }}
                             onClick={(e) => e.stopPropagation()}
                             style={{ width: "100%", maxWidth: 480, backgroundColor: "#FFFFFF", borderTopLeftRadius: 20, borderTopRightRadius: 20, height: "85vh", display: "flex", flexDirection: "column", overflow: "hidden" }}
                         >
                             {/* 팝업 헤더 고정 영역 */}
-                            <div style={{ padding: "12px 20px 0", flexShrink: 0 }}>
+                            <div
+                                style={{ padding: "12px 20px 0", flexShrink: 0, cursor: "grab" }}
+                                onPointerDown={(event) => dragControls.start(event)}
+                            >
                                 {/* 핸들 */}
                                 <div style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: "#E5E7EB", margin: "0 auto 12px" }} />
 
