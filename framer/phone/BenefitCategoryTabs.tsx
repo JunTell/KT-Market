@@ -1,13 +1,14 @@
 import * as React from "react"
 import { addPropertyControls, ControlType } from "framer"
 
-type TabKey = "benefit" | "notice" | "review"
-
 /**
+ * 탭 클릭 시 Framer 캔버스의 해당 섹션으로 스크롤합니다.
+ * 각 탭의 "섹션 ID" 값을 Framer에서 섹션 프레임의 ID와 일치시켜주세요.
+ *
  * @framerSupportedLayoutWidth any
  * @framerSupportedLayoutHeight auto
  * @framerIntrinsicWidth 390
- * @framerIntrinsicHeight 320
+ * @framerIntrinsicHeight 50
  */
 export default function BenefitCategoryTabs(props) {
     const {
@@ -15,19 +16,34 @@ export default function BenefitCategoryTabs(props) {
         benefitTitle = "혜택 확인",
         noticeTitle = "유의사항",
         reviewTitle = "구매후기",
-        benefitImage,
-        noticeText,
-        reviewText,
-        emptyBenefitText = "혜택 이미지를 추가해주세요.",
+        benefitSectionId = "benefit",
+        noticeSectionId = "notice",
+        reviewSectionId = "review",
+        scrollOffset = 0,
+        // override에서 주입 — 제공 시 내부 스크롤 대신 이 콜백 호출
+        onTabClick = null,
     } = props
 
-    const [activeTab, setActiveTab] = React.useState<TabKey>("benefit")
+    const [activeTab, setActiveTab] = React.useState<string | null>(null)
 
-    const tabs: Array<{ key: TabKey; label: string }> = [
-        { key: "benefit", label: benefitTitle },
-        { key: "notice", label: noticeTitle },
-        { key: "review", label: reviewTitle },
+    const tabs = [
+        { key: "benefit", label: benefitTitle, sectionId: benefitSectionId },
+        { key: "notice",  label: noticeTitle,  sectionId: noticeSectionId },
+        { key: "review",  label: reviewTitle,  sectionId: reviewSectionId },
     ]
+
+    const handleClick = (key: string, sectionId: string) => {
+        setActiveTab(key)
+        if (onTabClick) {
+            onTabClick(key, sectionId, scrollOffset)
+        } else {
+            const el = document.getElementById(sectionId)
+            if (el) {
+                const top = el.getBoundingClientRect().top + window.scrollY - scrollOffset
+                window.scrollTo({ top, behavior: "smooth" })
+            }
+        }
+    }
 
     return (
         <div style={{ ...containerStyle, ...style }}>
@@ -37,13 +53,11 @@ export default function BenefitCategoryTabs(props) {
                     return (
                         <button
                             key={tab.key}
-                            onClick={() => setActiveTab(tab.key)}
+                            onClick={() => handleClick(tab.key, tab.sectionId)}
                             style={{
                                 ...tabButtonStyle,
                                 color: isActive ? "#111827" : "#8B95A1",
-                                borderBottomColor: isActive
-                                    ? "#0055FF"
-                                    : "transparent",
+                                borderBottomColor: isActive ? "#0055FF" : "transparent",
                                 fontWeight: isActive ? 700 : 500,
                             }}
                         >
@@ -52,39 +66,16 @@ export default function BenefitCategoryTabs(props) {
                     )
                 })}
             </div>
-
-            <div style={contentStyle}>
-                {activeTab === "benefit" && (
-                    <>
-                        {benefitImage ? (
-                            <img
-                                src={benefitImage}
-                                alt={benefitTitle}
-                                style={benefitImageStyle}
-                            />
-                        ) : (
-                            <div style={emptyStateStyle}>{emptyBenefitText}</div>
-                        )}
-                    </>
-                )}
-
-                {activeTab === "notice" && (
-                    <div style={textContentStyle}>{noticeText}</div>
-                )}
-
-                {activeTab === "review" && (
-                    <div style={textContentStyle}>{reviewText}</div>
-                )}
-            </div>
         </div>
     )
 }
 
 const containerStyle: React.CSSProperties = {
     width: "100%",
+    minWidth: 360,
+    maxWidth: 440,
     display: "flex",
     flexDirection: "column",
-    gap: 16,
     boxSizing: "border-box",
     fontFamily: '"Pretendard", "Inter", sans-serif',
 }
@@ -109,50 +100,6 @@ const tabButtonStyle: React.CSSProperties = {
     transition: "color 0.2s ease, border-color 0.2s ease",
 }
 
-const contentStyle: React.CSSProperties = {
-    width: "100%",
-    minHeight: 220,
-    boxSizing: "border-box",
-}
-
-const benefitImageStyle: React.CSSProperties = {
-    width: "100%",
-    display: "block",
-    borderRadius: 16,
-    objectFit: "cover",
-}
-
-const emptyStateStyle: React.CSSProperties = {
-    width: "100%",
-    minHeight: 220,
-    borderRadius: 16,
-    border: "1px dashed #D1D5DB",
-    backgroundColor: "#F9FAFB",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-    boxSizing: "border-box",
-    color: "#8B95A1",
-    fontSize: 14,
-    textAlign: "center",
-    wordBreak: "keep-all",
-}
-
-const textContentStyle: React.CSSProperties = {
-    minHeight: 220,
-    padding: 20,
-    borderRadius: 16,
-    backgroundColor: "#F9FAFB",
-    border: "1px solid #EEF1F4",
-    boxSizing: "border-box",
-    color: "#333D4B",
-    fontSize: 14,
-    lineHeight: 1.7,
-    whiteSpace: "pre-line",
-    wordBreak: "keep-all",
-}
-
 addPropertyControls(BenefitCategoryTabs, {
     benefitTitle: {
         type: ControlType.String,
@@ -169,27 +116,25 @@ addPropertyControls(BenefitCategoryTabs, {
         title: "후기 탭명",
         defaultValue: "구매후기",
     },
-    benefitImage: {
-        type: ControlType.Image,
-        title: "혜택 이미지",
-    },
-    emptyBenefitText: {
+    benefitSectionId: {
         type: ControlType.String,
-        title: "빈 안내문구",
-        defaultValue: "혜택 이미지를 추가해주세요.",
+        title: "혜택 섹션 ID",
+        defaultValue: "benefit",
     },
-    noticeText: {
+    noticeSectionId: {
         type: ControlType.String,
-        title: "유의사항",
-        displayTextArea: true,
-        defaultValue:
-            "개통 이후 혜택이 반영됩니다.\n상세 조건은 신청서와 해피콜 안내를 함께 확인해주세요.",
+        title: "유의 섹션 ID",
+        defaultValue: "notice",
     },
-    reviewText: {
+    reviewSectionId: {
         type: ControlType.String,
-        title: "구매후기",
-        displayTextArea: true,
-        defaultValue:
-            "구매후기 내용을 여기에 입력해주세요.\n추후 실제 후기 카드 형태로 교체해도 됩니다.",
+        title: "후기 섹션 ID",
+        defaultValue: "review",
+    },
+    scrollOffset: {
+        type: ControlType.Number,
+        title: "스크롤 오프셋",
+        defaultValue: 0,
+        description: "상단 고정 요소 높이만큼 보정 (px)",
     },
 })

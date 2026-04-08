@@ -66,7 +66,7 @@ const Skeleton = () => (
             {[0, 1, 2, 3].map((i) => (
                 <motion.div
                     key={i}
-                    style={{ width: 75, height: 40, borderRadius: 7, backgroundColor: "#E5E7EB", flexShrink: 0 }}
+                    style={{ flex: 1, height: 40, borderRadius: 7, backgroundColor: "#E5E7EB" }}
                     animate={{ opacity: [0.4, 1, 0.4] }}
                     transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: i * 0.08 }}
                 />
@@ -128,19 +128,23 @@ export default function CarrierJoinSelector(props) {
 
     const activeCarrier = allCarriers.find((c) => c.id === activeId) ?? allCarriers[0]
 
+    // 캐리어 수에 따른 폰트 스케일 (5개일 때 좁아지므로 축소)
+    const fontScale = allCarriers.length >= 5 ? 0.82 : 1
+
     if (isLoading) return <Skeleton />
 
     return (
         <div style={wrapperStyle}>
             {/* 타이틀 */}
-            <span style={{ fontSize: 18, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
                 {title}
             </span>
 
-            {/* 수평 버튼 그리드 */}
-            <div style={{ display: "flex", gap: 8 }}>
+            {/* 수평 버튼 그리드 — flex:1로 균등 분배 */}
+            <div style={{ display: "flex", gap: 6 }}>
                 {allCarriers.map((c) => {
                     const isActive = activeId === c.id
+                    const scaledFontSize = Math.round(c.fontSize * fontScale)
                     return (
                         <motion.button
                             key={c.id}
@@ -148,19 +152,18 @@ export default function CarrierJoinSelector(props) {
                             whileTap={{ scale: 0.96 }}
                             style={{
                                 display: "flex",
-                                width: 75,
+                                flex: 1,
+                                minWidth: 0,
                                 height: 40,
-                                padding: "8.972px 12.194px",
+                                padding: "0 4px",
                                 justifyContent: "center",
                                 alignItems: "center",
-                                gap: 11.77,
                                 borderRadius: 7,
                                 border: isActive ? "1.2px solid #0066FF" : "1.2px solid #E5E7EB",
                                 backgroundColor: isActive ? "#ECF4FF" : "#FFFFFF",
                                 cursor: "pointer",
                                 boxSizing: "border-box",
                                 fontFamily: FONT,
-                                flexShrink: 0,
                                 transition: "border-color 0.15s, background-color 0.15s",
                             }}
                         >
@@ -169,10 +172,9 @@ export default function CarrierJoinSelector(props) {
                                     src={logoMap[c.id]}
                                     alt={c.id}
                                     style={{
-                                        width: 17,
+                                        width: "auto",
+                                        maxWidth: "80%",
                                         height: 14,
-                                        flexShrink: 0,
-                                        aspectRatio: "17 / 14",
                                         objectFit: "contain",
                                         opacity: isActive ? 1 : 0.35,
                                         transition: "opacity 0.15s",
@@ -182,7 +184,7 @@ export default function CarrierJoinSelector(props) {
                                 />
                             ) : (
                                 <span style={{
-                                    fontSize: c.fontSize,
+                                    fontSize: scaledFontSize,
                                     fontWeight: c.fontWeight,
                                     color: isActive ? c.labelColor : "#9CA3AF",
                                     letterSpacing: c.letterSpacing,
@@ -190,6 +192,9 @@ export default function CarrierJoinSelector(props) {
                                     fontFamily: FONT,
                                     transition: "color 0.15s",
                                     userSelect: "none",
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
                                 }}>
                                     {c.label}
                                 </span>
@@ -209,11 +214,11 @@ export default function CarrierJoinSelector(props) {
                     transition={{ duration: 0.18 }}
                     style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: FONT }}
                 >
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "#374151", whiteSpace: "nowrap" }}>
                         {activeCarrier.joinType}
                     </span>
-                    <span style={{ fontSize: 13, color: "#9CA3AF" }}>|</span>
-                    <span style={{ fontSize: 13, color: "#9CA3AF", lineHeight: 1.5 }}>
+                    <span style={{ fontSize: 12, color: "#9CA3AF", flexShrink: 0 }}>|</span>
+                    <span style={{ fontSize: 12, color: "#9CA3AF", lineHeight: 1.5 }}>
                         {activeCarrier.description}
                     </span>
                 </motion.div>

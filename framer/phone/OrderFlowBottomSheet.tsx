@@ -107,11 +107,35 @@ function OrderSheetContent({
         <>
             {/* 카드 1: 월 할부원금 */}
             <Card>
-                <SectionHeader
-                    label={installmentPaymentTitle}
-                    value={displayInstallmentValue}
-                    description={displayDescription}
-                />
+                <div style={{ marginBottom: 14 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
+                        <span style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>{installmentPaymentTitle}</span>
+                        <AnimatePresence mode="wait" initial={false}>
+                            <motion.span
+                                key={displayInstallmentValue}
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 4 }}
+                                transition={{ duration: 0.5, ease: "easeInOut" }}
+                                style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}
+                            >
+                                {displayInstallmentValue}
+                            </motion.span>
+                        </AnimatePresence>
+                    </div>
+                    <AnimatePresence mode="wait" initial={false}>
+                        <motion.div
+                            key={displayDescription || "empty-description"}
+                            initial={{ opacity: 0, y: -4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 4 }}
+                            transition={{ duration: 0.5, ease: "easeInOut" }}
+                            style={{ minHeight: 18, fontSize: 12, color: "#8B95A1", lineHeight: 1.5, marginTop: 2 }}
+                        >
+                            {displayDescription}
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
                 <Row label="출고가" value={`${devicePrice.toLocaleString()}원`} />
                 {disclosureSubsidy > 0 && (
                     <RedRow label="공시지원금" value={`-${disclosureSubsidy.toLocaleString()}원`} tooltip="이동통신사가 공시한 단말기 지원금" />
@@ -165,9 +189,18 @@ function OrderSheetContent({
                 marginBottom: 10,
             }}>
                 <span style={{ fontSize: 15, fontWeight: 500, color: "#374151" }}>월 예상 금액</span>
-                <span style={{ fontSize: 20, fontWeight: 700, color: "#0055FF" }}>
-                    {displayTotalMonthPayment.toLocaleString()}원
-                </span>
+                <AnimatePresence mode="wait" initial={false}>
+                    <motion.span
+                        key={displayTotalMonthPayment}
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 4 }}
+                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                        style={{ fontSize: 20, fontWeight: 700, color: "#0055FF" }}
+                    >
+                        {displayTotalMonthPayment.toLocaleString()}원
+                    </motion.span>
+                </AnimatePresence>
             </div>
         </>
     )
@@ -179,13 +212,16 @@ function DetailBottomSheet({
     onApply,
     sheetProps,
     FONT,
+    showInterest,
+    setShowInterest,
 }: {
     onClose: () => void
     onApply: () => void
     sheetProps: any
     FONT: string
+    showInterest: boolean
+    setShowInterest: (v: boolean) => void
 }) {
-    const [showInterest, setShowInterest] = useState(false)
     const touchStartY = useRef(0)
     const dragControls = useDragControls()
     const handleSheetTouchStart = (e: React.TouchEvent) => {
@@ -362,6 +398,7 @@ export default function OrderFlowBottomSheet(props) {
 
     const [mounted, setMounted] = useState(false)
     const [showDetailSheet, setShowDetailSheet] = useState(false)
+    const [showInterest, setShowInterest] = useState(false)
 
     // 모달 열릴 때 배경 스크롤 차단
     useEffect(() => {
@@ -376,9 +413,9 @@ export default function OrderFlowBottomSheet(props) {
 
     // ── 금액 변동 애니메이션 ──
     const roundedPayment = Math.round(
-        totalMonthPaymentNoInterest > 0
-            ? totalMonthPaymentNoInterest
-            : totalMonthPayment
+        showInterest
+            ? totalMonthPayment
+            : (totalMonthPaymentNoInterest > 0 ? totalMonthPaymentNoInterest : totalMonthPayment)
     )
     const prevPaymentRef = useRef(roundedPayment)
     const [direction, setDirection] = useState<"up" | "down" | null>(null)
@@ -454,7 +491,7 @@ export default function OrderFlowBottomSheet(props) {
         <div style={{
             position: "fixed", bottom: 0, left: 0, right: 0, margin: "0 auto",
             width: "100%", maxWidth: 440,
-            zIndex: 120,
+            zIndex: 11,
             backgroundColor: "#FFFFFF",
             borderRadius: "20px 20px 0 0",
             boxShadow: "0 -4px 28px rgba(0,0,0,0.13)",
@@ -498,6 +535,20 @@ export default function OrderFlowBottomSheet(props) {
                         {animatedPayment.toLocaleString()}원
                     </motion.span>
                     <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>부가세 포함</span>
+                    {installment > 0 && (
+                        <AnimatePresence mode="wait" initial={false}>
+                            <motion.span
+                                key={showInterest ? "interest-on" : "interest-off"}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.5 }}
+                                style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}
+                            >
+                                {showInterest ? "할부이자 포함" : "할부이자 미포함"}
+                            </motion.span>
+                        </AnimatePresence>
+                    )}
                 </div>
             </div>
 
@@ -579,6 +630,8 @@ export default function OrderFlowBottomSheet(props) {
                     }}
                     sheetProps={sheetProps}
                     FONT={FONT}
+                    showInterest={showInterest}
+                    setShowInterest={setShowInterest}
                 />
             )}
         </div>

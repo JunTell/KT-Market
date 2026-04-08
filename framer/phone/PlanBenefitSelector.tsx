@@ -176,12 +176,84 @@ const SkeletonCard = ({ delay = 0 }) => (
     />
 )
 
+// ─── 사은품 슬라이더 ─────────────────────────────────────────────────
+const FreebieSlider = ({ freebies }: { freebies: Freebie[] }) => {
+    const [activeIdx, setActiveIdx] = useState(0)
+    const scrollRef = useRef<HTMLDivElement>(null)
+    const timerRef = useRef<any>(null)
+
+    const handleScroll = () => {
+        clearTimeout(timerRef.current)
+        timerRef.current = setTimeout(() => {
+            if (!scrollRef.current) return
+            const el = scrollRef.current
+            const firstCard = el.firstElementChild as HTMLElement | null
+            const cardW = firstCard ? firstCard.offsetWidth : el.clientWidth / 2
+            const idx = Math.round(el.scrollLeft / (cardW + 8))
+            setActiveIdx(Math.min(Math.max(idx, 0), freebies.length - 1))
+        }, 80)
+    }
+
+    return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div
+                ref={scrollRef}
+                onScroll={handleScroll}
+                style={{
+                    display: "flex", gap: 8, overflowX: "auto", scrollbarWidth: "none",
+                    WebkitOverflowScrolling: "touch", scrollSnapType: "x mandatory",
+                } as React.CSSProperties}
+            >
+                {freebies.map((f) => (
+                    <div
+                        key={f.no}
+                        style={{
+                            flexShrink: 0, width: "calc(50% - 4px)", scrollSnapAlign: "start",
+                            height: 88, padding: "10px 8px",
+                            display: "flex", alignItems: "center", gap: 8,
+                            borderRadius: 9, border: "0.8px solid #CFCFCF",
+                            backgroundColor: "#FFF", boxSizing: "border-box",
+                        } as React.CSSProperties}
+                    >
+                        <img
+                            src={`https://juntell.s3.ap-northeast-2.amazonaws.com/freebie/${f.no}.png`}
+                            alt={f.title}
+                            style={{ width: 44, height: 44, objectFit: "contain", flexShrink: 0 }}
+                            onError={(e) => { e.currentTarget.style.display = "none" }}
+                        />
+                        <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0, flex: 1 }}>
+                            <span style={{
+                                fontSize: 11, fontWeight: 500, color: "#374151", lineHeight: 1.3,
+                                overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box",
+                                WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+                            } as React.CSSProperties}>{f.title}</span>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: "#111827" }}>월 {(f.monthly_price ?? 0).toLocaleString()}원</span>
+                            <span style={{ fontSize: 10, color: "#9CA3AF" }}>할부 수수료 별도</span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+            {freebies.length > 2 && (
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4 }}>
+                    {freebies.map((_, i) => (
+                        <div key={i} style={{
+                            width: activeIdx === i ? 14 : 6, height: 6, borderRadius: 3,
+                            backgroundColor: activeIdx === i ? "#0055FF" : "#D1D5DB",
+                            transition: "all 0.25s ease", flexShrink: 0,
+                        }} />
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+}
+
 // ─── 요금제 카드 (사은품 통합) ────────────────────────────────────────
 const PlanCard = ({
-    plan, isActive, discountLabel, onSelect,
+    plan, isActive, discountLabel, isChoiceDiscount, onSelect,
     freebies, freebieLoading, selectedFreebie, onFreebieSelect,
 }: {
-    plan: Plan; isActive: boolean; discountLabel: string; onSelect: (p: Plan) => void
+    plan: Plan; isActive: boolean; discountLabel: string; isChoiceDiscount: boolean; onSelect: (p: Plan) => void
     freebies: Freebie[]; freebieLoading: boolean; selectedFreebie: Freebie | null; onFreebieSelect: (f: Freebie) => void
 }) => {
     const hasFreebiePlan = FREEBIE_PLAN_PIDS.has(plan.pid)
@@ -194,9 +266,9 @@ const PlanCard = ({
             whileTap={{ scale: 0.98 }}
             style={{
                 width: "100%", display: "flex", flexDirection: "column", gap: 10, padding: "14px 16px",
-                border: showFreebie ? "1px solid #0066FF" : isActive ? "2px solid #0055FF" : "1.5px solid #E5E7EB",
-                borderRadius: showFreebie ? CARD_BORDER_RADIUS : 8,
-                backgroundColor: showFreebie ? "#ECF4FF" : "#FFFFFF",
+                border: showFreebie ? "1px solid #0066FF" : isActive ? "1px solid #0055FF" : "1.5px solid #E5E7EB",
+                borderRadius: isActive ? CARD_BORDER_RADIUS : 8,
+                backgroundColor: isActive ? "#ECF4FF" : "#FFFFFF",
                 cursor: "pointer", boxSizing: "border-box",
             }}
         >
@@ -223,34 +295,7 @@ const PlanCard = ({
                             transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
                         />
                     ) : freebies.length > 0 ? (
-                        <div style={{ display: "flex", gap: 8, overflowX: "auto", scrollbarWidth: "none" }}>
-                            {freebies.map((f) => {
-                                return (
-                                    <div
-                                        key={f.no}
-                                        style={{
-                                            flexShrink: 0, width: 226, height: 75,
-                                            padding: "13px 7px",
-                                            display: "flex", justifyContent: "center", alignItems: "center", gap: 10,
-                                            borderRadius: 9, border: "0.8px solid #CFCFCF",
-                                            backgroundColor: "#FFF", boxSizing: "border-box",
-                                        }}
-                                    >
-                                        <img
-                                            src={`https://juntell.s3.ap-northeast-2.amazonaws.com/freebie/${f.no}.png`}
-                                            alt={f.title}
-                                            style={{ width: 48, height: 48, objectFit: "contain", flexShrink: 0 }}
-                                            onError={(e) => { e.currentTarget.style.display = "none" }}
-                                        />
-                                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                                            <span style={{ fontSize: 12, fontWeight: 500, color: "#374151", lineHeight: 1.3 }}>{f.title}</span>
-                                            <span style={{ fontSize: 12, fontWeight: 700, color: "#111827" }}>월 {(f.monthly_price ?? 0).toLocaleString()}원</span>
-                                            <span style={{ fontSize: 11, color: "#9CA3AF" }}>할부 수수료 별도</span>
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
+                        <FreebieSlider freebies={freebies} />
                     ) : (
                         <span style={{ fontSize: 13, color: "#9CA3AF" }}>해당 요금제에 적용 가능한 할인 제품이 없습니다.</span>
                     )}
@@ -263,20 +308,34 @@ const PlanCard = ({
             )}
 
             {/* 하단: 할인라벨 + 월 요금 */}
-            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 13, color: "#0055FF", fontWeight: 500 }}>{discountLabel}</span>
-                <span style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>월 {plan.price.toLocaleString()}원</span>
-            </div>
+            {isChoiceDiscount ? (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        <span style={{ fontSize: 12, color: "#9CA3AF", textDecoration: "line-through" }}>
+                            {plan.price.toLocaleString()}원
+                        </span>
+                        <span style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>
+                            {Math.round(plan.price * 0.75).toLocaleString()}원
+                        </span>
+                    </div>
+                    <span style={{ fontSize: 13, color: "#0055FF", fontWeight: 500 }}>{discountLabel}</span>
+                </div>
+            ) : (
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 13, color: "#0055FF", fontWeight: 500 }}>{discountLabel}</span>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>월 {plan.price.toLocaleString()}원</span>
+                </div>
+            )}
         </motion.div>
     )
 }
 
 // ─── 직접 선택 카드 ───────────────────────────────────────────────────
 const SelectableCard = ({
-    plan, isActive, discountLabel, onOpen,
+    plan, isActive, discountLabel, isChoiceDiscount, onOpen,
     freebies, freebieLoading, selectedFreebie, onFreebieSelect,
 }: {
-    plan: Plan | null; isActive: boolean; discountLabel: string; onOpen: () => void
+    plan: Plan | null; isActive: boolean; discountLabel: string; isChoiceDiscount: boolean; onOpen: () => void
     freebies: Freebie[]; freebieLoading: boolean; selectedFreebie: Freebie | null; onFreebieSelect: (f: Freebie) => void
 }) => {
     const hasFreebie = plan ? FREEBIE_PLAN_PIDS.has(plan.pid) : false
@@ -310,8 +369,8 @@ const SelectableCard = ({
             style={{
                 width: "100%", display: "flex", flexDirection: "column", gap: 10, padding: "14px 16px",
                 border: showFreebie ? "1px solid #0066FF" : "2px solid #0055FF",
-                borderRadius: showFreebie ? CARD_BORDER_RADIUS : 8,
-                backgroundColor: showFreebie ? "#ECF4FF" : "#FFFFFF",
+                borderRadius: CARD_BORDER_RADIUS,
+                backgroundColor: "#ECF4FF",
                 cursor: "pointer", boxSizing: "border-box",
             }}
         >
@@ -339,32 +398,7 @@ const SelectableCard = ({
                             transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
                         />
                     ) : freebies.length > 0 ? (
-                        <div style={{ display: "flex", gap: 8, overflowX: "auto", scrollbarWidth: "none" }}>
-                            {freebies.map((f) => (
-                                <div
-                                    key={f.no}
-                                    style={{
-                                        flexShrink: 0, width: 226, height: 75,
-                                        padding: "13px 7px",
-                                        display: "flex", justifyContent: "center", alignItems: "center", gap: 10,
-                                        borderRadius: 9, border: "0.8px solid #CFCFCF",
-                                        backgroundColor: "#FFF", boxSizing: "border-box",
-                                    }}
-                                >
-                                    <img
-                                        src={`https://juntell.s3.ap-northeast-2.amazonaws.com/freebie/${f.no}.png`}
-                                        alt={f.title}
-                                        style={{ width: 48, height: 48, objectFit: "contain", flexShrink: 0 }}
-                                        onError={(e) => { e.currentTarget.style.display = "none" }}
-                                    />
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                                        <span style={{ fontSize: 12, fontWeight: 500, color: "#374151", lineHeight: 1.3 }}>{f.title}</span>
-                                        <span style={{ fontSize: 12, fontWeight: 700, color: "#111827" }}>월 {(f.monthly_price ?? 0).toLocaleString()}원</span>
-                                        <span style={{ fontSize: 11, color: "#9CA3AF" }}>할부 수수료 별도</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                        <FreebieSlider freebies={freebies} />
                     ) : (
                         <span style={{ fontSize: 13, color: "#9CA3AF" }}>해당 요금제에 적용 가능한 할인 제품이 없습니다.</span>
                     )}
@@ -377,10 +411,24 @@ const SelectableCard = ({
             )}
 
             {/* 하단: 할인라벨 + 월 요금 */}
-            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 13, color: "#0055FF", fontWeight: 500 }}>{discountLabel}</span>
-                <span style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>월 {plan.price.toLocaleString()}원</span>
-            </div>
+            {isChoiceDiscount ? (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        <span style={{ fontSize: 12, color: "#9CA3AF", textDecoration: "line-through" }}>
+                            {plan.price.toLocaleString()}원
+                        </span>
+                        <span style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>
+                            {Math.round(plan.price * 0.75).toLocaleString()}원
+                        </span>
+                    </div>
+                    <span style={{ fontSize: 13, color: "#0055FF", fontWeight: 500 }}>{discountLabel}</span>
+                </div>
+            ) : (
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 13, color: "#0055FF", fontWeight: 500 }}>{discountLabel}</span>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: "#111827" }}>월 {plan.price.toLocaleString()}원</span>
+                </div>
+            )}
         </motion.div>
     )
 }
@@ -521,6 +569,9 @@ export default function PlanBenefitSelector(props) {
         return man > 0 ? `${man}만원 할인` : `${amt.toLocaleString()}원 할인`
     }
 
+    // 추천 요금제: 탭 무관하게 5G 심플 110GB (2번째 고정 요금제) 고정
+    const recommendedPid = "ppllistobj_0808"
+
     // 스켈레톤
     if (isLoading) {
         return (
@@ -573,27 +624,48 @@ export default function PlanBenefitSelector(props) {
             </div>
 
             {/* ── 요금제 섹션 ── */}
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: '"Pretendard","Inter",sans-serif' }}>요금제</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: '"Pretendard","Inter",sans-serif' }}>요금제</span>
+                {activeTab === "요금할인" && (
+                    <span style={{
+                        fontSize: 12, fontWeight: 700, color: "#E33939",
+                        backgroundColor: "#FEE2E2", borderRadius: 20, padding: "3px 8px",
+                        fontFamily: '"Pretendard","Inter",sans-serif',
+                    }}>25% 할인</span>
+                )}
+            </div>
 
             {/* 요금제 컬럼 리스트 */}
             <div style={columnStyle}>
-                {FIXED_PLANS.map((plan) => (
-                    <PlanCard
-                        key={plan.pid}
-                        plan={plan}
-                        isActive={selectedPlanPid === plan.pid}
-                        discountLabel={getDiscountLabel(plan.pid)}
-                        onSelect={handleFixedSelect}
-                        freebies={selectedPlanPid === plan.pid ? freebies : []}
-                        freebieLoading={selectedPlanPid === plan.pid ? freebieLoading : false}
-                        selectedFreebie={selectedFreebie}
-                        onFreebieSelect={handleFreebieSelect}
-                    />
-                ))}
+                {FIXED_PLANS.map((plan) => {
+                    const isRec = plan.pid === recommendedPid
+                    return (
+                        <div key={plan.pid} style={{ display: "flex", flexDirection: "column" }}>
+                            {isRec && (
+                                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", marginLeft: 14, marginBottom: 0 }}>
+                                    <div style={{ backgroundColor: "#0055FF", color: "#FFF", borderRadius: 6, padding: "3px 9px", fontSize: 11, fontWeight: 700, fontFamily: '"Pretendard","Inter",sans-serif', whiteSpace: "nowrap" }}>추천</div>
+                                    <div style={{ width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "6px solid #0055FF", marginLeft: 8 }} />
+                                </div>
+                            )}
+                            <PlanCard
+                                plan={plan}
+                                isActive={selectedPlanPid === plan.pid}
+                                discountLabel={getDiscountLabel(plan.pid)}
+                                isChoiceDiscount={activeTab === "요금할인"}
+                                onSelect={handleFixedSelect}
+                                freebies={selectedPlanPid === plan.pid ? freebies : []}
+                                freebieLoading={selectedPlanPid === plan.pid ? freebieLoading : false}
+                                selectedFreebie={selectedFreebie}
+                                onFreebieSelect={handleFreebieSelect}
+                            />
+                        </div>
+                    )
+                })}
                 <SelectableCard
                     plan={isCustomActive ? customPlan : null}
                     isActive={isCustomActive}
                     discountLabel={isCustomActive && customPlan ? getDiscountLabel(customPlan.pid) : "00만원 할인"}
+                    isChoiceDiscount={activeTab === "요금할인"}
                     onOpen={openPopup}
                     freebies={isCustomActive ? freebies : []}
                     freebieLoading={isCustomActive ? freebieLoading : false}

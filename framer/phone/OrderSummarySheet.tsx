@@ -94,9 +94,18 @@ export default function OrderSummarySheet(props) {
                                 <span style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>
                                     {installmentPaymentTitle}
                                 </span>
-                                <span style={{ fontSize: 18, fontWeight: 700, color: "#111827", textAlign: "right" }}>
-                                    {displayInstallmentValue}
-                                </span>
+                                <AnimatePresence mode="wait" initial={false}>
+                                    <motion.span
+                                        key={displayInstallmentValue}
+                                        initial={{ opacity: 0, y: -4 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 4 }}
+                                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                                        style={{ fontSize: 18, fontWeight: 700, color: "#111827", textAlign: "right" }}
+                                    >
+                                        {displayInstallmentValue}
+                                    </motion.span>
+                                </AnimatePresence>
                             </div>
                             <AnimatePresence mode="wait" initial={false}>
                                 <motion.div
@@ -104,7 +113,7 @@ export default function OrderSummarySheet(props) {
                                     initial={{ opacity: 0, y: -4 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: 4 }}
-                                    transition={{ duration: 0.8, ease: "easeInOut" }}
+                                    transition={{ duration: 0.5, ease: "easeInOut" }}
                                     style={{
                                         minHeight: 18,
                                         fontSize: 12,
@@ -218,9 +227,18 @@ export default function OrderSummarySheet(props) {
                     {/* ── 카드 3: 월 예상 금액 ── */}
                     <div style={totalCardStyle}>
                         <span style={{ fontSize: 15, fontWeight: 500, color: "#374151" }}>월 예상 금액</span>
-                        <span style={{ fontSize: 20, fontWeight: 700, color: "#0055FF" }}>
-                            {displayTotalMonthPayment.toLocaleString()}원
-                        </span>
+                        <AnimatePresence mode="wait" initial={false}>
+                            <motion.span
+                                key={displayTotalMonthPayment}
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 4 }}
+                                transition={{ duration: 0.5, ease: "easeInOut" }}
+                                style={{ fontSize: 20, fontWeight: 700, color: "#0055FF" }}
+                            >
+                                {displayTotalMonthPayment.toLocaleString()}원
+                            </motion.span>
+                        </AnimatePresence>
                     </div>
                 </>
             )}

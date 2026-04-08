@@ -41,30 +41,38 @@ const SkeletonRow = () => (
 
 // ─── 개별 버튼 ────────────────────────────────────────────────────────
 function InstallmentBtn({
-    label, value, isActive, onClick,
+    label, value, isActive, onClick, isRecommended = false,
 }: {
-    label: string; value: number; isActive: boolean; onClick: () => void
+    label: string; value: number; isActive: boolean; onClick: () => void; isRecommended?: boolean
 }) {
     return (
-        <motion.button
-            onClick={onClick}
-            whileTap={{ scale: 0.96 }}
-            style={{
-                flex: 1,
-                height: 50,
-                border: isActive ? "1.5px solid #0055FF" : "1.5px solid #E5E7EB",
-                borderRadius: 10,
-                backgroundColor: "#FFFFFF",
-                color: isActive ? "#0055FF" : "#9CA3AF",
-                fontSize: 15,
-                fontWeight: isActive ? 700 : 400,
-                cursor: "pointer",
-                fontFamily: FONT,
-                boxSizing: "border-box",
-            }}
-        >
-            {label}
-        </motion.button>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative" }}>
+            {isRecommended && (
+                <div style={{ position: "absolute", top: -28, left: "50%", transform: "translateX(-50%)", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", pointerEvents: "none" }}>
+                    <div style={{ backgroundColor: "#0055FF", color: "#FFF", borderRadius: 6, padding: "3px 9px", fontSize: 11, fontWeight: 700, fontFamily: FONT, whiteSpace: "nowrap" }}>추천</div>
+                    <div style={{ width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "6px solid #0055FF" }} />
+                </div>
+            )}
+            <motion.button
+                onClick={onClick}
+                whileTap={{ scale: 0.96 }}
+                style={{
+                    width: "100%",
+                    height: 50,
+                    border: isActive ? "1.5px solid #0055FF" : "1.5px solid #E5E7EB",
+                    borderRadius: 10,
+                    backgroundColor: "#FFFFFF",
+                    color: isActive ? "#0055FF" : "#9CA3AF",
+                    fontSize: 15,
+                    fontWeight: isActive ? 700 : 400,
+                    cursor: "pointer",
+                    fontFamily: FONT,
+                    boxSizing: "border-box",
+                }}
+            >
+                {label}
+            </motion.button>
+        </div>
     )
 }
 
@@ -109,7 +117,7 @@ export default function InstallmentSelectorSection(props) {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.15 }}
-                            style={{ display: "flex", gap: 8 }}
+                            style={{ display: "flex", gap: 8, paddingTop: 32 }}
                         >
                             {PRIMARY.map(({ label, value }) => (
                                 <InstallmentBtn
@@ -118,6 +126,7 @@ export default function InstallmentSelectorSection(props) {
                                     value={value}
                                     isActive={installment === value}
                                     onClick={() => handleClick(value)}
+                                    isRecommended={value === 24}
                                 />
                             ))}
 
@@ -154,6 +163,7 @@ export default function InstallmentSelectorSection(props) {
                                 display: "grid",
                                 gridTemplateColumns: "repeat(3, 1fr)",
                                 gap: 8,
+                                paddingTop: 32,
                             }}
                         >
                             {ALL.map(({ label, value }) => (
@@ -165,6 +175,7 @@ export default function InstallmentSelectorSection(props) {
                                     onClick={() => {
                                         handleClick(value)
                                     }}
+                                    isRecommended={value === 24}
                                 />
                             ))}
 
