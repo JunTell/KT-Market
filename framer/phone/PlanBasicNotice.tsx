@@ -1,11 +1,18 @@
+// withPlanBasicNotice 코드 오버라이드 사용
+
 import * as React from "react"
+import { addPropertyControls, ControlType } from "framer"
 
 /**
  * @framerSupportedLayoutWidth fixed
  * @framerSupportedLayoutHeight auto
  */
 export default function PlanBasicNotice(props) {
-    const { style } = props
+    const { style, officialMonthlyPrice = 0 } = props
+    const monthlyPriceText =
+        officialMonthlyPrice > 0
+            ? `${officialMonthlyPrice.toLocaleString()}원`
+            : "월할부금"
 
     return (
         <div style={{ ...containerStyle, ...style }}>
@@ -13,12 +20,12 @@ export default function PlanBasicNotice(props) {
             <div style={newNoticeBoxStyle}>
                 <div style={redTitleStyle}>신청 전 필독사항</div>
                 <div style={mainTextStyle}>
-                    공식신청서 상에는 KT마켓 추가지원금이
+                    공식신청서에는 {monthlyPriceText},
                     <br />
-                    반영되지 않은 금액으로 보여도 놀라지 마세요
+                    KT마켓지원금을 제외한 금액이 보여도 놀라지 마세요
                 </div>
                 <div style={subTextStyle}>
-                    *신청서에는 추가지원금이 제외된 금액이에요.
+                    *신청서에는 KT마켓지원금이 제외된 금액이 먼저 보여요.
                     <br />
                     실제 개통 시 할인 금액이 반영되니 안심하세요.
                 </div>
@@ -107,3 +114,11 @@ const procedureFlowStyle: React.CSSProperties = {
     color: "#333D4B",
     letterSpacing: "-0.3px",
 }
+
+addPropertyControls(PlanBasicNotice, {
+    officialMonthlyPrice: {
+        type: ControlType.Number,
+        title: "월할부금",
+        defaultValue: 115131,
+    },
+})

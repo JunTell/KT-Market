@@ -530,9 +530,9 @@ export default function OrderSummaryCard(props) {
     const animatedPrice = useAnimatedNumber(finalPrice, 1000)
 
     const priceColor =
-        direction === "up" ? "#F59E0B" :
-        direction === "down" ? "#0055FF" :
-        "#111827"
+        direction === "up" ? "#DC2626" :
+            direction === "down" ? "#EF4444" :
+                "#EF4444"
 
     if (!isMounted) return <div style={{ width: "100%", height: "120px" }} />
 
@@ -587,7 +587,7 @@ export default function OrderSummaryCard(props) {
                 {/* ── 가격 행 ── */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
-                        <span style={{ fontSize: "13px", fontWeight: 600, color: "#EF4444" }}>최저가</span>
+                        <span style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB" }}>최저가</span>
                         <motion.span
                             key={animatedPrice}
                             style={{
@@ -602,7 +602,7 @@ export default function OrderSummaryCard(props) {
                         >
                             {animatedPrice.toLocaleString()}
                         </motion.span>
-                        <span style={{ fontSize: "15px", fontWeight: 500, color: "#374151", fontFamily: FONT }}>원</span>
+                        <span style={{ fontSize: "15px", fontWeight: 500, color: "#2563EB", fontFamily: FONT }}>원</span>
                     </div>
 
                     {/* 월 납부금 확인 > 버튼 */}

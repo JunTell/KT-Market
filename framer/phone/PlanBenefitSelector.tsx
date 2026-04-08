@@ -423,7 +423,7 @@ const PopupPlanCard = ({ plan, isSelected, onSelect }: { plan: Plan; isSelected:
 export default function PlanBenefitSelector(props) {
     const {
         isLoading = false,
-        selectedPlanPid = "",
+        selectedPlanPid = "ppllistobj_0942",
         title = "원하시는 요금제",
         onPlanSelect,
         onTabChange,
@@ -723,5 +723,5 @@ addPropertyControls(PlanBenefitSelector, {
     isLoading: { type: ControlType.Boolean, title: "Loading", defaultValue: false },
     stepNumber: { type: ControlType.Number, title: "Step No.", defaultValue: 4, min: 1, max: 9 },
     title: { type: ControlType.String, title: "Title", defaultValue: "원하시는 요금제" },
-    selectedPlanPid: { type: ControlType.String, title: "Selected Plan PID" },
+    selectedPlanPid: { type: ControlType.String, title: "Selected Plan PID", defaultValue: "ppllistobj_0942" },
 })

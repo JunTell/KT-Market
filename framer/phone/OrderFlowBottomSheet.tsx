@@ -6,7 +6,7 @@ import { addPropertyControls, ControlType } from "framer"
 import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-    FONT, useAnimatedNumber, ToggleSwitch, Tooltip, QuestionIcon,
+    FONT, useAnimatedNumber, ToggleSwitch,
     SkeletonRow, Dashed, Row, RedRow, SectionHeader,
 } from "./shared/orderComponents"
 
@@ -304,11 +304,11 @@ function DetailBottomSheet({
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────
 
-const API_URL = "https://kt-market-puce.vercel.app"
-
 /**
  * @framerSupportedLayoutWidth any
  * @framerSupportedLayoutHeight auto
+ * @framerIntrinsicWidth 390
+ * @framerIntrinsicHeight 128
  */
 export default function OrderFlowBottomSheet(props) {
     const {
@@ -353,6 +353,7 @@ export default function OrderFlowBottomSheet(props) {
 
     // 모달 열릴 때 배경 스크롤 차단
     useEffect(() => {
+        if (typeof document === "undefined") return
         if (showDetailSheet) {
             document.body.style.overflow = "hidden"
         } else {
@@ -384,11 +385,13 @@ export default function OrderFlowBottomSheet(props) {
             onKakaoOrderClick()
         } else {
             onSaveOrderSession?.()
-            window.location.href = "/phone/user-info"
+            if (typeof window !== "undefined") {
+                window.location.href = "/phone/user-info"
+            }
         }
     }
 
-    if (!mounted) return <div style={{ height: 80 }} />
+    if (!mounted) return <div style={{ width: "100%", minHeight: 128 }} />
 
     const sheetProps = {
         installment,
@@ -419,7 +422,9 @@ export default function OrderFlowBottomSheet(props) {
         if (typeof onPhoneClick === "function") {
             onPhoneClick()
         } else {
-            window.location.href = phoneOrderLink
+            if (typeof window !== "undefined") {
+                window.location.href = phoneOrderLink
+            }
         }
     }
 
@@ -544,7 +549,7 @@ export default function OrderFlowBottomSheet(props) {
     )
 
     return (
-        <>
+        <div style={{ width: "100%", minHeight: 128 }}>
             {/* portal 없이 직접 렌더링 — Framer 캔버스에서 portal은 에디터 외부 body에 붙음 */}
             {bar}
 
@@ -560,7 +565,7 @@ export default function OrderFlowBottomSheet(props) {
                     FONT={FONT}
                 />
             )}
-        </>
+        </div>
     )
 }
 
@@ -575,10 +580,7 @@ addPropertyControls(OrderFlowBottomSheet, {
     installmentPaymentTitle: { type: ControlType.String, title: "할부 타이틀", defaultValue: "월 할부원금 (24개월)" },
     installmentPaymentDescription: { type: ControlType.String, title: "할부 설명", defaultValue: "분할 상환 수수료 5.9% 포함" },
     installmentPayment: { type: ControlType.String, title: "월 할부금", defaultValue: "0원" },
-    installment: {
-        type: ControlType.Number, title: "할부", defaultValue: 24,
-        options: [0, 24, 36, 48], optionTitles: ["일시불", "24개월", "36개월", "48개월"],
-    },
+    installment: { type: ControlType.Number, title: "할부", defaultValue: 24, min: 0, max: 48, step: 1 },
     devicePrice: { type: ControlType.Number, title: "출고가", defaultValue: 0 },
     disclosureSubsidy: { type: ControlType.Number, title: "공시지원금", defaultValue: 0 },
     ktmarketSubsidy: { type: ControlType.Number, title: "KT마켓 특가", defaultValue: 0 },

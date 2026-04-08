@@ -205,11 +205,11 @@ interface PlanInfo {
 }
 
 const defaultPlanInfo: PlanInfo = {
-    pid: "ppllistobj_0865",
-    title: "디바이스 초이스 베이직",
+    pid: "ppllistobj_0942",
+    title: "티빙/지니/밀리 초이스 베이직",
     price: 90000,
     description:
-        "디바이스 할부금 할인 / 멤버쉽VIP / 만 34세이하 Y덤 혜택) 스마트기기 or 데이터쉐어링 1회선 무료 택1, 공유데이터 2배 80GB",
+        "티빙·지니 스마트 음악감상·밀리의 서재·블라이스 기본제공 / 멤버쉽VIP / 만 34세이하 Y덤 혜택) 스마트기기 or 데이터쉐어링 1회선 무료 택1, 공유데이터 2배 80GB",
     data: "완전 무제한",
     tethering: "40GB",
     roaming: "무제한 (최대100Kbps 속도제어)",
@@ -1347,6 +1347,144 @@ export function withOrderSheet(Component): ComponentType {
                 onPhoneClick={handlePhoneOrder}
                 onRestockClick={handleRestockOrder}
                 onSaveOrderSession={saveOrderSession}
+            />
+        )
+    }
+}
+
+export function withPlanBasicNotice(Component): ComponentType {
+    return (props) => {
+        const [store] = useStore()
+
+        const calculateInstallment = (
+            principal: number,
+            months: number,
+            annualInterestRate: number
+        ) => {
+            if (months === 0) return principal
+            const r = annualInterestRate / 100 / 12
+            const n = months
+            return Math.floor(
+                (principal * r * Math.pow(1 + r, n)) /
+                    (Math.pow(1 + r, n) - 1)
+            )
+        }
+
+        if (!store?.selectedPlan || !store?.device) {
+            return <Component {...props} officialMonthlyPrice={0} />
+        }
+
+        const planPrice = store.selectedPlan?.price ?? 0
+        const modelPrice = store.selectedPlan?.model_price ?? 0
+        const discountType = store.discount ?? "공통지원금"
+        const register = store.register ?? "기기변경"
+        const planId = store.selectedPlan?.plan_id ?? ""
+        const disclosureSubsidy =
+            discountType === "공통지원금"
+                ? (store.selectedPlan?.disclosure_subsidy ?? 0)
+                : 0
+        const migrationSubsidy =
+            register === "번호이동" && discountType === "공통지원금"
+                ? (store.selectedPlan?.migration_subsidy ?? 0)
+                : 0
+        const ktmarketSubsidy =
+            store.benefit === "KT마켓 단독혜택" ? store.ktmarketSubsidy ?? 0 : 0
+
+        const promo100000Plans = [
+            "ppllistobj_0994",
+            "ppllistobj_0993",
+            "ppllistobj_0992",
+            "ppllistobj_0863",
+            "ppllistobj_0864",
+            "ppllistobj_0865",
+            "ppllistobj_0850",
+            "ppllistobj_0851",
+            "ppllistobj_0852",
+        ]
+        const promotionDiscount = promo100000Plans.includes(planId) ? 80000 : 0
+
+        const guaranteedReturnModels = [
+            "sm-f966nk512",
+            "sm-f966nk",
+            "sm-f766nk512",
+            "sm-f766nk",
+            "aip17-256",
+            "aip17-512",
+            "aipa-256",
+            "aipa-512",
+            "aipa-1t",
+            "aip17p-256",
+            "aip17p-512",
+            "aip17p-1t",
+            "aip17pm-256",
+            "aip17pm-512",
+            "aip17pm-1t",
+            "aip17pm-2t",
+        ]
+        const guaranteedReturnPrice =
+            store.isGuaranteedReturn &&
+            guaranteedReturnModels.includes(store.device?.model ?? "")
+                ? modelPrice / 2
+                : 0
+
+        const modelPrices = SPECIAL_PRICES[store.device?.model ?? ""] || {
+            mnp: 0,
+            chg: 0,
+        }
+        const specialPrice =
+            register === "번호이동" || register === "신규가입"
+                ? modelPrices.mnp
+                : register === "기기변경"
+                  ? modelPrices.chg
+                  : 0
+
+        const doubleStorageModels = [
+            "sm-s942nk512",
+            "sm-s947nk512",
+            "sm-s948nk512",
+        ]
+        const exceptionPlansForDoubleStorage = [
+            "ppllistobj_0845",
+            "ppllistobj_0535",
+            "ppllistobj_0765",
+            "ppllistobj_0775",
+        ]
+        const doubleStorageDiscount =
+            doubleStorageModels.includes(store.device?.model ?? "") &&
+            register === "기기변경" &&
+            (store.installment ?? 24) < 36 &&
+            (planPrice >= 37000 || exceptionPlansForDoubleStorage.includes(planId))
+                ? 0
+                : 0
+
+        const totalDeviceDiscountAmount =
+            ktmarketSubsidy +
+            disclosureSubsidy +
+            migrationSubsidy +
+            promotionDiscount +
+            guaranteedReturnPrice +
+            specialPrice +
+            doubleStorageDiscount
+
+        const officialPrincipal = Math.max(
+            0,
+            modelPrice - (totalDeviceDiscountAmount - ktmarketSubsidy)
+        )
+        const officialPlanDiscount =
+            discountType === "공통지원금" ? 0 : planPrice * 0.25
+        const officialPlanPrice = planPrice - officialPlanDiscount
+        const officialDeviceMonthly =
+            (store.installment ?? 24) === 0
+                ? officialPrincipal
+                : calculateInstallment(officialPrincipal, store.installment ?? 24, 5.9)
+        const officialMonthlyPrice = Math.round(
+            officialDeviceMonthly + officialPlanPrice
+        )
+
+        return (
+            <Component
+                {...props}
+                officialMonthlyPrice={officialMonthlyPrice}
             />
         )
     }
