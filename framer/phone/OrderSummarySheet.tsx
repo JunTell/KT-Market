@@ -291,7 +291,7 @@ addPropertyControls(OrderSummarySheet, {
     },
     devicePrice: { type: ControlType.Number, title: "출고가", defaultValue: 1287000 },
     disclosureSubsidy: { type: ControlType.Number, title: "단말할인(공통)", defaultValue: 0 },
-    ktmarketSubsidy: { type: ControlType.Number, title: "KT마켓 단독지원금", defaultValue: 470000 },
+    ktmarketSubsidy: { type: ControlType.Number, title: "KT마켓 단독지원금", defaultValue: 0 },
     promotionDiscount: { type: ControlType.Number, title: "디바이스 추가지원금", defaultValue: 80000 },
     installmentPrincipal: { type: ControlType.Number, title: "할부원금", defaultValue: 737000 },
     plan: { type: ControlType.String, title: "요금제명", defaultValue: "가전구독 초이스 스페셜" },
