@@ -9,6 +9,9 @@ import {
     Row, RedRow, Card, SectionHeader,
 } from "./shared/orderComponents"
 
+const INSTALLMENT_INTEREST_STORAGE_KEY = "phone_installment_interest_visible"
+const INSTALLMENT_INTEREST_EVENT = "phone-installment-interest-change"
+
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────
 /**
  * @framerSupportedLayoutWidth any
@@ -43,6 +46,43 @@ export default function OrderSummarySheet(props) {
 
     const [showInterest, setShowInterest] = useState(false)
 
+    React.useEffect(() => {
+        if (typeof window === "undefined") return
+
+        const readValue = () => {
+            const savedValue = window.sessionStorage.getItem(
+                INSTALLMENT_INTEREST_STORAGE_KEY
+            )
+            setShowInterest(savedValue === "true")
+        }
+
+        const handleSync = () => readValue()
+        const handleStorage = (event: StorageEvent) => {
+            if (event.key === INSTALLMENT_INTEREST_STORAGE_KEY) {
+                readValue()
+            }
+        }
+
+        readValue()
+        window.addEventListener(INSTALLMENT_INTEREST_EVENT, handleSync)
+        window.addEventListener("storage", handleStorage)
+
+        return () => {
+            window.removeEventListener(INSTALLMENT_INTEREST_EVENT, handleSync)
+            window.removeEventListener("storage", handleStorage)
+        }
+    }, [])
+
+    const handleShowInterestChange = (nextValue: boolean) => {
+        setShowInterest(nextValue)
+        if (typeof window === "undefined") return
+        window.sessionStorage.setItem(
+            INSTALLMENT_INTEREST_STORAGE_KEY,
+            String(nextValue)
+        )
+        window.dispatchEvent(new Event(INSTALLMENT_INTEREST_EVENT))
+    }
+
     const planAfterDiscount = totalMonthPlanPrice > 0 ? totalMonthPlanPrice : planPrice - planDiscountAmount
 
     const planDiscountLabel = discount === "선택약정할인"
@@ -74,7 +114,7 @@ export default function OrderSummarySheet(props) {
                 <span style={titleStyle}>{title}</span>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <span style={{ fontSize: 12, color: "#6B7280" }}>할부이자 표시</span>
-                    <ToggleSwitch checked={showInterest} onChange={setShowInterest} />
+                    <ToggleSwitch checked={showInterest} onChange={handleShowInterestChange} />
                 </div>
             </div>
 

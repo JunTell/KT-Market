@@ -2299,9 +2299,10 @@ export default function PlanBenefitSelector(props) {
                     style={{
                         display: "flex",
                         borderRadius: 8,
-                        overflow: "hidden",
+                        overflow: "visible",
                         border: "1px solid #E5E7EB",
                         backgroundColor: "#F9FAFB",
+                        paddingTop: 10,
                     }}
                 >
                     {(["기기 할인", "요금할인"] as const).map((tab) => (
@@ -2330,11 +2331,35 @@ export default function PlanBenefitSelector(props) {
                                         : "none",
                                 borderRadius: 6,
                                 margin: 3,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
                                 transition: "all 0.15s",
                                 fontFamily: '"Pretendard","Inter",sans-serif',
+                                position: "relative",
                             }}
                         >
                             {tab}
+                            {props.cheaperTab === tab && (
+                                <span
+                                    style={{
+                                        position: "absolute",
+                                        top: -10,
+                                        right: 8,
+                                        padding: "2px 7px",
+                                        borderRadius: 999,
+                                        backgroundColor: "#0055FF",
+                                        color: "#FFFFFF",
+                                        fontSize: 10,
+                                        fontWeight: 700,
+                                        lineHeight: 1.2,
+                                        boxShadow: "0 4px 10px rgba(0,85,255,0.18)",
+                                        whiteSpace: "nowrap",
+                                    }}
+                                >
+                                    추천
+                                </span>
+                            )}
                         </button>
                     ))}
                 </div>

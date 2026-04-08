@@ -10,6 +10,9 @@ import {
     SkeletonRow, Dashed, Row, RedRow, SectionHeader,
 } from "./shared/orderComponents"
 
+const INSTALLMENT_INTEREST_STORAGE_KEY = "phone_installment_interest_visible"
+const INSTALLMENT_INTEREST_EVENT = "phone-installment-interest-change"
+
 // Card with marginBottom for this component's layout
 const Card = ({ children }: { children: React.ReactNode }) => (
     <div style={{
@@ -246,7 +249,7 @@ function DetailBottomSheet({
                     position: "fixed",
                     inset: 0,
                     backgroundColor: "rgba(0,0,0,0.5)",
-                    zIndex: 9998,
+                    zIndex: 20000,
                 }}
             />
 
@@ -280,7 +283,7 @@ function DetailBottomSheet({
                     borderTopLeftRadius: 24,
                     borderTopRightRadius: 24,
                     boxShadow: "0 -4px 28px rgba(0,0,0,0.15)",
-                    zIndex: 9999,
+                    zIndex: 20001,
                     display: "flex",
                     flexDirection: "column",
                     fontFamily: FONT,
@@ -400,6 +403,43 @@ export default function OrderFlowBottomSheet(props) {
     const [showDetailSheet, setShowDetailSheet] = useState(false)
     const [showInterest, setShowInterest] = useState(false)
 
+    useEffect(() => {
+        if (typeof window === "undefined") return
+
+        const readValue = () => {
+            const savedValue = window.sessionStorage.getItem(
+                INSTALLMENT_INTEREST_STORAGE_KEY
+            )
+            setShowInterest(savedValue === "true")
+        }
+
+        const handleSync = () => readValue()
+        const handleStorage = (event: StorageEvent) => {
+            if (event.key === INSTALLMENT_INTEREST_STORAGE_KEY) {
+                readValue()
+            }
+        }
+
+        readValue()
+        window.addEventListener(INSTALLMENT_INTEREST_EVENT, handleSync)
+        window.addEventListener("storage", handleStorage)
+
+        return () => {
+            window.removeEventListener(INSTALLMENT_INTEREST_EVENT, handleSync)
+            window.removeEventListener("storage", handleStorage)
+        }
+    }, [])
+
+    const handleShowInterestChange = (nextValue: boolean) => {
+        setShowInterest(nextValue)
+        if (typeof window === "undefined") return
+        window.sessionStorage.setItem(
+            INSTALLMENT_INTEREST_STORAGE_KEY,
+            String(nextValue)
+        )
+        window.dispatchEvent(new Event(INSTALLMENT_INTEREST_EVENT))
+    }
+
     // 모달 열릴 때 배경 스크롤 차단
     useEffect(() => {
         if (typeof document === "undefined") return
@@ -491,7 +531,7 @@ export default function OrderFlowBottomSheet(props) {
         <div style={{
             position: "fixed", bottom: 0, left: 0, right: 0, margin: "0 auto",
             width: "100%", maxWidth: 440,
-            zIndex: 11,
+            zIndex: 120,
             backgroundColor: "#FFFFFF",
             borderRadius: "20px 20px 0 0",
             boxShadow: "0 -4px 28px rgba(0,0,0,0.13)",
@@ -631,7 +671,7 @@ export default function OrderFlowBottomSheet(props) {
                     sheetProps={sheetProps}
                     FONT={FONT}
                     showInterest={showInterest}
-                    setShowInterest={setShowInterest}
+                    setShowInterest={handleShowInterestChange}
                 />
             )}
         </div>

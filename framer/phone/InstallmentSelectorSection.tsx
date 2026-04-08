@@ -46,9 +46,9 @@ function InstallmentBtn({
     label: string; value: number; isActive: boolean; onClick: () => void; isRecommended?: boolean
 }) {
     return (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative", zIndex: 0 }}>
             {isRecommended && (
-                <div style={{ position: "absolute", top: -28, left: "50%", transform: "translateX(-50%)", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", pointerEvents: "none" }}>
+                <div style={{ position: "absolute", top: -28, left: "50%", transform: "translateX(-50%)", zIndex: 0, display: "flex", flexDirection: "column", alignItems: "center", pointerEvents: "none" }}>
                     <div style={{ backgroundColor: "#0055FF", color: "#FFF", borderRadius: 6, padding: "3px 9px", fontSize: 11, fontWeight: 700, fontFamily: FONT, whiteSpace: "nowrap" }}>추천</div>
                     <div style={{ width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "6px solid #0055FF" }} />
                 </div>
@@ -211,6 +211,8 @@ const wrapperStyle: React.CSSProperties = {
     display: "flex",
     flexDirection: "column",
     gap: 12,
+    position: "relative",
+    zIndex: 0,
     boxSizing: "border-box",
     fontFamily: FONT,
 }

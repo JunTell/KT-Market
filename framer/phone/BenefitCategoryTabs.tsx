@@ -83,21 +83,30 @@ const containerStyle: React.CSSProperties = {
 const tabRowStyle: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
-    gap: 24,
+    justifyContent: "center",
+    width: "100%",
+    gap: 0,
     borderBottom: "1px solid #E5E7EB",
 }
 
 const tabButtonStyle: React.CSSProperties = {
     appearance: "none",
+    flex: 1,
     border: "none",
     background: "transparent",
-    padding: "0 0 12px",
+    minHeight: 52,
+    padding: "0 12px 14px",
     margin: 0,
     fontSize: 15,
     lineHeight: 1.2,
     cursor: "pointer",
     borderBottom: "2px solid transparent",
     transition: "color 0.2s ease, border-color 0.2s ease",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    textAlign: "center",
+    whiteSpace: "nowrap",
 }
 
 addPropertyControls(BenefitCategoryTabs, {
