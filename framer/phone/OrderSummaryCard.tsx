@@ -10,7 +10,7 @@ import {
     SkeletonRow as OSSkeletonRow, Dashed as OSDashed,
     Row as OSRow, RedRow as OSRedRow, Card as OSCard, SectionHeader as OSSectionHeader,
     useInstallmentInterest,
-} from "https://framer.com/m/OrderComponents-QLDYR7.js@IJPClK4Mjz4ITsyOMWEp"
+} from "https://framer.com/m/OrderComponents-QLDYR7.js@B8HOuK0Vr7pFdSYgTLEK"
 
 // ─────────────────────────────────────────
 // 스켈레톤

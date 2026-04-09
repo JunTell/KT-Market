@@ -11,7 +11,7 @@ import {
     getSpecialPrice,
     getInstallmentPaymentTitle as calcInstallmentPaymentTitle,
     getInstallmentPaymentDescription as calcInstallmentPaymentDescription,
-} from "https://framer.com/m/priceCalculation-xPMQRv.js@Gkkk8lGTntumOpHbp38S"
+} from "https://framer.com/m/priceCalculation-xPMQRv.js@kM0zmx9phDgbNynAbwPj"
 
 // 대상 모델 목록 정의 0227
 const S26_MODLE = [

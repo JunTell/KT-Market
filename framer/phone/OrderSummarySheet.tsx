@@ -8,7 +8,7 @@ import {
     Tooltip, QuestionIcon, SkeletonRow, Dashed, ToggleSwitch,
     Row, RedRow, SectionHeader,
     useInstallmentInterest,
-} from "https://framer.com/m/OrderComponents-QLDYR7.js@IJPClK4Mjz4ITsyOMWEp"
+} from "https://framer.com/m/OrderComponents-QLDYR7.js@B8HOuK0Vr7pFdSYgTLEK"
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────
 /**
@@ -204,33 +204,19 @@ export default function OrderSummarySheet(props) {
 
                         {/* 요금제명 */}
                         {plan && (
-                            discount === "선택약정할인" && planDiscountAmount > 0 ? (
-                                <div style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    padding: "6px 0",
-                                }}>
-                                    <span style={{ fontSize: 13, color: "#6B7280" }}>{plan}</span>
-                                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
-                                        <span style={{
-                                            fontSize: 13,
-                                            color: "#9CA3AF",
-                                            textDecoration: "line-through",
-                                        }}>
-                                            {planPrice.toLocaleString()}원
-                                        </span>
-                                        <span style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>
-                                            {planAfterDiscount.toLocaleString()}원
-                                        </span>
-                                    </div>
-                                </div>
-                            ) : (
-                                <Row
-                                    label={plan}
-                                    value={`월 ${planPrice.toLocaleString()}원`}
-                                />
-                            )
+                            <Row
+                                label={plan}
+                                value={`월 ${planPrice.toLocaleString()}원`}
+                            />
+                        )}
+
+                        {/* 요금할인 (선택약정) */}
+                        {discount === "선택약정할인" && (
+                            <RedRow
+                                label={planDiscountLabel}
+                                value={`-${planDiscountAmount.toLocaleString()}원`}
+                                tooltip={planTooltip}
+                            />
                         )}
 
                         <Dashed />

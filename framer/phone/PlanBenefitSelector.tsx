@@ -1518,6 +1518,7 @@ const PlanCard = ({
     freebieLoading,
     selectedFreebie,
     onFreebieSelect,
+    isYakjeong = false,
 }: {
     plan: Plan
     isActive: boolean
@@ -1527,6 +1528,7 @@ const PlanCard = ({
     freebieLoading: boolean
     selectedFreebie: Freebie | null
     onFreebieSelect: (f: Freebie) => void
+    isYakjeong?: boolean
 }) => {
     const hasFreebiePlan = FREEBIE_PLAN_PIDS.has(plan.pid)
     const showFreebie = isActive && hasFreebiePlan
@@ -2263,21 +2265,17 @@ export default function PlanBenefitSelector(props) {
                                 <span
                                     style={{
                                         position: "absolute",
-                                        top: -12,
-                                        left: "50%",
-                                        transform: "translateX(-50%)",
+                                        top: -10,
+                                        right: 8,
                                         zIndex: 2,
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        padding: "0.75px 9.71px",
-                                        borderRadius: 11.549,
-                                        backgroundColor: "#0066FF",
+                                        padding: "2px 7px",
+                                        borderRadius: 999,
+                                        backgroundColor: "#0055FF",
                                         color: "#FFFFFF",
-                                        fontSize: 12,
-                                        fontWeight: 600,
-                                        lineHeight: "150%",
-                                        letterSpacing: "0.068px",
+                                        fontSize: 10,
+                                        fontWeight: 700,
+                                        lineHeight: 1.2,
+                                        boxShadow: "0 4px 10px rgba(0,85,255,0.18)",
                                         whiteSpace: "nowrap",
                                         pointerEvents: "none",
                                         fontFamily: '"Pretendard","Inter",sans-serif',
@@ -2366,20 +2364,17 @@ export default function PlanBenefitSelector(props) {
                                 <span
                                     style={{
                                         position: "absolute",
-                                        top: -12,
-                                        right: 12,
+                                        top: -10,
+                                        left: 14,
                                         zIndex: 2,
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        padding: "0.75px 9.71px",
-                                        borderRadius: 11.549,
-                                        backgroundColor: "#0066FF",
+                                        padding: "2px 7px",
+                                        borderRadius: 999,
+                                        backgroundColor: "#0055FF",
                                         color: "#FFFFFF",
-                                        fontSize: 12,
-                                        fontWeight: 600,
-                                        lineHeight: "150%",
-                                        letterSpacing: "0.068px",
+                                        fontSize: 10,
+                                        fontWeight: 700,
+                                        lineHeight: 1.2,
+                                        boxShadow: "0 4px 10px rgba(0,85,255,0.18)",
                                         whiteSpace: "nowrap",
                                         pointerEvents: "none",
                                         fontFamily: '"Pretendard","Inter",sans-serif',
@@ -2403,6 +2398,7 @@ export default function PlanBenefitSelector(props) {
                                 }
                                 selectedFreebie={selectedFreebie}
                                 onFreebieSelect={handleFreebieSelect}
+                                isYakjeong={activeTab === "요금할인"}
                             />
                         </div>
                     )
