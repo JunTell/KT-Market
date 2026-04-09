@@ -463,7 +463,7 @@ export default function ApplicationGatePage(props: Props) {
     const [showReturnMessage, setShowReturnMessage] = useState(false)
 
     const [agreements, setAgreements] = useState<boolean[]>(
-        new Array(6).fill(false)
+        new Array(7).fill(false)
     )
 
     const isAllAgreed = agreements.every((agreed) => agreed === true)
@@ -619,7 +619,7 @@ export default function ApplicationGatePage(props: Props) {
 
     const handleBottomSubmit = () => {
         if (!isAllAgreed) {
-            setAgreements(new Array(6).fill(true))
+            setAgreements(new Array(7).fill(true))
             return
         }
 

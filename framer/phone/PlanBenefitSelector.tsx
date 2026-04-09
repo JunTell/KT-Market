@@ -1928,8 +1928,8 @@ const SelectableCard = ({
                 <div
                     style={{
                         display: "flex",
-                        justifyContent: "space-between",
                         alignItems: "flex-end",
+                        justifyContent: "end",
                         gap: 8,
                     }}
                 >
@@ -1963,7 +1963,7 @@ const SelectableCard = ({
                             style={{
                                 fontSize: 15,
                                 fontWeight: 700,
-                                color: "#0055FF",
+                                color: "#374151",
                             }}
                         >
                             월 {Math.floor(plan.price * 0.75).toLocaleString()}원
