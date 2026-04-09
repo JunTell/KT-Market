@@ -2673,7 +2673,7 @@ export default function PlanBenefitSelector(props) {
                             {/* 하단 확인 버튼 */}
                             <div
                                 style={{
-                                    padding: "10px 20px 24px",
+                                    padding: "10px 20px calc(24px + env(safe-area-inset-bottom, 0px))",
                                     flexShrink: 0,
                                     borderTop: "1px solid #F3F4F6",
                                 }}

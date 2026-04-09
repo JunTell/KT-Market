@@ -385,7 +385,7 @@ function MonthlyPopup({
                     backgroundColor: "#FFFFFF",
                     borderTopLeftRadius: "20px",
                     borderTopRightRadius: "20px",
-                    padding: "28px 20px 36px",
+                    padding: "28px 20px calc(36px + env(safe-area-inset-bottom, 0px))",
                     zIndex: 9999,
                     boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
                     fontFamily: '"Pretendard", "Inter", sans-serif',
@@ -539,7 +539,7 @@ export default function OrderSummaryCard(props) {
         onApplyClick,
         // OrderSheet 추가 props
         installmentPaymentTitle = "월 할부원금 (24개월)",
-        installmentPaymentDescription = "할부이자 5.9% 포함",
+        installmentPaymentDescription = "분할 상환 수수료 5.9% 포함",
         installmentPrincipal = 0,
         installmentPayment = "0원",
         devicePrice = 0,
@@ -689,45 +689,23 @@ export default function OrderSummaryCard(props) {
                     </button>
                 </div>
 
-                {/* ── 월 통신요금 + 월 할부금 ── */}
-                {(() => {
-                    const planAfterDiscount = totalMonthPlanPrice > 0 ? totalMonthPlanPrice : planPrice - planDiscountAmount
-                    const rawInstallment = installment === 0 ? 0 : monthlyPayment
-                    const displayInstallment = showInterest ? rawInstallment : (installment === 0 ? 0 : installmentPaymentNoInterest)
-                    const total = Math.round(planAfterDiscount + displayInstallment)
-                    return (
-                        <div style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                            backgroundColor: "#F9FAFB",
-                            borderRadius: 12,
-                            padding: "12px 16px",
-                            boxSizing: "border-box" as const,
-                        }}>
-                            <div style={{ display: "flex", flexDirection: "column" as const, gap: 2, flex: 1 }}>
-                                <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>월 통신요금</span>
-                                <span style={{ fontSize: 12, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
-                                    {Math.round(planAfterDiscount).toLocaleString()}원
-                                </span>
-                            </div>
-                            <span style={{ fontSize: 16, color: "#D1D5DB", fontWeight: 400, flexShrink: 0 }}>+</span>
-                            <div style={{ display: "flex", flexDirection: "column" as const, gap: 2, flex: 1 }}>
-                                <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>월 할부금</span>
-                                <span style={{ fontSize: 12, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
-                                    {Math.round(displayInstallment).toLocaleString()}원
-                                </span>
-                            </div>
-                            <span style={{ fontSize: 16, color: "#D1D5DB", fontWeight: 400, flexShrink: 0 }}>=</span>
-                            <div style={{ display: "flex", flexDirection: "column" as const, gap: 2, alignItems: "flex-end" }}>
-                                <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>월 예상</span>
-                                <span style={{ fontSize: 12, fontWeight: 700, color: "#0055FF", fontFamily: FONT }}>
-                                    {total.toLocaleString()}원
-                                </span>
-                            </div>
-                        </div>
-                    )
-                })()}
+                {/* ── 신청 전 필독사항 ── */}
+                <div style={{
+                    backgroundColor: "#F9FAFB",
+                    borderRadius: 12,
+                    padding: "14px 16px",
+                    boxSizing: "border-box" as const,
+                    display: "flex",
+                    flexDirection: "column" as const,
+                    gap: 6,
+                }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#EF4444", fontFamily: FONT }}>
+                        신청 전 필독사항
+                    </span>
+                    <span style={{ fontSize: 13, color: "#374151", lineHeight: 1.6, fontFamily: FONT }}>
+                        최종신청 내역에는 KT마켓지원금이 제외된 금액이 보여요.{"\n"}실제 개통 시 할인 금액이 반영되니 안심하세요.
+                    </span>
+                </div>
 
             </div>
 
@@ -857,7 +835,7 @@ addPropertyControls(OrderSummaryCard, {
     installmentPaymentDescription: {
         type: ControlType.String,
         title: "할부 설명",
-        defaultValue: "할부이자 5.9% 포함",
+        defaultValue: "분할 상환 수수료 5.9% 포함",
     },
     installmentPayment: {
         type: ControlType.String,

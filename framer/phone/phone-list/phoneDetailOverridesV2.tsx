@@ -13,9 +13,6 @@ import {
     getInstallmentPaymentDescription as calcInstallmentPaymentDescription,
 } from "https://framer.com/m/priceCalculation-xPMQRv.js@Gkkk8lGTntumOpHbp38S"
 
-// iphone16e
-const TARGET_POPUP_PATH = "/phone/aip16e-128"
-
 // 대상 모델 목록 정의 0227
 const S26_MODLE = [
     "sm-s942nk",
@@ -1434,9 +1431,6 @@ export function withPhoneDetail(Component): ComponentType {
         const [error, setError] = useState(null)
         const [hydrated, setHydrated] = useState(false)
 
-        // 기존 iphone16e 팝업
-        const [showPopup, setShowPopup] = useState(false)
-
         // ✅ 단종 팝업 상태 추가
         const [discontinuedInfo, setDiscontinuedInfo] = useState(null)
 
@@ -1685,9 +1679,6 @@ export function withPhoneDetail(Component): ComponentType {
                 }
             }
 
-            // ✅ 오직 이 경로에서만 16e 팝업 ON
-            setShowPopup(pathname === TARGET_POPUP_PATH || modelId === "aip16e-128")
-
             // ✅ 단종 모델 체크
             const obsoleteIphones = [
                 "aip16-128",
@@ -1784,18 +1775,6 @@ export function withPhoneDetail(Component): ComponentType {
         }, [])
 
         if (!hydrated) return null
-
-        const handlePopupClose = (
-            e?: React.MouseEvent<
-                HTMLDivElement | HTMLButtonElement | SVGSVGElement
-            >
-        ) => {
-            if (e) {
-                e.preventDefault()
-                e.stopPropagation()
-            }
-            setShowPopup(false)
-        }
 
         return (
             <>
@@ -1895,86 +1874,6 @@ export function withPhoneDetail(Component): ComponentType {
                     </div>
                 )}
 
-                {/* aip16e일 때만, 페이지 전체를 덮는 팝업 */}
-                {showPopup && !discontinuedInfo && (
-                    <div
-                        style={{
-                            position: "fixed",
-                            top: 0,
-                            left: 0,
-                            width: "100vw",
-                            height: "100vh",
-                            backgroundColor: "rgba(0, 0, 0, 0.5)",
-                            zIndex: 9999,
-                            display: "flex",
-                            alignItems: "flex-end",
-                            justifyContent: "center",
-                        }}
-                        onClick={handlePopupClose}
-                    >
-                        <div
-                            style={{
-                                width: "100%",
-                                maxWidth: "480px",
-                                backgroundColor: "#fff",
-                                borderTopLeftRadius: "16px",
-                                borderTopRightRadius: "16px",
-                                boxShadow: "0 -6px 20px rgba(0,0,0,0.15)",
-                                padding: "24px 20px 20px",
-                                maxHeight: "80vh",
-                                overflowY: "auto",
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <h3
-                                style={{
-                                    fontSize: "24px",
-                                    fontWeight: 800,
-                                    marginBottom: "16px",
-                                    textAlign: "center",
-                                    color: "#000",
-                                }}
-                            >
-                                아이폰16E KT마켓지원금 안내
-                            </h3>
-
-                            <p
-                                style={{
-                                    fontSize: "15px",
-                                    lineHeight: 1.6,
-                                    color: "#3182CE",
-                                    textAlign: "center",
-                                    marginBottom: "20px",
-                                    fontWeight: 700,
-                                    whiteSpace: "pre-line",
-                                    wordBreak: "keep-all",
-                                }}
-                            >
-                                본 혜택은 KT마켓 단독특가입니다.{"\n"}
-                                이후 작성하는 KT 공식신청서에는 추가지원금이
-                                표시되지 않아도 정상이며,{"\n"}
-                                주문페이지 가격 그대로 적용됩니다.
-                            </p>
-
-                            <button
-                                onClick={handlePopupClose}
-                                style={{
-                                    width: "100%",
-                                    height: "48px",
-                                    backgroundColor: "#1A1A1A",
-                                    color: "#FAFAF8",
-                                    border: "none",
-                                    borderRadius: "8px",
-                                    fontSize: "16px",
-                                    fontWeight: 600,
-                                    cursor: "pointer",
-                                }}
-                            >
-                                확인
-                            </button>
-                        </div>
-                    </div>
-                )}
             </>
         )
     }

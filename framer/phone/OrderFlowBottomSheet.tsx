@@ -16,13 +16,13 @@ import {
  * @framerSupportedLayoutWidth any
  * @framerSupportedLayoutHeight auto
  * @framerIntrinsicWidth 390
- * @framerIntrinsicHeight 128
+ * @framerIntrinsicHeight 148
  */
 export default function OrderFlowBottomSheet(props) {
     const {
         installment = 24,
         installmentPaymentTitle = "월 할부원금 (24개월)",
-        installmentPaymentDescription = "할부이자 5.9% 포함",
+        installmentPaymentDescription = "분할 상환 수수료 5.9% 포함",
         installmentPrincipal = 0,
         installmentPayment = "0원",
         devicePrice = 0,
@@ -92,7 +92,7 @@ export default function OrderFlowBottomSheet(props) {
         }
     }
 
-    if (!mounted) return <div style={{ width: "100%", minHeight: 128 }} />
+    if (!mounted) return <div style={{ width: "100%", minHeight: 148 }} />
 
     const handlePhoneClick = () => {
         if (typeof onPhoneClick === "function") {
@@ -170,7 +170,7 @@ export default function OrderFlowBottomSheet(props) {
             {/* 월 예상 금액 행 */}
             <div style={{
                 display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "4px 20px 10px",
+                padding: "14px 20px 10px",
             }}>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
                     <span style={{ fontSize: 14, color: "#374151", fontWeight: 500, fontFamily: FONT }}>
@@ -276,7 +276,7 @@ export default function OrderFlowBottomSheet(props) {
     )
 
     return (
-        <div style={{ width: "100%", minHeight: 128 }}>
+        <div style={{ width: "100%", minHeight: 148 }}>
             {/* portal 없이 직접 렌더링 — Framer 캔버스에서 portal은 에디터 외부 body에 붙음 */}
             {bar}
         </div>
@@ -292,7 +292,7 @@ addPropertyControls(OrderFlowBottomSheet, {
     deviceCapacity: { type: ControlType.String, title: "용량", defaultValue: "256GB" },
     // 주문서 데이터 (preview용)
     installmentPaymentTitle: { type: ControlType.String, title: "할부 타이틀", defaultValue: "월 할부원금 (24개월)" },
-    installmentPaymentDescription: { type: ControlType.String, title: "할부 설명", defaultValue: "할부이자 5.9% 포함" },
+    installmentPaymentDescription: { type: ControlType.String, title: "할부 설명", defaultValue: "분할 상환 수수료 5.9% 포함" },
     installmentPayment: { type: ControlType.String, title: "월 할부금", defaultValue: "0원" },
     installment: { type: ControlType.Number, title: "할부", defaultValue: 24, min: 0, max: 48, step: 1 },
     devicePrice: { type: ControlType.Number, title: "출고가", defaultValue: 0 },

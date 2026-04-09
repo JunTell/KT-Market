@@ -253,7 +253,7 @@ export default function ColorCapacitySelector(props) {
                             {/* 색상 리스트 */}
                             <div style={{
                                 flex: 1, overflowY: "auto",
-                                padding: "12px 20px 32px",
+                                padding: "12px 20px calc(32px + env(safe-area-inset-bottom, 0px))",
                                 display: "flex", flexDirection: "column", gap: 8,
                             }}>
                                 {colors.map((color, index) => {
