@@ -6,7 +6,7 @@ import React, { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
     Tooltip, QuestionIcon, SkeletonRow, Dashed, ToggleSwitch,
-    Row, RedRow, Card, SectionHeader,
+    Row, RedRow, SectionHeader,
 } from "./shared/orderComponents"
 
 const INSTALLMENT_INTEREST_STORAGE_KEY = "phone_installment_interest_visible"
@@ -97,7 +97,8 @@ export default function OrderSummarySheet(props) {
         ? `${installmentPayment.toLocaleString()}원`
         : installmentPayment
 
-    const displayInstallmentValue = showInterest
+    // 일시불이거나 이자 표시 시: 이자 포함 금액 / 할부이자 미표시 시: 무이자 금액
+    const displayInstallmentValue = (installment === 0 || showInterest)
         ? installmentPaymentStr
         : `${installmentPaymentNoInterest.toLocaleString()}원`
     const displayDescription = showInterest ? installmentPaymentDescription : ""
@@ -106,6 +107,9 @@ export default function OrderSummarySheet(props) {
         : installment === 0
             ? Math.round(totalMonthPayment)
             : totalMonthPaymentNoInterest
+
+    // 아직 override 계산이 완료되지 않은 경우 스켈레톤 표시
+    const isEffectivelyLoading = isLoading || installmentPayment === ""
 
     return (
         <div style={wrapperStyle}>
@@ -118,18 +122,18 @@ export default function OrderSummarySheet(props) {
                 </div>
             </div>
 
-            {isLoading ? (
-                <Card>
+            {isEffectivelyLoading ? (
+                <div style={sectionStyle}>
                     <SkeletonRow delay={0} />
                     <SkeletonRow delay={0.1} />
                     <SkeletonRow delay={0.2} />
                     <SkeletonRow delay={0.3} width="35%" />
-                </Card>
+                </div>
             ) : (
                 <>
                     {/* ── 카드 1: 월 할부원금 ── */}
-                    <Card>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <div style={sectionStyle}>
+                        <div style={{ display: "flex", flexDirection: "column" }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
                                 <span style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>
                                     {installmentPaymentTitle}
@@ -228,10 +232,10 @@ export default function OrderSummarySheet(props) {
                             value={`${installmentPrincipal.toLocaleString()}원`}
                             bold large
                         />
-                    </Card>
+                    </div>
 
                     {/* ── 카드 2: 월 통신요금 ── */}
-                    <Card>
+                    <div style={sectionStyle}>
                         <SectionHeader
                             label="월 통신요금"
                             description="결합 할인 또는 복지할인은 제외된 금액"
@@ -262,7 +266,7 @@ export default function OrderSummarySheet(props) {
                             value={`${planAfterDiscount.toLocaleString()}원`}
                             bold large
                         />
-                    </Card>
+                    </div>
 
                     {/* ── 카드 3: 월 예상 금액 ── */}
                     <div style={totalCardStyle}>
@@ -305,6 +309,14 @@ const stepNumText: React.CSSProperties = { fontSize: 13, fontWeight: 700, color:
 const titleStyle: React.CSSProperties = {
     fontSize: 16, fontWeight: 700, color: "#111827",
     fontFamily: '"Pretendard", "Inter", sans-serif',
+}
+const sectionStyle: React.CSSProperties = {
+    width: "100%",
+    backgroundColor: "#F9FAFB",
+    border: "none",
+    borderRadius: 12,
+    padding: "16px 18px 6px",
+    boxSizing: "border-box",
 }
 const totalCardStyle: React.CSSProperties = {
     width: "100%",

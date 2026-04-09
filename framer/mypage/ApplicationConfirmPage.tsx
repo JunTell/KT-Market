@@ -363,6 +363,11 @@ export default function ApplicationConfirmPage(props: Props) {
                     "-"
                 const resolvedDob = parsedUser.userDob || "-"
 
+                const showInterest = sessionStorage.getItem("phone_installment_interest_visible") === "true"
+                const displayTotalMonthPayment = showInterest
+                    ? (parsedSheet.totalMonthPayment || 0)
+                    : (parsedSheet.totalMonthPaymentNoInterest || parsedSheet.totalMonthPayment || 0)
+
                 setData({
                     petName: parsedData.device?.pet_name || "기기명 없음",
                     capacity: parsedData.device?.capacity || "",
@@ -381,7 +386,7 @@ export default function ApplicationConfirmPage(props: Props) {
                     publicSubsidy: publicSubsidy > 0 ? publicSubsidy : 0,
                     marketSubsidy: marketSubsidy,
                     finalPrice: installmentPrincipal,
-                    totalMonthPayment: parsedSheet.totalMonthPayment || 0,
+                    totalMonthPayment: displayTotalMonthPayment,
                     doubleStorageDiscount: doubleStorageDiscount,
                     promotionDiscount: promotionDiscount,
                 })

@@ -86,8 +86,8 @@ function OrderSheetContent({
         ? `${installmentPayment.toLocaleString()}원`
         : installmentPayment
 
-    // 토글 기준 표시값 분기
-    const displayInstallmentValue = showInterest
+    // 토글 기준 표시값 분기 — 일시불이거나 이자 표시 시 이자 포함 금액 사용
+    const displayInstallmentValue = (installment === 0 || showInterest)
         ? installmentPaymentStr
         : `${installmentPaymentNoInterest.toLocaleString()}원`
     const displayDescription = showInterest ? installmentPaymentDescription : ""
@@ -95,7 +95,10 @@ function OrderSheetContent({
         ? Math.round(totalMonthPayment)
         : totalMonthPaymentNoInterest
 
-    if (isLoading) {
+    // override 계산 완료 전 스켈레톤 표시
+    const isEffectivelyLoading = isLoading || installmentPayment === ""
+
+    if (isEffectivelyLoading) {
         return (
             <Card>
                 <SkeletonRow delay={0} />
@@ -557,39 +560,44 @@ export default function OrderFlowBottomSheet(props) {
                 display: "flex", alignItems: "center", justifyContent: "space-between",
                 padding: "4px 20px 10px",
             }}>
-                <span style={{ fontSize: 14, color: "#374151", fontWeight: 500, fontFamily: FONT }}>
-                    월 예상 금액
-                </span>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
-                    <motion.span
-                        style={{
-                            fontSize: 20,
-                            fontWeight: 700,
-                            lineHeight: 1.2,
-                            color: direction === "up" ? "#EF4444" : direction === "down" ? "#0055FF" : "#111827",
-                            transition: "color 0.4s ease",
-                            fontVariantNumeric: "tabular-nums",
-                            fontFamily: FONT,
-                        }}
-                    >
-                        {animatedPayment.toLocaleString()}원
-                    </motion.span>
-                    <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>부가세 포함</span>
-                    {installment > 0 && (
-                        <AnimatePresence mode="wait" initial={false}>
-                            <motion.span
-                                key={showInterest ? "interest-on" : "interest-off"}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.5 }}
-                                style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}
-                            >
-                                {showInterest ? "할부이자 포함" : "할부이자 미포함"}
-                            </motion.span>
-                        </AnimatePresence>
-                    )}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
+                    <span style={{ fontSize: 14, color: "#374151", fontWeight: 500, fontFamily: FONT }}>
+                        월 예상 금액
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>부가세 포함</span>
+                        {installment > 0 && (
+                            <>
+                                <span style={{ fontSize: 11, color: "#D1D5DB", fontFamily: FONT }}>·</span>
+                                <AnimatePresence mode="wait" initial={false}>
+                                    <motion.span
+                                        key={showInterest ? "interest-on" : "interest-off"}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.5 }}
+                                        style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}
+                                    >
+                                        {showInterest ? "할부이자 포함" : "할부이자 미포함"}
+                                    </motion.span>
+                                </AnimatePresence>
+                            </>
+                        )}
+                    </div>
                 </div>
+                <motion.span
+                    style={{
+                        fontSize: 20,
+                        fontWeight: 700,
+                        lineHeight: 1.2,
+                        color: direction === "up" ? "#EF4444" : direction === "down" ? "#0055FF" : "#111827",
+                        transition: "color 0.4s ease",
+                        fontVariantNumeric: "tabular-nums",
+                        fontFamily: FONT,
+                    }}
+                >
+                    {animatedPayment.toLocaleString()}원
+                </motion.span>
             </div>
 
             {/* 버튼 행: 전화 | 카카오톡 상담 | 입고 알림 */}
@@ -643,7 +651,7 @@ export default function OrderFlowBottomSheet(props) {
                     onClick={isSoldOut ? handleRestockClick : handleFormLink}
                     style={{
                         flex: 1, height: 52, borderRadius: 14,
-                        border: "none", backgroundColor: "#0055FF",
+                        border: "none", backgroundColor: "#EF4444",
                         color: "#FFFFFF", fontSize: 15, fontWeight: 700,
                         cursor: "pointer", fontFamily: FONT,
                         display: "flex", alignItems: "center", justifyContent: "center",

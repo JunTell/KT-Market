@@ -367,11 +367,16 @@ export default function ApplicationGateConfirm(props: Props) {
                     doubleStorageDiscount -
                     promotionDiscount
 
+                const showInterest = sessionStorage.getItem("phone_installment_interest_visible") === "true"
+                const displayTotalMonthPayment = showInterest
+                    ? (parsedSheet.totalMonthPayment || 0)
+                    : (parsedSheet.totalMonthPaymentNoInterest || parsedSheet.totalMonthPayment || 0)
+
                 setOrderInfo({
                     petName: parsedData.device?.pet_name || "기기명 없음",
                     capacity: parsedData.device?.capacity || "",
                     color: parsedData.color?.kr || "",
-                    price: parsedSheet.totalMonthPayment || 0,
+                    price: displayTotalMonthPayment,
                     imageUrl: parsedData.color?.urls?.[0] || "",
                     formLink: link,
                     devicePrice,
@@ -387,7 +392,7 @@ export default function ApplicationGateConfirm(props: Props) {
                     userName: parsedUser?.userName || "-",
                     userDob: parsedUser?.userDob || "-",
                     userPhone: parsedUser?.userPhone || "-",
-                    totalMonthPayment: parsedSheet.totalMonthPayment || 0,
+                    totalMonthPayment: displayTotalMonthPayment,
                 })
             } else {
                 setOrderInfo({

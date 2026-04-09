@@ -1164,7 +1164,7 @@ export function withOrderSheet(Component): ComponentType {
 
             const planDiscountAmount =
                 discount === "공통지원금" ? 0 : planPrice * 0.25
-            const totalPlanDiscountAmount = planDiscountAmount * 24
+            const totalPlanDiscountAmount = planDiscountAmount * (store.installment > 0 ? store.installment : 0)
             const totalMonthPlanPrice = planPrice - planDiscountAmount
             const totalMonthPayment =
                 store.installment === 0
@@ -1267,6 +1267,8 @@ export function withOrderSheet(Component): ComponentType {
             const data = {
                 ...result,
                 installmentPayment: `${result.installmentPayment.toLocaleString()}원`,
+                installmentPaymentNoInterest: noInterestMonthly,
+                totalMonthPaymentNoInterest: Math.round(noInterestMonthly + (result.totalMonthPlanPrice ?? 0)),
                 formLink,
                 installment: store.installment,
                 installmentPaymentTitle: getInstallmentPaymentTitle(store),
@@ -1278,7 +1280,18 @@ export function withOrderSheet(Component): ComponentType {
 
             sessionStorage.setItem("sheet", JSON.stringify(data))
             localStorage.setItem("kt_sheet", JSON.stringify(data))
-        }, [store])
+        }, [
+            store.plan,
+            store.device,
+            store.selectedPlan,
+            store.installment,
+            store.discount,
+            store.register,
+            store.benefit,
+            store.ktmarketSubsidy,
+            store.ktmarketSubsidies,
+            store.isGuaranteedReturn,
+        ])
 
         useEffect(() => {
             if (!store || !store.plan || !store.device) return

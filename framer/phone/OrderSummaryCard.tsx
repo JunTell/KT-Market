@@ -632,43 +632,44 @@ export default function OrderSummaryCard(props) {
                     </button>
                 </div>
 
-                {/* ── 공식 신청서 작성하기 버튼 ── */}
-                <button
-                    onClick={() => {
-                        if (typeof onApplyClick === "function") {
-                            onApplyClick()
-                            return
-                        }
-                        if (formLink && typeof window !== "undefined") {
-                            window.open(formLink, "_blank", "noopener,noreferrer")
-                        }
-                    }}
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: "100%",
-                        height: "52px",
-                        backgroundColor: "#0055FF",
-                        color: "#FFFFFF",
-                        border: "none",
-                        borderRadius: "12px",
-                        fontSize: "16px",
-                        fontWeight: 700,
-                        cursor:
-                            typeof onApplyClick === "function" || !!formLink
-                                ? "pointer"
-                                : "default",
-                        fontFamily: FONT,
-                        boxSizing: "border-box",
-                        opacity:
-                            typeof onApplyClick === "function" || !!formLink
-                                ? 1
-                                : 0.5,
-                    }}
-                >
-                    {ctaTitle}
-                </button>
+                {/* ── 월 통신요금 + 월 할부금 ── */}
+                {(() => {
+                    const planAfterDiscount = totalMonthPlanPrice > 0 ? totalMonthPlanPrice : planPrice - planDiscountAmount
+                    const displayInstallment = installment === 0 ? 0 : monthlyPayment
+                    const total = Math.round(planAfterDiscount + displayInstallment)
+                    return (
+                        <div style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            backgroundColor: "#F9FAFB",
+                            borderRadius: 12,
+                            padding: "12px 16px",
+                            boxSizing: "border-box" as const,
+                        }}>
+                            <div style={{ display: "flex", flexDirection: "column" as const, gap: 2, flex: 1 }}>
+                                <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>월 통신요금</span>
+                                <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+                                    {planAfterDiscount.toLocaleString()}원
+                                </span>
+                            </div>
+                            <span style={{ fontSize: 16, color: "#D1D5DB", fontWeight: 400, flexShrink: 0 }}>+</span>
+                            <div style={{ display: "flex", flexDirection: "column" as const, gap: 2, flex: 1 }}>
+                                <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>월 할부금</span>
+                                <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+                                    {displayInstallment.toLocaleString()}원
+                                </span>
+                            </div>
+                            <span style={{ fontSize: 16, color: "#D1D5DB", fontWeight: 400, flexShrink: 0 }}>=</span>
+                            <div style={{ display: "flex", flexDirection: "column" as const, gap: 2, alignItems: "flex-end" }}>
+                                <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>월 예상</span>
+                                <span style={{ fontSize: 16, fontWeight: 700, color: "#0055FF", fontFamily: FONT }}>
+                                    {total.toLocaleString()}원
+                                </span>
+                            </div>
+                        </div>
+                    )
+                })()}
             </div>
 
             {/* ── 월 할부 팝업 ── */}

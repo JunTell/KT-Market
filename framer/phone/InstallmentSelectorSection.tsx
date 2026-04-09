@@ -46,14 +46,14 @@ function InstallmentBtn({
     label: string; value: number; isActive: boolean; onClick: () => void; isRecommended?: boolean
 }) {
     return (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative", zIndex: 0 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative", zIndex: isRecommended ? 1 : 0 }}>
             {isRecommended && (
                 <div
                     style={{
                         position: "absolute",
                         top: -10,
                         right: 8,
-                        zIndex: 0,
+                        zIndex: 2,
                         padding: "2px 7px",
                         borderRadius: 999,
                         backgroundColor: "#0055FF",
@@ -134,7 +134,7 @@ export default function InstallmentSelectorSection(props) {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.15 }}
-                            style={{ display: "flex", gap: 8, paddingTop: 12 }}
+                            style={{ display: "flex", gap: 8 }}
                         >
                             {PRIMARY.map(({ label, value }) => (
                                 <InstallmentBtn
@@ -153,7 +153,7 @@ export default function InstallmentSelectorSection(props) {
                                 whileTap={{ scale: 0.96 }}
                                 style={{
                                     flex: 1,
-                                    height: 50,
+                                    height: 43,
                                     border: "1.5px solid #E5E7EB",
                                     borderRadius: 10,
                                     backgroundColor: "#FFFFFF",
@@ -179,8 +179,7 @@ export default function InstallmentSelectorSection(props) {
                             style={{
                                 display: "grid",
                                 gridTemplateColumns: "repeat(3, 1fr)",
-                                gap: 8,
-                                paddingTop: 12,
+                                gap: 8
                             }}
                         >
                             {ALL.map(({ label, value }) => (

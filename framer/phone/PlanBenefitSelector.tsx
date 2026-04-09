@@ -1513,7 +1513,6 @@ const PlanCard = ({
     plan,
     isActive,
     discountLabel,
-    isChoiceDiscount,
     onSelect,
     freebies,
     freebieLoading,
@@ -1523,7 +1522,6 @@ const PlanCard = ({
     plan: Plan
     isActive: boolean
     discountLabel: string
-    isChoiceDiscount: boolean
     onSelect: (p: Plan) => void
     freebies: Freebie[]
     freebieLoading: boolean
@@ -1532,9 +1530,6 @@ const PlanCard = ({
 }) => {
     const hasFreebiePlan = FREEBIE_PLAN_PIDS.has(plan.pid)
     const showFreebie = isActive && hasFreebiePlan
-    const displayMonthlyPrice = isChoiceDiscount
-        ? Math.round(plan.price * 0.75)
-        : plan.price
     const subtitle = [
         plan.data,
         plan.tethering ? `공유 데이터 ${plan.tethering}` : "",
@@ -1661,7 +1656,7 @@ const PlanCard = ({
                 style={{
                     display: "flex",
                     justifyContent: "flex-end",
-                    alignItems: isChoiceDiscount ? "flex-end" : "center",
+                    alignItems: "center",
                     gap: 8,
                 }}
             >
@@ -1674,46 +1669,15 @@ const PlanCard = ({
                 >
                     {discountLabel}
                 </span>
-                {isChoiceDiscount ? (
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "flex-end",
-                            gap: 2,
-                        }}
-                    >
-                        <span
-                            style={{
-                                fontSize: 12,
-                                color: "#9CA3AF",
-                                textDecoration: "line-through",
-                                textDecorationThickness: "1.5px",
-                            }}
-                        >
-                            월 {plan.price.toLocaleString()}원
-                        </span>
-                        <span
-                            style={{
-                                fontSize: 16,
-                                fontWeight: 700,
-                                color: "#111827",
-                            }}
-                        >
-                            월 {displayMonthlyPrice.toLocaleString()}원
-                        </span>
-                    </div>
-                ) : (
-                    <span
-                        style={{
-                            fontSize: 16,
-                            fontWeight: 700,
-                            color: "#111827",
-                        }}
-                    >
-                        월 {displayMonthlyPrice.toLocaleString()}원
-                    </span>
-                )}
+                <span
+                    style={{
+                        fontSize: 16,
+                        fontWeight: 700,
+                        color: "#111827",
+                    }}
+                >
+                    월 {plan.price.toLocaleString()}원
+                </span>
             </div>
         </motion.div>
     )
@@ -1724,7 +1688,6 @@ const SelectableCard = ({
     plan,
     isActive,
     discountLabel,
-    isChoiceDiscount,
     onOpen,
     freebies,
     freebieLoading,
@@ -1734,7 +1697,6 @@ const SelectableCard = ({
     plan: Plan | null
     isActive: boolean
     discountLabel: string
-    isChoiceDiscount: boolean
     onOpen: () => void
     freebies: Freebie[]
     freebieLoading: boolean
@@ -1798,10 +1760,6 @@ const SelectableCard = ({
     ]
         .filter(Boolean)
         .join(" | ")
-    const displayMonthlyPrice = isChoiceDiscount
-        ? Math.round(plan.price * 0.75)
-        : plan.price
-
     return (
         <motion.div
             onClick={onOpen}
@@ -1918,7 +1876,7 @@ const SelectableCard = ({
                 style={{
                     display: "flex",
                     justifyContent: "flex-end",
-                    alignItems: isChoiceDiscount ? "flex-end" : "center",
+                    alignItems: "center",
                     gap: 8,
                 }}
             >
@@ -1931,46 +1889,15 @@ const SelectableCard = ({
                 >
                     {discountLabel}
                 </span>
-                {isChoiceDiscount ? (
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "flex-end",
-                            gap: 2,
-                        }}
-                    >
-                        <span
-                            style={{
-                                fontSize: 12,
-                                color: "#9CA3AF",
-                                textDecoration: "line-through",
-                                textDecorationThickness: "1.5px",
-                            }}
-                        >
-                            월 {plan.price.toLocaleString()}원
-                        </span>
-                        <span
-                            style={{
-                                fontSize: 16,
-                                fontWeight: 700,
-                                color: "#111827",
-                            }}
-                        >
-                            월 {displayMonthlyPrice.toLocaleString()}원
-                        </span>
-                    </div>
-                ) : (
-                    <span
-                        style={{
-                            fontSize: 16,
-                            fontWeight: 700,
-                            color: "#111827",
-                        }}
-                    >
-                        월 {displayMonthlyPrice.toLocaleString()}원
-                    </span>
-                )}
+                <span
+                    style={{
+                        fontSize: 16,
+                        fontWeight: 700,
+                        color: "#111827",
+                    }}
+                >
+                    월 {plan.price.toLocaleString()}원
+                </span>
             </div>
         </motion.div>
     )
@@ -2425,15 +2352,15 @@ export default function PlanBenefitSelector(props) {
                     return (
                         <div
                             key={plan.pid}
-                            style={{ display: "flex", flexDirection: "column" }}
+                            style={{ position: "relative", zIndex: 0 }}
                         >
                             {isRec && (
                                 <div
                                     style={{
-                                        display: "flex",
-                                        justifyContent: "flex-start",
-                                        marginLeft: 14,
-                                        marginBottom: 4,
+                                        position: "absolute",
+                                        top: -10,
+                                        left: 14,
+                                        zIndex: 1,
                                     }}
                                 >
                                     <div
@@ -2460,7 +2387,6 @@ export default function PlanBenefitSelector(props) {
                                 plan={plan}
                                 isActive={selectedPlanPid === plan.pid}
                                 discountLabel={getDiscountLabel(plan.pid)}
-                                isChoiceDiscount={activeTab === "요금할인"}
                                 onSelect={handleFixedSelect}
                                 freebies={
                                     selectedPlanPid === plan.pid ? freebies : []
@@ -2484,7 +2410,6 @@ export default function PlanBenefitSelector(props) {
                             ? getDiscountLabel(customPlan.pid)
                             : "00만원 할인"
                     }
-                    isChoiceDiscount={activeTab === "요금할인"}
                     onOpen={openPopup}
                     freebies={isCustomActive ? freebies : []}
                     freebieLoading={isCustomActive ? freebieLoading : false}

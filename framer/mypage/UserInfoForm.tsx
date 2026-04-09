@@ -109,6 +109,10 @@ export default function UserInfoForm(props: Props) {
             setFullSheetData(parsedSheet)
 
             if (parsedSheet && parsedData) {
+                const showInterest = sessionStorage.getItem("phone_installment_interest_visible") === "true"
+                const displayMonthlyPayment = showInterest
+                    ? (parsedSheet.totalMonthPayment || 0)
+                    : (parsedSheet.totalMonthPaymentNoInterest || parsedSheet.totalMonthPayment || 0)
                 setOrderData({
                     deviceModel: parsedData.device?.model || "",
                     devicePetName: parsedData.device?.pet_name || "기기명 없음",
@@ -119,7 +123,7 @@ export default function UserInfoForm(props: Props) {
                     planName: parsedSheet.planName || "",
                     planPrice: parsedSheet.planPrice || 0,
                     devicePrice: parsedSheet.devicePrice || 0,
-                    monthlyPayment: parsedSheet.totalMonthPayment || 0,
+                    monthlyPayment: displayMonthlyPayment,
                     discountType: parsedSheet.discount || "공통지원금",
                     contract: parsedSheet.installment || 24,
                     funnel: "ktmarket_web",
