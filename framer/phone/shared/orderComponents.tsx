@@ -5,6 +5,46 @@ import { motion, AnimatePresence } from "framer-motion"
 
 export const FONT = '"Pretendard", "Inter", sans-serif'
 
+// ─── 할부이자 표시 토글 동기화 훅 ──────────────────────────────────────
+const INSTALLMENT_INTEREST_STORAGE_KEY = "phone_installment_interest_visible"
+const INSTALLMENT_INTEREST_EVENT = "phone-installment-interest-change"
+
+export function useInstallmentInterest(): [boolean, (v: boolean) => void] {
+    const [showInterest, setShowInterest] = useState(false)
+
+    useEffect(() => {
+        if (typeof window === "undefined") return
+
+        const readValue = () => {
+            const saved = window.sessionStorage.getItem(INSTALLMENT_INTEREST_STORAGE_KEY)
+            setShowInterest(saved === "true")
+        }
+
+        const handleSync = () => readValue()
+        const handleStorage = (event: StorageEvent) => {
+            if (event.key === INSTALLMENT_INTEREST_STORAGE_KEY) readValue()
+        }
+
+        readValue()
+        window.addEventListener(INSTALLMENT_INTEREST_EVENT, handleSync)
+        window.addEventListener("storage", handleStorage)
+
+        return () => {
+            window.removeEventListener(INSTALLMENT_INTEREST_EVENT, handleSync)
+            window.removeEventListener("storage", handleStorage)
+        }
+    }, [])
+
+    const updateShowInterest = (nextValue: boolean) => {
+        setShowInterest(nextValue)
+        if (typeof window === "undefined") return
+        window.sessionStorage.setItem(INSTALLMENT_INTEREST_STORAGE_KEY, String(nextValue))
+        window.dispatchEvent(new Event(INSTALLMENT_INTEREST_EVENT))
+    }
+
+    return [showInterest, updateShowInterest]
+}
+
 // ─── 숫자 카운트 애니메이션 훅 (easeOutCubic, ~1초) ──────────────────
 export function useAnimatedNumber(target: number, duration = 1000) {
     const [display, setDisplay] = useState(target)

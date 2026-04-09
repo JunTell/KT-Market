@@ -7,10 +7,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
     Tooltip, QuestionIcon, SkeletonRow, Dashed, ToggleSwitch,
     Row, RedRow, SectionHeader,
+    useInstallmentInterest,
 } from "./shared/orderComponents"
-
-const INSTALLMENT_INTEREST_STORAGE_KEY = "phone_installment_interest_visible"
-const INSTALLMENT_INTEREST_EVENT = "phone-installment-interest-change"
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────
 /**
@@ -44,44 +42,7 @@ export default function OrderSummarySheet(props) {
         title = "최종 주문서",
     } = props
 
-    const [showInterest, setShowInterest] = useState(false)
-
-    React.useEffect(() => {
-        if (typeof window === "undefined") return
-
-        const readValue = () => {
-            const savedValue = window.sessionStorage.getItem(
-                INSTALLMENT_INTEREST_STORAGE_KEY
-            )
-            setShowInterest(savedValue === "true")
-        }
-
-        const handleSync = () => readValue()
-        const handleStorage = (event: StorageEvent) => {
-            if (event.key === INSTALLMENT_INTEREST_STORAGE_KEY) {
-                readValue()
-            }
-        }
-
-        readValue()
-        window.addEventListener(INSTALLMENT_INTEREST_EVENT, handleSync)
-        window.addEventListener("storage", handleStorage)
-
-        return () => {
-            window.removeEventListener(INSTALLMENT_INTEREST_EVENT, handleSync)
-            window.removeEventListener("storage", handleStorage)
-        }
-    }, [])
-
-    const handleShowInterestChange = (nextValue: boolean) => {
-        setShowInterest(nextValue)
-        if (typeof window === "undefined") return
-        window.sessionStorage.setItem(
-            INSTALLMENT_INTEREST_STORAGE_KEY,
-            String(nextValue)
-        )
-        window.dispatchEvent(new Event(INSTALLMENT_INTEREST_EVENT))
-    }
+    const [showInterest, handleShowInterestChange] = useInstallmentInterest()
 
     const planAfterDiscount = totalMonthPlanPrice > 0 ? totalMonthPlanPrice : planPrice - planDiscountAmount
 

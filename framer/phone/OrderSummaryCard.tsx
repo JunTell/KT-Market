@@ -9,6 +9,7 @@ import {
     FONT, useAnimatedNumber, ToggleSwitch, Tooltip as OSTooltip, QuestionIcon as OSQuestionIcon,
     SkeletonRow as OSSkeletonRow, Dashed as OSDashed,
     Row as OSRow, RedRow as OSRedRow, Card as OSCard, SectionHeader as OSSectionHeader,
+    useInstallmentInterest,
 } from "./shared/orderComponents"
 
 // ─────────────────────────────────────────
@@ -504,13 +505,10 @@ export default function OrderSummaryCard(props) {
         totalMonthPaymentNoInterest = 0,
     } = props
 
-    const INTEREST_KEY = "phone_installment_interest_visible"
-    const INTEREST_EVENT = "phone-installment-interest-change"
-
     const [isMounted, setIsMounted] = useState(false)
     const [showPopup, setShowPopup] = useState(false)
     const [showOrderSheet, setShowOrderSheet] = useState(false)
-    const [showInterest, setShowInterest] = useState(false)
+    const [showInterest, setShowInterest] = useInstallmentInterest()
     const prevFinalPrice = useRef(finalPrice)
     const [direction, setDirection] = useState<"up" | "down" | null>(null)
     const [isBefore3PM, setIsBefore3PM] = useState(true)
@@ -522,25 +520,8 @@ export default function OrderSummaryCard(props) {
             setIsBefore3PM(now.getHours() < 15)
         }
         checkTime()
-        // 분 단위로 체크 (3시 경계 즉시 반영)
         const timer = setInterval(checkTime, 60000)
-
-        // OrderFlowBottomSheet와 showInterest 동기화
-        const readInterest = () => {
-            const saved = typeof window !== "undefined"
-                ? window.sessionStorage.getItem(INTEREST_KEY)
-                : null
-            setShowInterest(saved === "true")
-        }
-        readInterest()
-        window.addEventListener(INTEREST_EVENT, readInterest)
-        window.addEventListener("storage", readInterest)
-
-        return () => {
-            clearInterval(timer)
-            window.removeEventListener(INTEREST_EVENT, readInterest)
-            window.removeEventListener("storage", readInterest)
-        }
+        return () => clearInterval(timer)
     }, [])
 
     useEffect(() => {
@@ -715,13 +696,7 @@ export default function OrderSummaryCard(props) {
                 <OrderSheetModal
                     onClose={() => setShowOrderSheet(false)}
                     showInterest={showInterest}
-                    onShowInterestChange={(v) => {
-                        setShowInterest(v)
-                        if (typeof window !== "undefined") {
-                            window.sessionStorage.setItem(INTEREST_KEY, String(v))
-                            window.dispatchEvent(new Event(INTEREST_EVENT))
-                        }
-                    }}
+                    onShowInterestChange={setShowInterest}
                     installment={installment}
                     installmentPaymentTitle={installmentPaymentTitle}
                     installmentPaymentDescription={installmentPaymentDescription}

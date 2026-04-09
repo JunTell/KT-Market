@@ -8,10 +8,8 @@ import { motion, AnimatePresence, useDragControls } from "framer-motion"
 import {
     FONT, useAnimatedNumber, ToggleSwitch,
     SkeletonRow, Dashed, Row, RedRow, SectionHeader,
+    useInstallmentInterest,
 } from "./shared/orderComponents"
-
-const INSTALLMENT_INTEREST_STORAGE_KEY = "phone_installment_interest_visible"
-const INSTALLMENT_INTEREST_EVENT = "phone-installment-interest-change"
 
 // Card with marginBottom for this component's layout
 const Card = ({ children }: { children: React.ReactNode }) => (
@@ -404,44 +402,7 @@ export default function OrderFlowBottomSheet(props) {
 
     const [mounted, setMounted] = useState(false)
     const [showDetailSheet, setShowDetailSheet] = useState(false)
-    const [showInterest, setShowInterest] = useState(false)
-
-    useEffect(() => {
-        if (typeof window === "undefined") return
-
-        const readValue = () => {
-            const savedValue = window.sessionStorage.getItem(
-                INSTALLMENT_INTEREST_STORAGE_KEY
-            )
-            setShowInterest(savedValue === "true")
-        }
-
-        const handleSync = () => readValue()
-        const handleStorage = (event: StorageEvent) => {
-            if (event.key === INSTALLMENT_INTEREST_STORAGE_KEY) {
-                readValue()
-            }
-        }
-
-        readValue()
-        window.addEventListener(INSTALLMENT_INTEREST_EVENT, handleSync)
-        window.addEventListener("storage", handleStorage)
-
-        return () => {
-            window.removeEventListener(INSTALLMENT_INTEREST_EVENT, handleSync)
-            window.removeEventListener("storage", handleStorage)
-        }
-    }, [])
-
-    const handleShowInterestChange = (nextValue: boolean) => {
-        setShowInterest(nextValue)
-        if (typeof window === "undefined") return
-        window.sessionStorage.setItem(
-            INSTALLMENT_INTEREST_STORAGE_KEY,
-            String(nextValue)
-        )
-        window.dispatchEvent(new Event(INSTALLMENT_INTEREST_EVENT))
-    }
+    const [showInterest, setShowInterest] = useInstallmentInterest()
 
     // 모달 열릴 때 배경 스크롤 차단
     useEffect(() => {
@@ -679,7 +640,7 @@ export default function OrderFlowBottomSheet(props) {
                     sheetProps={sheetProps}
                     FONT={FONT}
                     showInterest={showInterest}
-                    setShowInterest={handleShowInterestChange}
+                    setShowInterest={setShowInterest}
                 />
             )}
         </div>

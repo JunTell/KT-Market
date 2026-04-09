@@ -4,6 +4,14 @@ import { createClient } from "@supabase/supabase-js"
 import React, { useEffect, useState, useMemo, useRef } from "react"
 // @ts-ignore
 import { Override, useRouter } from "framer"
+import {
+    calcInstallment,
+    getGuaranteedReturnPrice as calcGuaranteedReturnPrice,
+    calculatePromotionDiscount,
+    getSpecialPrice,
+    getInstallmentPaymentTitle as calcInstallmentPaymentTitle,
+    getInstallmentPaymentDescription as calcInstallmentPaymentDescription,
+} from "../shared/priceCalculation"
 
 // iphone16e
 const TARGET_POPUP_PATH = "/phone/aip16e-128"
@@ -591,36 +599,7 @@ export function withPriceCard(Component): ComponentType {
         const [store] = useStore()
         const { navigate, routes } = useRouter()
 
-        // ── 헬퍼 함수 (withOrderSheet와 동일 로직) ──────────────────
-        function calcInstallment(principal: number, months: number) {
-            if (months === 0) return principal
-            const r = 5.9 / 100 / 12
-            const n = months
-            return Math.floor(
-                (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1)
-            )
-        }
-
-        function getGuaranteedReturnPrice(model: string, price: number, isGR: boolean) {
-            if (!isGR) return 0
-            const grModels = [
-                "sm-f966nk512", "sm-f966nk", "sm-f766nk512", "sm-f766nk",
-                "aip17-256", "aip17-512", "aipa-256", "aipa-512", "aipa-1t",
-                "aip17p-256", "aip17p-512", "aip17p-1t",
-                "aip17pm-256", "aip17pm-512", "aip17pm-1t", "aip17pm-2t",
-            ]
-            return grModels.includes(model) ? price / 2 : 0
-        }
-
-        function calculateDiscounts(planId: string) {
-            const promo100000Plans = [
-                "ppllistobj_0863", "ppllistobj_0864", "ppllistobj_0865",
-                "ppllistobj_0850", "ppllistobj_0851", "ppllistobj_0852",
-            ]
-            return { promo: promo100000Plans.includes(planId) ? 50000 : 0 }
-        }
-
-        // ── 계산 ────────────────────────────────────────────────────
+        // ── 계산 (공유 함수 사용) ────────────────────────────────────
         const { register, discount, selectedPlan, device, benefit } = store
 
         const planPrice = selectedPlan?.price ?? 0
@@ -630,44 +609,26 @@ export function withPriceCard(Component): ComponentType {
         const migrationSubsidy = isMnp ? (selectedPlan?.migration_subsidy ?? 0) : 0
 
         const ktmarketSubsidy = store.benefit === "KT마켓 단독혜택" ? store.ktmarketSubsidy : 0
-        const { promo: promotionDiscount } = calculateDiscounts(planId)
+        const promotionDiscount = calculatePromotionDiscount(planId)
 
         const isGuaranteedReturn = store.isGuaranteedReturn ?? false
-        const guaranteedReturnPrice = getGuaranteedReturnPrice(
+        const guaranteedReturnPrice = calcGuaranteedReturnPrice(
             device?.model ?? "", devicePrice, isGuaranteedReturn
         )
 
-        const modelPrices = SPECIAL_PRICES[device?.model ?? ""] || { mnp: 0, chg: 0 }
-        const specialPrice =
-            register === "번호이동" || register === "신규가입"
-                ? modelPrices.mnp
-                : register === "기기변경"
-                    ? modelPrices.chg
-                    : 0
+        const specialPrice = getSpecialPrice(device?.model ?? "", register, SPECIAL_PRICES)
 
         let disclosureSubsidy = 0
         if (discount === "공통지원금") {
             disclosureSubsidy = selectedPlan?.disclosure_subsidy ?? 0
         }
 
-        // 더블스토리지
-        const doubleStorageModels = ["sm-s942nk512", "sm-s947nk512", "sm-s948nk512"]
-        const exceptionPlansForDoubleStorage = [
-            "ppllistobj_0845", "ppllistobj_0535", "ppllistobj_0765", "ppllistobj_0775",
-        ]
-        let doubleStorageDiscount = 0
-        if (
-            doubleStorageModels.includes(device?.model ?? "") &&
-            register === "기기변경" &&
-            store.installment < 36 &&
-            (planPrice >= 37000 || exceptionPlansForDoubleStorage.includes(planId))
-        ) {
-            doubleStorageDiscount = 0
-        }
+        const doubleStorageDiscount = 0
+        const preorderDiscount = 0
 
         const totalDeviceDiscountAmount =
             ktmarketSubsidy + disclosureSubsidy + migrationSubsidy +
-            promotionDiscount + guaranteedReturnPrice + specialPrice + doubleStorageDiscount
+            promotionDiscount + preorderDiscount + guaranteedReturnPrice + specialPrice + doubleStorageDiscount
 
         const installment = store.installment ?? 24
         const originPrice = device?.price ?? 0
@@ -697,13 +658,8 @@ export function withPriceCard(Component): ComponentType {
             return Math.round(Math.min(Math.max(rate, 0), 100))
         })()
 
-        const installmentPaymentTitle = isGuaranteedReturn
-            ? "월 할부금"
-            : installment > 0
-                ? `월 할부금 (${installment}개월)`
-                : "결제 금액"
-        const installmentPaymentDescription =
-            installment > 0 ? "분할 상환 수수료 5.9% 포함" : "카드 또는 현금결제"
+        const installmentPaymentTitle = calcInstallmentPaymentTitle(isGuaranteedReturn, installment)
+        const installmentPaymentDescription = calcInstallmentPaymentDescription(installment)
 
         const releasedModels = [
             "sm-s942nk",
@@ -987,80 +943,9 @@ export function withOrderSheet(Component): ComponentType {
         const [monthlyPriceFreebie, setMonthlyPriceFreebie] = useState(0)
         const [doubleStorageDiscount, setDoubleStorageDiscount] = useState(0)
 
-        const getGuaranteedReturnPrice = (
-            model: string,
-            price: number,
-            isGuaranteedReturn: boolean
-        ) => {
-            const guaranteedReturnModels = [
-                "sm-f966nk512",
-                "sm-f966nk",
-                "sm-f766nk512",
-                "sm-f766nk",
-                "aip17-256",
-                "aip17-512",
-                "aipa-256",
-                "aipa-512",
-                "aipa-1t",
-                "aip17p-256",
-                "aip17p-512",
-                "aip17p-1t",
-                "aip17pm-256",
-                "aip17pm-512",
-                "aip17pm-1t",
-                "aip17pm-2t",
-            ]
-            if (!isGuaranteedReturn) return 0
-
-            if (guaranteedReturnModels.includes(model)) {
-                return price / 2
-            } else {
-                return 0
-            }
-        }
-
         useEffect(() => {
             setHydrated(true)
         }, [])
-
-        // 💡 초이스 요금제 프로모션 할인 로직 (S26 예외처리 삭제됨)
-        function calculateDiscounts(planId: string) {
-            const promo100000Plans = [
-                "ppllistobj_0863",
-                "ppllistobj_0864",
-                "ppllistobj_0865",
-                "ppllistobj_0850",
-                "ppllistobj_0851",
-                "ppllistobj_0852",
-            ]
-
-            let promo = 0
-
-            if (promo100000Plans.includes(planId)) {
-                promo = 50000
-            }
-
-            return { promo }
-        }
-
-        function calculateInstallment(principal, months, annualInterestRate) {
-            if (months === 0) return principal
-            const r = annualInterestRate / 100 / 12
-            const n = months
-            return Math.floor(
-                (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1)
-            )
-        }
-
-        function getPreorderDiscount(model: string) {
-            if (model == "sm-f966nk512") {
-                return 0
-            } else if (model == "sm-f766nk512") {
-                return 0
-            } else {
-                return 0
-            }
-        }
 
         function calculateOrderSheet(store, props) {
             const { register, discount, selectedPlan, device, benefit } = store
@@ -1076,21 +961,19 @@ export function withOrderSheet(Component): ComponentType {
 
             const ktmarketSubsidy =
                 store.benefit == "KT마켓 단독혜택" ? store.ktmarketSubsidy : 0
-            const preorderDiscount = getPreorderDiscount(device?.model)
+            const preorderDiscount = 0
 
-            // 💡 프로모션 할인 금액 받아오기
-            const { promo: promotionDiscount } = calculateDiscounts(
+            const promotionDiscount = calculatePromotionDiscount(
                 selectedPlan?.plan_id
             )
 
             const isGuaranteedReturn = store.isGuaranteedReturn
-            const guaranteedReturnPrice = getGuaranteedReturnPrice(
+            const guaranteedReturnPrice = calcGuaranteedReturnPrice(
                 device?.model,
                 devicePrice,
                 isGuaranteedReturn
             )
 
-            // 12-04
             const modelPrices = SPECIAL_PRICES[device?.model] || {
                 mnp: 0,
                 chg: 0,
@@ -1098,53 +981,14 @@ export function withOrderSheet(Component): ComponentType {
             const specialPriceMnp = modelPrices.mnp
             const specialPriceChg = modelPrices.chg
 
-            const selected =
-                register === "번호이동" || register === "신규가입"
-                    ? specialPriceMnp
-                    : register === "기기변경"
-                        ? specialPriceChg
-                        : 0
+            const selected = getSpecialPrice(device?.model ?? "", register, SPECIAL_PRICES)
 
             let disclosureSubsidy = 0
-
             if (discount === "공통지원금") {
-                if (register === "신규가입") {
-                    disclosureSubsidy = selectedPlan?.disclosure_subsidy ?? 0
-                } else {
-                    disclosureSubsidy = selectedPlan?.disclosure_subsidy ?? 0
-                }
+                disclosureSubsidy = selectedPlan?.disclosure_subsidy ?? 0
             }
 
-            // 더블스토리지(용량 업그레이드) 지원금 계산 로직
-            const doubleStorageModels = [
-                "sm-s942nk512",
-                "sm-s947nk512",
-                "sm-s948nk512",
-            ]
-            let doubleStorageDiscountValue = 0
-
-            // 37,000원 미만이어도 할인 적용되는 예외 요금제 목록
-            const exceptionPlansForDoubleStorage = [
-                "ppllistobj_0845", // 5G 주니어 슬림
-                "ppllistobj_0535", // 순 골든20
-                "ppllistobj_0765", // Y틴 ON
-                "ppllistobj_0775", // 시니어 베이직
-            ]
-
-            // ✨ "기기변경" 이고 "36개월 미만" 일 때 (할인유형 공시/선약 무관하게 적용)
-            if (
-                doubleStorageModels.includes(device?.model) &&
-                register === "기기변경" &&
-                store.installment < 36
-            ) {
-                // 요금제가 37,000원 이상이거나, 예외 요금제 리스트에 속해있을 경우 적용
-                if (
-                    planPrice >= 37000 ||
-                    exceptionPlansForDoubleStorage.includes(planId)
-                ) {
-                    doubleStorageDiscountValue = 0
-                }
-            }
+            const doubleStorageDiscountValue = 0
 
             // 💡 총 단말기 할인 금액
             const totalDeviceDiscountAmount =
@@ -1163,7 +1007,7 @@ export function withOrderSheet(Component): ComponentType {
                 : devicePrice - totalDeviceDiscountAmount
             const installmentPayment = isFreePhone
                 ? 0
-                : calculateInstallment(
+                : calcInstallment(
                     installmentPrincipal,
                     store.installment,
                     5.9
@@ -1221,13 +1065,7 @@ export function withOrderSheet(Component): ComponentType {
         }
 
         const getInstallmentPaymentTitle = (store) => {
-            if (store.isGuaranteedReturn) {
-                return `월 할부금`
-            } else {
-                return store.installment > 0
-                    ? `월 할부금 (${store.installment}개월)`
-                    : "결제 금액"
-            }
+            return calcInstallmentPaymentTitle(store.isGuaranteedReturn, store.installment)
         }
 
         useEffect(() => {
@@ -1279,10 +1117,7 @@ export function withOrderSheet(Component): ComponentType {
                 formLink,
                 installment: store.installment,
                 installmentPaymentTitle: getInstallmentPaymentTitle(store),
-                installmentPaymentDescription:
-                    store.installment > 0
-                        ? "분할 상환 수수료 5.9% 포함"
-                        : "카드 또는 현금결제",
+                installmentPaymentDescription: calcInstallmentPaymentDescription(store.installment),
             }
 
             sessionStorage.setItem("sheet", JSON.stringify(data))
@@ -1387,11 +1222,7 @@ export function withOrderSheet(Component): ComponentType {
                 plan={planName}
                 installment={store.installment}
                 installmentPaymentTitle={getInstallmentPaymentTitle(store)}
-                installmentPaymentDescription={
-                    store.installment > 0
-                        ? "분할 상환 수수료 5.9% 포함"
-                        : "카드 또는 현금결제"
-                }
+                installmentPaymentDescription={calcInstallmentPaymentDescription(store.installment)}
                 benefit={benefit}
                 discount={discount}
                 preorderDiscount={preorderDiscount}
@@ -1444,20 +1275,6 @@ export function withPlanBasicNotice(Component): ComponentType {
     return (props) => {
         const [store] = useStore()
 
-        const calculateInstallment = (
-            principal: number,
-            months: number,
-            annualInterestRate: number
-        ) => {
-            if (months === 0) return principal
-            const r = annualInterestRate / 100 / 12
-            const n = months
-            return Math.floor(
-                (principal * r * Math.pow(1 + r, n)) /
-                (Math.pow(1 + r, n) - 1)
-            )
-        }
-
         if (!store?.selectedPlan || !store?.device) {
             return <Component {...props} officialMonthlyPrice={0} />
         }
@@ -1478,72 +1295,15 @@ export function withPlanBasicNotice(Component): ComponentType {
         const ktmarketSubsidy =
             store.benefit === "KT마켓 단독혜택" ? store.ktmarketSubsidy ?? 0 : 0
 
-        const promo100000Plans = [
-            "ppllistobj_0994",
-            "ppllistobj_0993",
-            "ppllistobj_0992",
-            "ppllistobj_0863",
-            "ppllistobj_0864",
-            "ppllistobj_0865",
-            "ppllistobj_0850",
-            "ppllistobj_0851",
-            "ppllistobj_0852",
-        ]
-        const promotionDiscount = promo100000Plans.includes(planId) ? 80000 : 0
+        const promotionDiscount = calculatePromotionDiscount(planId)
 
-        const guaranteedReturnModels = [
-            "sm-f966nk512",
-            "sm-f966nk",
-            "sm-f766nk512",
-            "sm-f766nk",
-            "aip17-256",
-            "aip17-512",
-            "aipa-256",
-            "aipa-512",
-            "aipa-1t",
-            "aip17p-256",
-            "aip17p-512",
-            "aip17p-1t",
-            "aip17pm-256",
-            "aip17pm-512",
-            "aip17pm-1t",
-            "aip17pm-2t",
-        ]
-        const guaranteedReturnPrice =
-            store.isGuaranteedReturn &&
-                guaranteedReturnModels.includes(store.device?.model ?? "")
-                ? modelPrice / 2
-                : 0
+        const guaranteedReturnPrice = calcGuaranteedReturnPrice(
+            store.device?.model ?? "", modelPrice, store.isGuaranteedReturn
+        )
 
-        const modelPrices = SPECIAL_PRICES[store.device?.model ?? ""] || {
-            mnp: 0,
-            chg: 0,
-        }
-        const specialPrice =
-            register === "번호이동" || register === "신규가입"
-                ? modelPrices.mnp
-                : register === "기기변경"
-                    ? modelPrices.chg
-                    : 0
+        const specialPrice = getSpecialPrice(store.device?.model ?? "", register, SPECIAL_PRICES)
 
-        const doubleStorageModels = [
-            "sm-s942nk512",
-            "sm-s947nk512",
-            "sm-s948nk512",
-        ]
-        const exceptionPlansForDoubleStorage = [
-            "ppllistobj_0845",
-            "ppllistobj_0535",
-            "ppllistobj_0765",
-            "ppllistobj_0775",
-        ]
-        const doubleStorageDiscount =
-            doubleStorageModels.includes(store.device?.model ?? "") &&
-                register === "기기변경" &&
-                (store.installment ?? 24) < 36 &&
-                (planPrice >= 37000 || exceptionPlansForDoubleStorage.includes(planId))
-                ? 0
-                : 0
+        const doubleStorageDiscount = 0
 
         const totalDeviceDiscountAmount =
             ktmarketSubsidy +
@@ -1564,7 +1324,7 @@ export function withPlanBasicNotice(Component): ComponentType {
         const officialDeviceMonthly =
             (store.installment ?? 24) === 0
                 ? 0
-                : calculateInstallment(officialPrincipal, store.installment ?? 24, 5.9)
+                : calcInstallment(officialPrincipal, store.installment ?? 24, 5.9)
         const officialMonthlyPrice = Math.round(
             officialDeviceMonthly + officialPlanPrice
         )
