@@ -6,7 +6,7 @@ import { useMemo } from "react"
 import { addPropertyControls, ControlType } from "framer"
 import { motion, AnimatePresence } from "framer-motion"
 
-const FONT = '"Pretendard", "Inter", sans-serif'
+const FONT = '"Pretendard"'
 
 // ─── 통신사 데이터 ─────────────────────────────────────────────────────
 const CARRIERS = [
@@ -45,7 +45,7 @@ const CARRIERS = [
         label: "알뜰폰",
         labelColor: "#374151",
         fontWeight: 700,
-        fontSize: 14,
+        fontSize: 15,
         letterSpacing: "0",
         joinType: "번호이동",
         description: "쓰던 번호 그대로 통신사만 KT로 바꿀 수 있어요",
@@ -124,7 +124,7 @@ export default function CarrierJoinSelector(props) {
             description: "KT에서 새로운 번호로 가입할 수 있어요",
         }]
         : CARRIERS,
-    [showNewSubscription])
+        [showNewSubscription])
 
     const activeCarrier = allCarriers.find((c) => c.id === activeId) ?? allCarriers[0]
 
@@ -136,7 +136,7 @@ export default function CarrierJoinSelector(props) {
     return (
         <div style={wrapperStyle}>
             {/* 타이틀 */}
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+            <span style={{ fontSize: 17, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
                 {title}
             </span>
 
@@ -172,12 +172,11 @@ export default function CarrierJoinSelector(props) {
                                     src={logoMap[c.id]}
                                     alt={c.id}
                                     style={{
-                                        width: "auto",
+                                        width: c.id === "SKT" ? 24 : c.id === "LG U+" ? 25 : "auto",
+                                        height: c.id === "SKT" ? 17 : c.id === "LG U+" ? 21 : 14,
                                         maxWidth: "80%",
-                                        height: 14,
                                         objectFit: "contain",
-                                        opacity: isActive ? 1 : 0.35,
-                                        transition: "opacity 0.15s",
+                                        opacity: 1,
                                         userSelect: "none",
                                         pointerEvents: "none",
                                     }}

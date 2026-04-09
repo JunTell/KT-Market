@@ -122,7 +122,7 @@ export default function InstallmentSelectorSection(props) {
     return (
         <div style={wrapperStyle}>
             {/* 타이틀 */}
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+            <span style={{ fontSize: 17, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
                 {title}
             </span>
 

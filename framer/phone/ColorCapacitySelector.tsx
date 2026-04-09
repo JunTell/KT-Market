@@ -112,7 +112,7 @@ export default function ColorCapacitySelector(props) {
         <>
             <div style={wrapperStyle}>
                 {/* 섹션 타이틀 */}
-                <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+                <span style={{ fontSize: 17, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
                     {title}
                 </span>
 
@@ -146,10 +146,10 @@ export default function ColorCapacitySelector(props) {
 
                     {/* 색상명 + 용량 */}
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
-                        <span style={{ fontSize: 15, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+                        <span style={{ fontSize: 17, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
                             {activeColor?.kr ?? "색상 선택"}
                         </span>
-                        <span style={{ fontSize: 13, color: "#9CA3AF", fontFamily: FONT }}>
+                        <span style={{ fontSize: 15, color: "#9CA3AF", fontFamily: FONT }}>
                             {activeCapacity?.capacity ?? ""}
                         </span>
                     </div>
@@ -303,7 +303,7 @@ export default function ColorCapacitySelector(props) {
                                             {/* 색상명 */}
                                             <div style={{ flex: 1 }}>
                                                 <span style={{
-                                                    fontSize: 15,
+                                                    fontSize: 17,
                                                     fontWeight: isActive ? 700 : 400,
                                                     color: isActive ? "#111827" : "#374151",
                                                     fontFamily: FONT,

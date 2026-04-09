@@ -1696,7 +1696,7 @@ const PlanCard = ({
                                 color: "#374151",
                             }}
                         >
-                            {Math.floor(plan.price * 0.75).toLocaleString()}원
+                            월 {Math.floor(plan.price * 0.75).toLocaleString()}원
                         </span>
                     </div>
                 </div>
@@ -1743,6 +1743,7 @@ const SelectableCard = ({
     freebieLoading,
     selectedFreebie,
     onFreebieSelect,
+    isYakjeong = false,
 }: {
     plan: Plan | null
     isActive: boolean
@@ -1752,6 +1753,7 @@ const SelectableCard = ({
     freebieLoading: boolean
     selectedFreebie: Freebie | null
     onFreebieSelect: (f: Freebie) => void
+    isYakjeong?: boolean
 }) => {
     const hasFreebie = plan ? FREEBIE_PLAN_PIDS.has(plan.pid) : false
     const showFreebie = isActive && hasFreebie
@@ -1922,33 +1924,81 @@ const SelectableCard = ({
             )}
 
             {/* 하단: 할인라벨 + 월 요금 */}
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    alignItems: "center",
-                    gap: 8,
-                }}
-            >
-                <span
+            {isYakjeong ? (
+                <div
                     style={{
-                        fontSize: 13,
-                        color: "#0055FF",
-                        fontWeight: 500,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-end",
+                        gap: 8,
                     }}
                 >
-                    {discountLabel}
-                </span>
-                <span
+                    <span
+                        style={{
+                            fontSize: 13,
+                            color: "#0055FF",
+                            fontWeight: 500,
+                        }}
+                    >
+                        {discountLabel}
+                    </span>
+                    <div
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "flex-end",
+                            gap: 2,
+                        }}
+                    >
+                        <span
+                            style={{
+                                fontSize: 12,
+                                color: "#9CA3AF",
+                                textDecoration: "line-through",
+                            }}
+                        >
+                            {plan.price.toLocaleString()}원
+                        </span>
+                        <span
+                            style={{
+                                fontSize: 15,
+                                fontWeight: 700,
+                                color: "#0055FF",
+                            }}
+                        >
+                            월 {Math.floor(plan.price * 0.75).toLocaleString()}원
+                        </span>
+                    </div>
+                </div>
+            ) : (
+                <div
                     style={{
-                        fontSize: 16,
-                        fontWeight: 700,
-                        color: "#111827",
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        alignItems: "center",
+                        gap: 8,
                     }}
                 >
-                    월 {plan.price.toLocaleString()}원
-                </span>
-            </div>
+                    <span
+                        style={{
+                            fontSize: 13,
+                            color: "#0055FF",
+                            fontWeight: 500,
+                        }}
+                    >
+                        {discountLabel}
+                    </span>
+                    <span
+                        style={{
+                            fontSize: 16,
+                            fontWeight: 700,
+                            color: "#111827",
+                        }}
+                    >
+                        월 {plan.price.toLocaleString()}원
+                    </span>
+                </div>
+            )}
         </motion.div>
     )
 }
@@ -2252,7 +2302,7 @@ export default function PlanBenefitSelector(props) {
             {/* ── 할인 방법 섹션 ── */}
             <span
                 style={{
-                    fontSize: 16,
+                    fontSize: 17,
                     fontWeight: 700,
                     color: "#111827",
                     fontFamily: '"Pretendard","Inter",sans-serif',
@@ -2290,7 +2340,7 @@ export default function PlanBenefitSelector(props) {
                                         : "transparent",
                                 color:
                                     activeTab === tab ? "#111827" : "#9CA3AF",
-                                fontSize: 13,
+                                fontSize: 15,
                                 fontWeight: activeTab === tab ? 700 : 400,
                                 cursor: "pointer",
                                 boxShadow:
@@ -2298,7 +2348,7 @@ export default function PlanBenefitSelector(props) {
                                         ? "0 1px 4px rgba(0,0,0,0.08)"
                                         : "none",
                                 borderRadius: 6,
-                                margin: 3,
+                                margin: 6,
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -2401,6 +2451,21 @@ export default function PlanBenefitSelector(props) {
 
             {/* 요금제 컬럼 리스트 */}
             <div style={columnStyle}>
+                <SelectableCard
+                    plan={isCustomActive ? customPlan : null}
+                    isActive={isCustomActive}
+                    discountLabel={
+                        isCustomActive && customPlan
+                            ? getDiscountLabel(customPlan.pid)
+                            : "00만원 할인"
+                    }
+                    onOpen={openPopup}
+                    freebies={isCustomActive ? freebies : []}
+                    freebieLoading={isCustomActive ? freebieLoading : false}
+                    selectedFreebie={selectedFreebie}
+                    onFreebieSelect={handleFreebieSelect}
+                    isYakjeong={activeTab === "요금할인"}
+                />
                 {FIXED_PLANS.map((plan) => {
                     const isRec = plan.pid === recommendedPid
                     return (
@@ -2451,20 +2516,6 @@ export default function PlanBenefitSelector(props) {
                         </div>
                     )
                 })}
-                <SelectableCard
-                    plan={isCustomActive ? customPlan : null}
-                    isActive={isCustomActive}
-                    discountLabel={
-                        isCustomActive && customPlan
-                            ? getDiscountLabel(customPlan.pid)
-                            : "00만원 할인"
-                    }
-                    onOpen={openPopup}
-                    freebies={isCustomActive ? freebies : []}
-                    freebieLoading={isCustomActive ? freebieLoading : false}
-                    selectedFreebie={selectedFreebie}
-                    onFreebieSelect={handleFreebieSelect}
-                />
             </div>
 
             {/* ── 팝업 ── */}

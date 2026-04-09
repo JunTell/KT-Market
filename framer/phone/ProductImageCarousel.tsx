@@ -70,7 +70,7 @@ const SkeletonView = ({ imageHeight }: { imageHeight: number }) => (
             {[0, 1, 2].map((i) => (
                 <motion.div
                     key={i}
-                    style={{ width: "36px", height: "36px", borderRadius: "50%", backgroundColor: "#E5E7EB", flexShrink: 0 }}
+                    style={{ width: "26px", height: "26px", borderRadius: "50%", backgroundColor: "#E5E7EB", flexShrink: 0 }}
                     animate={{ opacity: [0.4, 1, 0.4] }}
                     transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: i * 0.15 }}
                 />
@@ -334,8 +334,8 @@ export default function ProductImageCarousel(props) {
                                 whileTap={color.isSoldOut ? {} : { scale: 0.88 }}
                                 style={{
                                     position: "relative",
-                                    width: "36px",
-                                    height: "36px",
+                                    width: "26px",
+                                    height: "26px",
                                     borderRadius: "50%",
                                     backgroundColor: color.code || "#E5E7EB",
                                     cursor: color.isSoldOut ? "not-allowed" : "pointer",
