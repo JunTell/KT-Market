@@ -646,7 +646,7 @@ export default function OrderSummaryCard(props) {
                 {/* ── 가격 행 ── */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
-                        <span style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB" }}>최저가</span>
+                        <span style={{ fontSize: "13px", fontWeight: 600, color: "#EF4444" }}>최저가</span>
                         <motion.span
                             key={animatedPrice}
                             style={{
@@ -699,7 +699,7 @@ export default function OrderSummaryCard(props) {
                     flexDirection: "column" as const,
                     gap: 6,
                 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#EF4444", fontFamily: FONT }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#2563EB", fontFamily: FONT }}>
                         신청 전 필독사항
                     </span>
                     <span style={{ fontSize: 13, color: "#374151", lineHeight: 1.6, fontFamily: FONT }}>
