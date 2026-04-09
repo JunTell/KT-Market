@@ -2264,6 +2264,7 @@ export default function PlanBenefitSelector(props) {
                                         position: "absolute",
                                         top: -10,
                                         right: 8,
+                                        zIndex: 2,
                                         padding: "2px 7px",
                                         borderRadius: 999,
                                         backgroundColor: "#0055FF",
@@ -2273,6 +2274,8 @@ export default function PlanBenefitSelector(props) {
                                         lineHeight: 1.2,
                                         boxShadow: "0 4px 10px rgba(0,85,255,0.18)",
                                         whiteSpace: "nowrap",
+                                        pointerEvents: "none",
+                                        fontFamily: '"Pretendard","Inter",sans-serif',
                                     }}
                                 >
                                     추천
@@ -2355,33 +2358,27 @@ export default function PlanBenefitSelector(props) {
                             style={{ position: "relative", zIndex: 0 }}
                         >
                             {isRec && (
-                                <div
+                                <span
                                     style={{
                                         position: "absolute",
                                         top: -10,
                                         left: 14,
-                                        zIndex: 1,
+                                        zIndex: 2,
+                                        padding: "2px 7px",
+                                        borderRadius: 999,
+                                        backgroundColor: "#0055FF",
+                                        color: "#FFFFFF",
+                                        fontSize: 10,
+                                        fontWeight: 700,
+                                        lineHeight: 1.2,
+                                        boxShadow: "0 4px 10px rgba(0,85,255,0.18)",
+                                        whiteSpace: "nowrap",
+                                        pointerEvents: "none",
+                                        fontFamily: '"Pretendard","Inter",sans-serif',
                                     }}
                                 >
-                                    <div
-                                        style={{
-                                            backgroundColor: "#0055FF",
-                                            color: "#FFFFFF",
-                                            borderRadius: 999,
-                                            padding: "2px 7px",
-                                            fontSize: 10,
-                                            fontWeight: 700,
-                                            lineHeight: 1.2,
-                                            boxShadow:
-                                                "0 4px 10px rgba(0,85,255,0.18)",
-                                            fontFamily:
-                                                '"Pretendard","Inter",sans-serif',
-                                            whiteSpace: "nowrap",
-                                        }}
-                                    >
-                                        추천
-                                    </div>
-                                </div>
+                                    추천
+                                </span>
                             )}
                             <PlanCard
                                 plan={plan}

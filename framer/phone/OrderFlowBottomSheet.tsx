@@ -165,7 +165,7 @@ function OrderSheetContent({
                     <RedRow label="더블스토리지 할인" value={`-${doubleStorageDiscount.toLocaleString()}원`} />
                 )}
                 <Dashed />
-                <Row label="할부원금" value={`${installmentPrincipal.toLocaleString()}원`} bold large />
+                <Row label="할부원금" value={`${(installment === 0 ? 0 : installmentPrincipal).toLocaleString()}원`} bold large />
             </Card>
 
             {/* 카드 2: 월 통신요금 */}

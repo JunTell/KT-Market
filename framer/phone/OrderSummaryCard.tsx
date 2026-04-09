@@ -92,13 +92,15 @@ function OrderSheetContent({
         : installmentPayment
 
     // 토글 기준 표시값 분기
-    const displayInstallmentValue = showInterest
+    const displayInstallmentValue = (installment === 0 || showInterest)
         ? installmentPaymentStr
         : `${installmentPaymentNoInterest.toLocaleString()}원`
     const displayDescription = showInterest ? installmentPaymentDescription : ""
     const displayTotalMonthPayment = showInterest
         ? Math.round(totalMonthPayment)
-        : totalMonthPaymentNoInterest
+        : installment === 0
+            ? Math.round(totalMonthPayment)
+            : totalMonthPaymentNoInterest
 
     if (isLoading) {
         return (
@@ -143,7 +145,7 @@ function OrderSheetContent({
                     <OSRedRow label="더블스토리지 할인" value={`-${doubleStorageDiscount.toLocaleString()}원`} />
                 )}
                 <OSDashed />
-                <OSRow label="할부원금" value={`${installmentPrincipal.toLocaleString()}원`} bold large />
+                <OSRow label="할부원금" value={`${(installment === 0 ? 0 : installmentPrincipal).toLocaleString()}원`} bold large />
             </OSCard>
 
             {/* 카드 2: 월 통신요금 */}
@@ -185,9 +187,13 @@ function OrderSheetContent({
 // ─────────────────────────────────────────
 function OrderSheetModal({
     onClose,
+    showInterest,
+    onShowInterestChange,
     ...sheetProps
 }: {
     onClose: () => void
+    showInterest: boolean
+    onShowInterestChange: (v: boolean) => void
     installment: number
     installmentPaymentTitle: string
     installmentPaymentDescription: string
@@ -211,8 +217,6 @@ function OrderSheetModal({
     discount: string
     isLoading: boolean
 }) {
-
-    const [showInterest, setShowInterest] = React.useState(true)
 
     const modal = (
         <AnimatePresence>
@@ -269,7 +273,7 @@ function OrderSheetModal({
                         <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: FONT }}>최종 주문서</span>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                             <span style={{ fontSize: 12, color: "#6B7280", fontFamily: FONT }}>할부이자 표시</span>
-                            <ToggleSwitch checked={showInterest} onChange={setShowInterest} />
+                            <ToggleSwitch checked={showInterest} onChange={onShowInterestChange} />
                         </div>
                     </div>
 
@@ -500,9 +504,13 @@ export default function OrderSummaryCard(props) {
         totalMonthPaymentNoInterest = 0,
     } = props
 
+    const INTEREST_KEY = "phone_installment_interest_visible"
+    const INTEREST_EVENT = "phone-installment-interest-change"
+
     const [isMounted, setIsMounted] = useState(false)
     const [showPopup, setShowPopup] = useState(false)
     const [showOrderSheet, setShowOrderSheet] = useState(false)
+    const [showInterest, setShowInterest] = useState(false)
     const prevFinalPrice = useRef(finalPrice)
     const [direction, setDirection] = useState<"up" | "down" | null>(null)
     const [isBefore3PM, setIsBefore3PM] = useState(true)
@@ -516,7 +524,23 @@ export default function OrderSummaryCard(props) {
         checkTime()
         // 분 단위로 체크 (3시 경계 즉시 반영)
         const timer = setInterval(checkTime, 60000)
-        return () => clearInterval(timer)
+
+        // OrderFlowBottomSheet와 showInterest 동기화
+        const readInterest = () => {
+            const saved = typeof window !== "undefined"
+                ? window.sessionStorage.getItem(INTEREST_KEY)
+                : null
+            setShowInterest(saved === "true")
+        }
+        readInterest()
+        window.addEventListener(INTEREST_EVENT, readInterest)
+        window.addEventListener("storage", readInterest)
+
+        return () => {
+            clearInterval(timer)
+            window.removeEventListener(INTEREST_EVENT, readInterest)
+            window.removeEventListener("storage", readInterest)
+        }
     }, [])
 
     useEffect(() => {
@@ -635,7 +659,8 @@ export default function OrderSummaryCard(props) {
                 {/* ── 월 통신요금 + 월 할부금 ── */}
                 {(() => {
                     const planAfterDiscount = totalMonthPlanPrice > 0 ? totalMonthPlanPrice : planPrice - planDiscountAmount
-                    const displayInstallment = installment === 0 ? 0 : monthlyPayment
+                    const rawInstallment = installment === 0 ? 0 : monthlyPayment
+                    const displayInstallment = showInterest ? rawInstallment : (installment === 0 ? 0 : installmentPaymentNoInterest)
                     const total = Math.round(planAfterDiscount + displayInstallment)
                     return (
                         <div style={{
@@ -649,21 +674,21 @@ export default function OrderSummaryCard(props) {
                         }}>
                             <div style={{ display: "flex", flexDirection: "column" as const, gap: 2, flex: 1 }}>
                                 <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>월 통신요금</span>
-                                <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+                                <span style={{ fontSize: 12, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
                                     {planAfterDiscount.toLocaleString()}원
                                 </span>
                             </div>
                             <span style={{ fontSize: 16, color: "#D1D5DB", fontWeight: 400, flexShrink: 0 }}>+</span>
                             <div style={{ display: "flex", flexDirection: "column" as const, gap: 2, flex: 1 }}>
                                 <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>월 할부금</span>
-                                <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+                                <span style={{ fontSize: 12, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
                                     {displayInstallment.toLocaleString()}원
                                 </span>
                             </div>
                             <span style={{ fontSize: 16, color: "#D1D5DB", fontWeight: 400, flexShrink: 0 }}>=</span>
                             <div style={{ display: "flex", flexDirection: "column" as const, gap: 2, alignItems: "flex-end" }}>
                                 <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>월 예상</span>
-                                <span style={{ fontSize: 16, fontWeight: 700, color: "#0055FF", fontFamily: FONT }}>
+                                <span style={{ fontSize: 12, fontWeight: 700, color: "#0055FF", fontFamily: FONT }}>
                                     {total.toLocaleString()}원
                                 </span>
                             </div>
@@ -689,6 +714,14 @@ export default function OrderSummaryCard(props) {
             {showOrderSheet && (
                 <OrderSheetModal
                     onClose={() => setShowOrderSheet(false)}
+                    showInterest={showInterest}
+                    onShowInterestChange={(v) => {
+                        setShowInterest(v)
+                        if (typeof window !== "undefined") {
+                            window.sessionStorage.setItem(INTEREST_KEY, String(v))
+                            window.dispatchEvent(new Event(INTEREST_EVENT))
+                        }
+                    }}
                     installment={installment}
                     installmentPaymentTitle={installmentPaymentTitle}
                     installmentPaymentDescription={installmentPaymentDescription}

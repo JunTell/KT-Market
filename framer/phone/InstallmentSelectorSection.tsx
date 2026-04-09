@@ -48,7 +48,7 @@ function InstallmentBtn({
     return (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative", zIndex: isRecommended ? 1 : 0 }}>
             {isRecommended && (
-                <div
+                <span
                     style={{
                         position: "absolute",
                         top: -10,
@@ -68,7 +68,7 @@ function InstallmentBtn({
                     }}
                 >
                     추천
-                </div>
+                </span>
             )}
             <motion.button
                 onClick={onClick}

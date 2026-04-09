@@ -688,6 +688,9 @@ export function withPriceCard(Component): ComponentType {
 
         const monthlyPayment = calcInstallment(installmentPrincipal, installment)
 
+        const installmentPaymentNoInterest = installment > 0 ? Math.round(installmentPrincipal / installment) : 0
+        const totalMonthPaymentNoInterest = Math.round(installmentPaymentNoInterest + totalMonthPlanPrice)
+
         const discountRate = (() => {
             if (originPrice <= 0) return 0
             const rate = ((originPrice - installmentPrincipal) / originPrice) * 100
@@ -801,6 +804,8 @@ export function withPriceCard(Component): ComponentType {
                 plan={selectedPlan?.name ?? ""}
                 totalMonthPlanPrice={totalMonthPlanPrice}
                 totalMonthPayment={Math.round(totalMonthPayment)}
+                installmentPaymentNoInterest={installmentPaymentNoInterest}
+                totalMonthPaymentNoInterest={totalMonthPaymentNoInterest}
             />
         )
     }
@@ -858,6 +863,8 @@ export function withConfirmOrderSheet(Component): ComponentType {
                 migrationSubsidy={data?.migrationSubsidy}
                 installmentPrincipal={data?.installmentPrincipal}
                 installmentPayment={data?.installmentPayment}
+                installmentPaymentNoInterest={data?.installmentPaymentNoInterest}
+                totalMonthPaymentNoInterest={data?.totalMonthPaymentNoInterest}
                 planPrice={data?.planPrice}
                 totalPlanDiscountAmount={data?.totalPlanDiscountAmount}
                 planDiscountAmount={data?.planDiscountAmount}

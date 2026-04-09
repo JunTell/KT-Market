@@ -229,7 +229,7 @@ export default function OrderSummarySheet(props) {
                         {/* 할부원금 */}
                         <Row
                             label="할부원금"
-                            value={`${installmentPrincipal.toLocaleString()}원`}
+                            value={`${(installment === 0 ? 0 : installmentPrincipal).toLocaleString()}원`}
                             bold large
                         />
                     </div>
