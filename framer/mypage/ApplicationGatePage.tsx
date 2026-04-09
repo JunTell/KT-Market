@@ -252,6 +252,7 @@ interface OrderSummary {
     joinType: string
     discountType: string
     contract: number
+    showInterest: boolean
 
     userName: string
     userDob: string
@@ -536,6 +537,7 @@ export default function ApplicationGatePage(props: Props) {
                     joinType: parsedData.register || "기기변경",
                     discountType: parsedSheet.discount || "공통지원금",
                     contract: parsedSheet.installment || 24,
+                    showInterest: showInterest,
                     userName: parsedUser?.userName || "-",
                     userDob: parsedUser?.userDob || "-",
                     userPhone: parsedUser?.userPhone || "-",
@@ -559,6 +561,7 @@ export default function ApplicationGatePage(props: Props) {
                     joinType: "기기변경",
                     discountType: "공시지원금",
                     contract: 24,
+                    showInterest: false,
                     userName: "홍길동",
                     userDob: "990101",
                     userPhone: "01012345678",
@@ -678,7 +681,7 @@ export default function ApplicationGatePage(props: Props) {
                 <div style={listStyle}>
                     <InfoRow label="요금제명" value={orderInfo.planName} />
                     <InfoRow
-                        label="월 납부액"
+                        label={`월 납부액 (${orderInfo.showInterest ? "할부이자 포함" : "할부이자 미포함"})`}
                         value={`${formatPrice(orderInfo.price)}원`}
                     />
                 </div>

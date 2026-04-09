@@ -24,6 +24,7 @@ interface OrderData {
     planPrice: number
     devicePrice: number
     monthlyPayment: number
+    showInterest: boolean
     joinType: string
     discountType: string
     contract: number
@@ -124,6 +125,7 @@ export default function UserInfoForm(props: Props) {
                     planPrice: parsedSheet.planPrice || 0,
                     devicePrice: parsedSheet.devicePrice || 0,
                     monthlyPayment: displayMonthlyPayment,
+                    showInterest: showInterest,
                     discountType: parsedSheet.discount || "공통지원금",
                     contract: parsedSheet.installment || 24,
                     funnel: "ktmarket_web",
@@ -139,6 +141,7 @@ export default function UserInfoForm(props: Props) {
                     planPrice: 90000,
                     devicePrice: 1550000,
                     monthlyPayment: 105240,
+                    showInterest: false,
                     joinType: "기기변경",
                     discountType: "공통지원금",
                     contract: 24,
@@ -559,7 +562,7 @@ export default function UserInfoForm(props: Props) {
             <div style={listStyle}>
                 <InfoRow label="요금제명" value={orderData?.planName} />
                 <InfoRow
-                    label="월 납부액"
+                    label={`월 납부액 (${orderData?.showInterest ? "할부이자 포함" : "할부이자 미포함"})`}
                     value={`${formatPrice(orderData?.monthlyPayment || 0)}원`}
                 />
             </div>

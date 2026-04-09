@@ -1654,33 +1654,81 @@ const PlanCard = ({
             )}
 
             {/* 하단: 할인라벨 + 월 요금 */}
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    alignItems: "center",
-                    gap: 8,
-                }}
-            >
-                <span
+            {isYakjeong ? (
+                <div
                     style={{
-                        fontSize: 13,
-                        color: "#0055FF",
-                        fontWeight: 500,
+                        display: "flex",
+                        alignItems: "flex-end",
+                        justifyContent: "end",
+                        gap: 8,
                     }}
                 >
-                    {discountLabel}
-                </span>
-                <span
+                    <span
+                        style={{
+                            fontSize: 13,
+                            color: "#0055FF",
+                            fontWeight: 500,
+                        }}
+                    >
+                        {discountLabel}
+                    </span>
+                    <div
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "flex-end",
+                            gap: 2,
+                        }}
+                    >
+                        <span
+                            style={{
+                                fontSize: 12,
+                                color: "#9CA3AF",
+                                textDecoration: "line-through",
+                            }}
+                        >
+                            {plan.price.toLocaleString()}원
+                        </span>
+                        <span
+                            style={{
+                                fontSize: 15,
+                                fontWeight: 700,
+                                color: "#374151",
+                            }}
+                        >
+                            {Math.floor(plan.price * 0.75).toLocaleString()}원
+                        </span>
+                    </div>
+                </div>
+            ) : (
+                <div
                     style={{
-                        fontSize: 16,
-                        fontWeight: 700,
-                        color: "#111827",
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        alignItems: "center",
+                        gap: 8,
                     }}
                 >
-                    월 {plan.price.toLocaleString()}원
-                </span>
-            </div>
+                    <span
+                        style={{
+                            fontSize: 13,
+                            color: "#0055FF",
+                            fontWeight: 500,
+                        }}
+                    >
+                        {discountLabel}
+                    </span>
+                    <span
+                        style={{
+                            fontSize: 16,
+                            fontWeight: 700,
+                            color: "#111827",
+                        }}
+                    >
+                        월 {plan.price.toLocaleString()}원
+                    </span>
+                </div>
+            )}
         </motion.div>
     )
 }

@@ -291,6 +291,7 @@ interface OrderSummary {
     marketSubsidy: number
     finalPrice: number
     totalMonthPayment: number // 💡 월 납부액 추가
+    showInterest: boolean
     doubleStorageDiscount: number // ✨ 더블스토리지 할인 추가
     promotionDiscount: number // ✨ 프로모션 할인 추가
 }
@@ -387,6 +388,7 @@ export default function ApplicationConfirmPage(props: Props) {
                     marketSubsidy: marketSubsidy,
                     finalPrice: installmentPrincipal,
                     totalMonthPayment: displayTotalMonthPayment,
+                    showInterest: showInterest,
                     doubleStorageDiscount: doubleStorageDiscount,
                     promotionDiscount: promotionDiscount,
                 })
@@ -663,8 +665,7 @@ export default function ApplicationConfirmPage(props: Props) {
                             </div>
                             {/* 💡 최종 기기값(finalPrice) 대신 "월 납부액(totalMonthPayment)"으로 변경 */}
                             <div style={devicePriceStyle}>
-                                월 납부액 {formatPrice(data.totalMonthPayment)}
-                                원
+                                월 납부액 ({data.showInterest ? "할부이자 포함" : "할부이자 미포함"}) {formatPrice(data.totalMonthPayment)}원
                             </div>
                         </div>
                     </div>
