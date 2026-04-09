@@ -2255,6 +2255,7 @@ export default function PlanBenefitSelector(props) {
                                 transition: "all 0.15s",
                                 fontFamily: '"Pretendard","Inter",sans-serif',
                                 position: "relative",
+                                zIndex: 0,
                             }}
                         >
                             {tab}

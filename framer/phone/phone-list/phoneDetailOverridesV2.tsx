@@ -11,7 +11,7 @@ import {
     getSpecialPrice,
     getInstallmentPaymentTitle as calcInstallmentPaymentTitle,
     getInstallmentPaymentDescription as calcInstallmentPaymentDescription,
-} from "../shared/priceCalculation"
+} from "https://framer.com/m/priceCalculation-xPMQRv.js@Gkkk8lGTntumOpHbp38S"
 
 // iphone16e
 const TARGET_POPUP_PATH = "/phone/aip16e-128"

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
-export const FONT = '"Pretendard", "Inter", sans-serif'
+export const FONT = '"Pretendard"'
 
 // ─── 할부이자 표시 토글 동기화 훅 ──────────────────────────────────────
 const INSTALLMENT_INTEREST_STORAGE_KEY = "phone_installment_interest_visible"

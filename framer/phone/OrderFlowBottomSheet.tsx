@@ -1,358 +1,14 @@
 // withOrderSheet override와 함께 사용
-// 하단 고정 BottomSheet — 신청하기 버튼 클릭 시 모달 (카카오 로그인 / 비회원)
-// 상세 신청서 탭 → 위로 올라오는 바텀시트로 OrderSummarySheet UI 표시
+// 하단 고정 BottomSheet — 신청하기 버튼 클릭 시 주문/상담 플로우 실행
 
 import { addPropertyControls, ControlType } from "framer"
 import React, { useState, useEffect, useRef } from "react"
-import { motion, AnimatePresence, useDragControls } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import {
-    FONT, useAnimatedNumber, ToggleSwitch,
-    SkeletonRow, Dashed, Row, RedRow, SectionHeader,
-    useInstallmentInterest,
-} from "./shared/orderComponents"
-
-// Card with marginBottom for this component's layout
-const Card = ({ children }: { children: React.ReactNode }) => (
-    <div style={{
-        width: "100%", backgroundColor: "#FFFFFF",
-        border: "1.5px solid #E5E7EB", borderRadius: 12,
-        padding: "16px 18px 6px", boxSizing: "border-box",
-        marginBottom: 10,
-    }}>
-        {children}
-    </div>
-)
-
-// ─── OrderSheet 내용 컴포넌트 ─────────────────────────────────────────
-function OrderSheetContent({
-    installment,
-    installmentPaymentTitle,
-    installmentPaymentDescription,
-    installmentPrincipal,
-    installmentPayment,
-    installmentPaymentNoInterest = 0,
-    totalMonthPaymentNoInterest = 0,
-    showInterest = true,
-    devicePrice,
-    disclosureSubsidy,
-    ktmarketSubsidy,
-    promotionDiscount,
-    migrationSubsidy,
-    guaranteedReturnPrice,
-    specialPrice,
-    doubleStorageDiscount,
-    plan,
-    planPrice,
-    planDiscountAmount,
-    totalMonthPlanPrice,
-    totalMonthPayment,
-    discount,
-    isLoading,
-}: {
-    installment: number
-    installmentPaymentTitle: string
-    installmentPaymentDescription: string
-    installmentPrincipal: number
-    installmentPayment: string | number
-    installmentPaymentNoInterest?: number
-    totalMonthPaymentNoInterest?: number
-    showInterest?: boolean
-    devicePrice: number
-    disclosureSubsidy: number
-    ktmarketSubsidy: number
-    promotionDiscount: number
-    migrationSubsidy: number
-    guaranteedReturnPrice: number
-    specialPrice: number
-    doubleStorageDiscount: number
-    plan: string
-    planPrice: number
-    planDiscountAmount: number
-    totalMonthPlanPrice: number
-    totalMonthPayment: number
-    discount: string
-    isLoading: boolean
-}) {
-    const planAfterDiscount = totalMonthPlanPrice > 0 ? totalMonthPlanPrice : planPrice - planDiscountAmount
-    const planDiscountLabel = discount === "선택약정할인"
-        ? `요금할인 25%${installment > 0 ? ` (${installment}개월)` : ""}`
-        : ""
-    const planTooltip = discount === "선택약정할인"
-        ? `월 요금제(${planPrice.toLocaleString()}원) × 25% 선택약정 할인 적용`
-        : `공통지원금 선택 시 요금제 할인 없음`
-    const installmentPaymentStr = typeof installmentPayment === "number"
-        ? `${installmentPayment.toLocaleString()}원`
-        : installmentPayment
-
-    // 토글 기준 표시값 분기 — 일시불이거나 이자 표시 시 이자 포함 금액 사용
-    const displayInstallmentValue = (installment === 0 || showInterest)
-        ? installmentPaymentStr
-        : `${installmentPaymentNoInterest.toLocaleString()}원`
-    const displayDescription = showInterest ? installmentPaymentDescription : ""
-    const displayTotalMonthPayment = showInterest
-        ? Math.round(totalMonthPayment)
-        : totalMonthPaymentNoInterest
-
-    // override 계산 완료 전 스켈레톤 표시
-    const isEffectivelyLoading = isLoading || installmentPayment === ""
-
-    if (isEffectivelyLoading) {
-        return (
-            <Card>
-                <SkeletonRow delay={0} />
-                <SkeletonRow delay={0.1} />
-                <SkeletonRow delay={0.2} />
-                <SkeletonRow delay={0.3} width="35%" />
-            </Card>
-        )
-    }
-
-    return (
-        <>
-            {/* 카드 1: 월 할부원금 */}
-            <Card>
-                <div style={{ marginBottom: 14 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
-                        <span style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>{installmentPaymentTitle}</span>
-                        <AnimatePresence mode="wait" initial={false}>
-                            <motion.span
-                                key={displayInstallmentValue}
-                                initial={{ opacity: 0, y: -4 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 4 }}
-                                transition={{ duration: 0.5, ease: "easeInOut" }}
-                                style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}
-                            >
-                                {displayInstallmentValue}
-                            </motion.span>
-                        </AnimatePresence>
-                    </div>
-                    <AnimatePresence mode="wait" initial={false}>
-                        <motion.div
-                            key={displayDescription || "empty-description"}
-                            initial={{ opacity: 0, y: -4 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 4 }}
-                            transition={{ duration: 0.5, ease: "easeInOut" }}
-                            style={{ minHeight: 18, fontSize: 12, color: "#8B95A1", lineHeight: 1.5, marginTop: 2 }}
-                        >
-                            {displayDescription}
-                        </motion.div>
-                    </AnimatePresence>
-                </div>
-                <Row label="출고가" value={`${devicePrice.toLocaleString()}원`} />
-                {disclosureSubsidy > 0 && (
-                    <RedRow label="공시지원금" value={`-${disclosureSubsidy.toLocaleString()}원`} tooltip="이동통신사가 공시한 단말기 지원금" />
-                )}
-                {ktmarketSubsidy > 0 && (
-                    <RedRow label="KT마켓 단독지원금" value={`-${ktmarketSubsidy.toLocaleString()}원`} tooltip="KT마켓에서만 제공하는 단독 지원금" />
-                )}
-                {promotionDiscount > 0 && (
-                    <RedRow label="디바이스 추가지원금(단독)" value={`-${promotionDiscount.toLocaleString()}원`} tooltip="KT마켓 단독 프로모션 추가 지원금" />
-                )}
-                {migrationSubsidy > 0 && (
-                    <RedRow label="번호이동 지원금" value={`- ${migrationSubsidy.toLocaleString()}원`} />
-                )}
-                {guaranteedReturnPrice > 0 && (
-                    <RedRow label="미리보상 할인" value={`-${guaranteedReturnPrice.toLocaleString()}원`} tooltip="미리보상 프로그램 적용 시 단말기 가격의 50% 할인" />
-                )}
-                {specialPrice > 0 && (
-                    <RedRow label="스페셜 할인" value={`-${specialPrice.toLocaleString()}원`} />
-                )}
-                {doubleStorageDiscount > 0 && (
-                    <RedRow label="더블스토리지 할인" value={`-${doubleStorageDiscount.toLocaleString()}원`} />
-                )}
-                <Dashed />
-                <Row label="할부원금" value={`${(installment === 0 ? 0 : installmentPrincipal).toLocaleString()}원`} bold large />
-            </Card>
-
-            {/* 카드 2: 월 통신요금 */}
-            <Card>
-                <SectionHeader label="월 통신요금" description="결합 할인 또는 복지할인은 제외된 금액" />
-                {plan && (
-                    <Row label={plan} value={`월 ${planPrice.toLocaleString()}원`} />
-                )}
-                {discount === "선택약정할인" && planDiscountAmount > 0 && (
-                    <RedRow label={planDiscountLabel} value={`-${planDiscountAmount.toLocaleString()}원`} tooltip={planTooltip} />
-                )}
-                <Dashed />
-                <Row label="월 통신요금" value={`${planAfterDiscount.toLocaleString()}원`} bold large />
-            </Card>
-
-            {/* 카드 3: 월 예상 금액 */}
-            <div style={{
-                width: "100%",
-                backgroundColor: "#F9FAFB",
-                border: "1.5px solid #E5E7EB",
-                borderRadius: 12,
-                padding: "16px 18px",
-                boxSizing: "border-box" as const,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 10,
-            }}>
-                <span style={{ fontSize: 15, fontWeight: 500, color: "#374151" }}>월 예상 금액</span>
-                <AnimatePresence mode="wait" initial={false}>
-                    <motion.span
-                        key={displayTotalMonthPayment}
-                        initial={{ opacity: 0, y: -4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 4 }}
-                        transition={{ duration: 0.5, ease: "easeInOut" }}
-                        style={{ fontSize: 20, fontWeight: 700, color: "#0055FF" }}
-                    >
-                        {displayTotalMonthPayment.toLocaleString()}원
-                    </motion.span>
-                </AnimatePresence>
-            </div>
-        </>
-    )
-}
-
-// ─── 상세 주문서 바텀시트 ─────────────────────────────────────────────
-function DetailBottomSheet({
-    onClose,
-    onApply,
-    sheetProps,
     FONT,
-    showInterest,
-    setShowInterest,
-}: {
-    onClose: () => void
-    onApply: () => void
-    sheetProps: any
-    FONT: string
-    showInterest: boolean
-    setShowInterest: (v: boolean) => void
-}) {
-    const touchStartY = useRef(0)
-    const dragControls = useDragControls()
-    const handleSheetTouchStart = (e: React.TouchEvent) => {
-        touchStartY.current = e.touches[0].clientY
-    }
-    const handleSheetTouchEnd = (e: React.TouchEvent) => {
-        const delta = e.changedTouches[0].clientY - touchStartY.current
-        if (delta > 60) onClose()
-    }
-
-    return (
-        <AnimatePresence>
-            {/* 딤 오버레이 */}
-            <motion.div
-                key="detail-overlay"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                onClick={onClose}
-                style={{
-                    position: "fixed",
-                    inset: 0,
-                    backgroundColor: "rgba(0,0,0,0.5)",
-                    zIndex: 20000,
-                }}
-            />
-
-            {/* 바텀시트 */}
-            <motion.div
-                key="detail-sheet"
-                initial={{ y: "100%" }}
-                animate={{ y: 0 }}
-                exit={{ y: "100%" }}
-                transition={{ type: "spring", stiffness: 340, damping: 32 }}
-                drag="y"
-                dragControls={dragControls}
-                dragListener={false}
-                dragConstraints={{ top: 0, bottom: 0 }}
-                dragElastic={{ top: 0, bottom: 0.18 }}
-                onDragEnd={(_, info) => {
-                    if (info.offset.y > 120 || info.velocity.y > 700) {
-                        onClose()
-                    }
-                }}
-                style={{
-                    position: "fixed",
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    margin: "0 auto",
-                    maxWidth: 440,
-                    width: "100%",
-                    maxHeight: "88vh",
-                    backgroundColor: "#FFFFFF",
-                    borderTopLeftRadius: 24,
-                    borderTopRightRadius: 24,
-                    boxShadow: "0 -4px 28px rgba(0,0,0,0.15)",
-                    zIndex: 20001,
-                    display: "flex",
-                    flexDirection: "column",
-                    fontFamily: FONT,
-                }}
-            >
-                {/* 핸들 + 헤더 — 스와이프 다운으로 닫기 */}
-                <div
-                    style={{
-                        padding: "16px 20px 12px",
-                        borderBottom: "1px solid #F3F4F6",
-                        flexShrink: 0,
-                        cursor: "grab",
-                    }}
-                    onTouchStart={handleSheetTouchStart}
-                    onTouchEnd={handleSheetTouchEnd}
-                    onPointerDown={(event) => dragControls.start(event)}
-                >
-                    {/* 핸들 */}
-                    <div style={{
-                        width: 40, height: 4, borderRadius: 9999,
-                        backgroundColor: "#E5E7EB",
-                        margin: "0 auto 16px",
-                    }} />
-                    {/* 제목 + 토글 */}
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: FONT }}>최종 주문서</span>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <span style={{ fontSize: 12, color: "#6B7280", fontFamily: FONT }}>할부이자 표시</span>
-                            <ToggleSwitch checked={showInterest} onChange={setShowInterest} />
-                        </div>
-                    </div>
-                </div>
-
-                {/* 스크롤 가능한 내용 */}
-                <div style={{
-                    flex: 1,
-                    overflowY: "auto",
-                    padding: "16px 20px 8px",
-                    boxSizing: "border-box",
-                }}>
-                    <OrderSheetContent {...sheetProps} showInterest={showInterest} />
-                </div>
-
-                {/* CTA 버튼 */}
-                <div style={{
-                    padding: "10px 16px",
-                    paddingBottom: "calc(10px + env(safe-area-inset-bottom, 10px))",
-                    borderTop: "1px solid #F3F4F6",
-                    flexShrink: 0,
-                    backgroundColor: "#FFFFFF",
-                }}>
-                    <button
-                        onClick={onClose}
-                        style={{
-                            width: "100%", height: 52, borderRadius: 14,
-                            border: "none", backgroundColor: "#0055FF",
-                            color: "#FFFFFF", fontSize: 15, fontWeight: 700,
-                            cursor: "pointer", fontFamily: FONT,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                        }}
-                    >
-                        확인
-                    </button>
-                </div>
-            </motion.div>
-        </AnimatePresence>
-    )
-}
+    useAnimatedNumber,
+    useInstallmentInterest,
+} from "https://framer.com/m/OrderComponents-QLDYR7.js@IJPClK4Mjz4ITsyOMWEp"
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────
 
@@ -366,7 +22,7 @@ export default function OrderFlowBottomSheet(props) {
     const {
         installment = 24,
         installmentPaymentTitle = "월 할부원금 (24개월)",
-        installmentPaymentDescription = "분할 상환 수수료 5.9% 포함",
+        installmentPaymentDescription = "할부이자 5.9% 포함",
         installmentPrincipal = 0,
         installmentPayment = "0원",
         devicePrice = 0,
@@ -401,19 +57,7 @@ export default function OrderFlowBottomSheet(props) {
     } = props
 
     const [mounted, setMounted] = useState(false)
-    const [showDetailSheet, setShowDetailSheet] = useState(false)
-    const [showInterest, setShowInterest] = useInstallmentInterest()
-
-    // 모달 열릴 때 배경 스크롤 차단
-    useEffect(() => {
-        if (typeof document === "undefined") return
-        if (showDetailSheet) {
-            document.body.style.overflow = "hidden"
-        } else {
-            document.body.style.overflow = ""
-        }
-        return () => { document.body.style.overflow = "" }
-    }, [showDetailSheet])
+    const [showInterest] = useInstallmentInterest()
 
     // ── 금액 변동 애니메이션 ──
     const roundedPayment = Math.round(
@@ -450,31 +94,6 @@ export default function OrderFlowBottomSheet(props) {
 
     if (!mounted) return <div style={{ width: "100%", minHeight: 128 }} />
 
-    const sheetProps = {
-        installment,
-        installmentPaymentTitle,
-        installmentPaymentDescription,
-        installmentPrincipal,
-        installmentPayment,
-        devicePrice,
-        disclosureSubsidy,
-        ktmarketSubsidy,
-        promotionDiscount,
-        migrationSubsidy,
-        guaranteedReturnPrice,
-        specialPrice,
-        doubleStorageDiscount,
-        plan,
-        planPrice,
-        planDiscountAmount,
-        totalMonthPlanPrice,
-        totalMonthPayment,
-        discount,
-        isLoading,
-        installmentPaymentNoInterest,
-        totalMonthPaymentNoInterest,
-    }
-
     const handlePhoneClick = () => {
         if (typeof onPhoneClick === "function") {
             onPhoneClick()
@@ -491,6 +110,18 @@ export default function OrderFlowBottomSheet(props) {
         }
     }
 
+    /*
+    const planAfterDiscount = totalMonthPlanPrice > 0 ? totalMonthPlanPrice : planPrice - planDiscountAmount
+    const rawInstallment = installment === 0 ? 0 : totalMonthPayment - planAfterDiscount
+    const noInterestInstallment = installmentPaymentNoInterest > 0
+        ? installmentPaymentNoInterest
+        : rawInstallment
+    const displayInstallment = showInterest
+        ? rawInstallment
+        : (installment === 0 ? 0 : noInterestInstallment)
+    const displayTotal = Math.round(planAfterDiscount + displayInstallment)
+    */
+
     const bar = (
         <div style={{
             position: "fixed", bottom: 0, left: 0, right: 0, margin: "0 auto",
@@ -501,20 +132,40 @@ export default function OrderFlowBottomSheet(props) {
             boxShadow: "0 -4px 28px rgba(0,0,0,0.13)",
             fontFamily: FONT,
         }}>
-            {/* 상단 chevron — 탭 시 상세 신청서 열기 */}
-            <button
-                onClick={() => setShowDetailSheet(true)}
-                style={{
-                    width: "100%", padding: "10px 0 4px",
-                    background: "none", border: "none",
-                    cursor: "pointer", display: "flex",
-                    alignItems: "center", justifyContent: "center",
-                }}
-            >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="18 15 12 9 6 15" />
-                </svg>
-            </button>
+            {/*
+            월 통신요금 + 월 할부금
+            <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                margin: "14px 16px 8px",
+                backgroundColor: "#F9FAFB",
+                borderRadius: 12,
+                padding: "12px 14px",
+                boxSizing: "border-box" as const,
+            }}>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 2, flex: 1 }}>
+                    <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>월 통신요금</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+                        {Math.round(planAfterDiscount).toLocaleString()}원
+                    </span>
+                </div>
+                <span style={{ fontSize: 16, color: "#D1D5DB", fontWeight: 400, flexShrink: 0 }}>+</span>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 2, flex: 1 }}>
+                    <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>월 할부금</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+                        {Math.round(displayInstallment).toLocaleString()}원
+                    </span>
+                </div>
+                <span style={{ fontSize: 16, color: "#D1D5DB", fontWeight: 400, flexShrink: 0 }}>=</span>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 2, alignItems: "flex-end" }}>
+                    <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>월 예상</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#0055FF", fontFamily: FONT }}>
+                        {displayTotal.toLocaleString()}원
+                    </span>
+                </div>
+            </div>
+            */}
 
             {/* 월 예상 금액 행 */}
             <div style={{
@@ -628,21 +279,6 @@ export default function OrderFlowBottomSheet(props) {
         <div style={{ width: "100%", minHeight: 128 }}>
             {/* portal 없이 직접 렌더링 — Framer 캔버스에서 portal은 에디터 외부 body에 붙음 */}
             {bar}
-
-            {/* 상세 주문서 바텀시트 */}
-            {showDetailSheet && (
-                <DetailBottomSheet
-                    onClose={() => setShowDetailSheet(false)}
-                    onApply={() => {
-                        setShowDetailSheet(false)
-                        handleFormLink()
-                    }}
-                    sheetProps={sheetProps}
-                    FONT={FONT}
-                    showInterest={showInterest}
-                    setShowInterest={setShowInterest}
-                />
-            )}
         </div>
     )
 }
@@ -656,7 +292,7 @@ addPropertyControls(OrderFlowBottomSheet, {
     deviceCapacity: { type: ControlType.String, title: "용량", defaultValue: "256GB" },
     // 주문서 데이터 (preview용)
     installmentPaymentTitle: { type: ControlType.String, title: "할부 타이틀", defaultValue: "월 할부원금 (24개월)" },
-    installmentPaymentDescription: { type: ControlType.String, title: "할부 설명", defaultValue: "분할 상환 수수료 5.9% 포함" },
+    installmentPaymentDescription: { type: ControlType.String, title: "할부 설명", defaultValue: "할부이자 5.9% 포함" },
     installmentPayment: { type: ControlType.String, title: "월 할부금", defaultValue: "0원" },
     installment: { type: ControlType.Number, title: "할부", defaultValue: 24, min: 0, max: 48, step: 1 },
     devicePrice: { type: ControlType.Number, title: "출고가", defaultValue: 0 },

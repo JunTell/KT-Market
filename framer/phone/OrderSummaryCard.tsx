@@ -3,14 +3,14 @@
 
 import { addPropertyControls, ControlType } from "framer"
 import React, { useState, useEffect, useRef } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useDragControls } from "framer-motion"
 import { createPortal } from "react-dom"
 import {
     FONT, useAnimatedNumber, ToggleSwitch, Tooltip as OSTooltip, QuestionIcon as OSQuestionIcon,
     SkeletonRow as OSSkeletonRow, Dashed as OSDashed,
     Row as OSRow, RedRow as OSRedRow, Card as OSCard, SectionHeader as OSSectionHeader,
     useInstallmentInterest,
-} from "./shared/orderComponents"
+} from "https://framer.com/m/OrderComponents-QLDYR7.js@IJPClK4Mjz4ITsyOMWEp"
 
 // ─────────────────────────────────────────
 // 스켈레톤
@@ -294,25 +294,50 @@ function OrderSheetModal({
 function MonthlyPopup({
     finalPrice,
     monthlyPayment,
+    installmentPaymentNoInterest = 0,
     installment,
     planPrice,
     planDiscountAmount,
     discount,
+    showInterest,
+    onShowInterestChange,
     onClose,
 }: {
     finalPrice: number
     monthlyPayment: number
+    installmentPaymentNoInterest?: number
     installment: number
     planPrice: number
     planDiscountAmount: number
     discount: string
+    showInterest: boolean
+    onShowInterestChange: (v: boolean) => void
     onClose: () => void
 }) {
+    const touchStartY = useRef(0)
+    const dragControls = useDragControls()
     const isYakjeong =
         discount === "선택약정할인" || discount === "선택약정"
 
     const planAfterDiscount = planPrice - planDiscountAmount
-    const totalMonthly = monthlyPayment + planAfterDiscount
+    const displayMonthlyPayment = installment === 0
+        ? 0
+        : showInterest
+            ? monthlyPayment
+            : installmentPaymentNoInterest
+    const totalMonthly = displayMonthlyPayment + planAfterDiscount
+    const installmentLabel = installment > 0
+        ? `월 할부금 (${installment}개월)`
+        : "결제 금액"
+    const interestLabel = showInterest ? "할부이자 포함" : "할부이자 미포함"
+
+    const handleSheetTouchStart = (e: React.TouchEvent) => {
+        touchStartY.current = e.touches[0].clientY
+    }
+    const handleSheetTouchEnd = (e: React.TouchEvent) => {
+        const delta = e.changedTouches[0].clientY - touchStartY.current
+        if (delta > 60) onClose()
+    }
 
     return (
         <AnimatePresence>
@@ -336,6 +361,18 @@ function MonthlyPopup({
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", stiffness: 340, damping: 32 }}
+                drag="y"
+                dragControls={dragControls}
+                dragListener={false}
+                dragConstraints={{ top: 0, bottom: 0 }}
+                dragElastic={{ top: 0, bottom: 0.18 }}
+                onDragEnd={(_, info) => {
+                    if (info.offset.y > 120 || info.velocity.y > 700) {
+                        onClose()
+                    }
+                }}
+                onTouchStart={handleSheetTouchStart}
+                onTouchEnd={handleSheetTouchEnd}
                 style={{
                     position: "fixed",
                     bottom: 0,
@@ -355,18 +392,26 @@ function MonthlyPopup({
                 }}
             >
                 <div
+                    onPointerDown={(event) => dragControls.start(event)}
                     style={{
                         width: "40px",
                         height: "4px",
                         borderRadius: "9999px",
                         backgroundColor: "#E5E7EB",
                         margin: "0 auto 24px",
+                        cursor: "grab",
                     }}
                 />
 
-                <p style={{ fontSize: "18px", fontWeight: 700, color: "#111827", marginBottom: "4px", margin: "0 0 4px" }}>
-                    월 납부금액 안내
-                </p>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: "12px" }}>
+                    <p style={{ fontSize: "18px", fontWeight: 700, color: "#111827", margin: 0 }}>
+                        월 납부금액 안내
+                    </p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontSize: 12, color: "#6B7280", fontFamily: FONT }}>할부이자 표시</span>
+                        <ToggleSwitch checked={showInterest} onChange={onShowInterestChange} />
+                    </div>
+                </div>
 
                 <div style={{ marginBottom: "20px" }}>
                     <span style={{
@@ -390,11 +435,18 @@ function MonthlyPopup({
                         </span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontSize: "14px", color: "#6B7280" }}>
-                            월 단말 할부금 ({installment}개월, 5.9%)
-                        </span>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                            <span style={{ fontSize: "14px", color: "#6B7280" }}>
+                                {installmentLabel}
+                            </span>
+                            {installment > 0 && (
+                                <span style={{ fontSize: "11px", color: "#9CA3AF" }}>
+                                    {interestLabel}
+                                </span>
+                            )}
+                        </div>
                         <span style={{ fontSize: "14px", fontWeight: 700, color: "#111827" }}>
-                            {monthlyPayment.toLocaleString()}원
+                            {displayMonthlyPayment.toLocaleString()}원
                         </span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -432,7 +484,7 @@ function MonthlyPopup({
                     <div>
                         <span style={{ fontSize: "15px", fontWeight: 600, color: "#111827" }}>월 예상 납부금</span>
                         <div style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "2px" }}>
-                            부가세 포함, 결합할인 미적용 기준
+                            부가세 포함, 결합할인 미적용 기준 · {interestLabel}
                         </div>
                     </div>
                     <span style={{ fontSize: "20px", fontWeight: 800, color: "#0055FF" }}>
@@ -487,7 +539,7 @@ export default function OrderSummaryCard(props) {
         onApplyClick,
         // OrderSheet 추가 props
         installmentPaymentTitle = "월 할부원금 (24개월)",
-        installmentPaymentDescription = "분할 상환 수수료 5.9% 포함",
+        installmentPaymentDescription = "할부이자 5.9% 포함",
         installmentPrincipal = 0,
         installmentPayment = "0원",
         devicePrice = 0,
@@ -656,14 +708,14 @@ export default function OrderSummaryCard(props) {
                             <div style={{ display: "flex", flexDirection: "column" as const, gap: 2, flex: 1 }}>
                                 <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>월 통신요금</span>
                                 <span style={{ fontSize: 12, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
-                                    {planAfterDiscount.toLocaleString()}원
+                                    {Math.round(planAfterDiscount).toLocaleString()}원
                                 </span>
                             </div>
                             <span style={{ fontSize: 16, color: "#D1D5DB", fontWeight: 400, flexShrink: 0 }}>+</span>
                             <div style={{ display: "flex", flexDirection: "column" as const, gap: 2, flex: 1 }}>
                                 <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>월 할부금</span>
                                 <span style={{ fontSize: 12, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
-                                    {displayInstallment.toLocaleString()}원
+                                    {Math.round(displayInstallment).toLocaleString()}원
                                 </span>
                             </div>
                             <span style={{ fontSize: 16, color: "#D1D5DB", fontWeight: 400, flexShrink: 0 }}>=</span>
@@ -676,6 +728,7 @@ export default function OrderSummaryCard(props) {
                         </div>
                     )
                 })()}
+
             </div>
 
             {/* ── 월 할부 팝업 ── */}
@@ -683,10 +736,13 @@ export default function OrderSummaryCard(props) {
                 <MonthlyPopup
                     finalPrice={finalPrice}
                     monthlyPayment={monthlyPayment}
+                    installmentPaymentNoInterest={installmentPaymentNoInterest}
                     installment={installment}
                     planPrice={planPrice}
                     planDiscountAmount={planDiscountAmount}
                     discount={discount}
+                    showInterest={showInterest}
+                    onShowInterestChange={setShowInterest}
                     onClose={() => setShowPopup(false)}
                 />
             )}
@@ -801,7 +857,7 @@ addPropertyControls(OrderSummaryCard, {
     installmentPaymentDescription: {
         type: ControlType.String,
         title: "할부 설명",
-        defaultValue: "분할 상환 수수료 5.9% 포함",
+        defaultValue: "할부이자 5.9% 포함",
     },
     installmentPayment: {
         type: ControlType.String,

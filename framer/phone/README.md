@@ -8,12 +8,15 @@ Figma 원본: `수정 2차_KT마켓_상세 페이지_MO` (node-id: 1151:840)
 
 > 파일 간 의존 관계가 있으므로 아래 순서대로 Framer에 올려야 합니다.
 
-### Step 1 — 공유 컴포넌트 파일 먼저 추가 (신규)
+### Step 1 — 공유 파일 먼저 추가 (신규)
 
 `shared/orderComponents.tsx` 를 Framer 코드 에디터에서 **새 파일**로 생성합니다.
 (경로: `framer/phone/shared/orderComponents.tsx`)
 
-이 파일이 없으면 아래 3개 파일의 import가 실패합니다.
+`shared/priceCalculation.ts` 도 Framer 코드 에디터에서 **새 파일**로 생성합니다.
+(경로: `framer/phone/shared/priceCalculation.ts`)
+
+이 파일들이 없으면 아래 컴포넌트/Override 파일의 import가 실패합니다.
 
 | 내보내는 항목 | 설명 |
 |---|---|
@@ -28,6 +31,17 @@ Figma 원본: `수정 2차_KT마켓_상세 페이지_MO` (node-id: 1151:840)
 | `RedRow` | 빨간 할인 행 |
 | `Card` | 카드 컨테이너 |
 | `SectionHeader` | 섹션 헤더 |
+
+`shared/priceCalculation.ts`는 가격 계산 전용 유틸입니다.
+
+| 내보내는 항목 | 설명 |
+|---|---|
+| `calcInstallment` | 할부원금, 개월 수, 연이율 기준 월 할부금 계산 |
+| `getGuaranteedReturnPrice` | 미리보상 대상 모델이면 출고가의 50% 할인 계산 |
+| `calculatePromotionDiscount` | 디바이스/삼성 초이스 대상 요금제 50,000원 할인 계산 |
+| `getSpecialPrice` | 모델/가입유형별 스페셜 할인 계산 |
+| `getInstallmentPaymentTitle` | 일시불/할부/미리보상 상태에 맞는 타이틀 반환 |
+| `getInstallmentPaymentDescription` | 할부 수수료 안내 문구 반환 |
 
 ---
 
@@ -47,7 +61,22 @@ Figma 원본: `수정 2차_KT마켓_상세 페이지_MO` (node-id: 1151:840)
 
 | 파일 | 변경 내용 |
 |---|---|
-| `phoneDetailOverridesV2.tsx` | `SPECIAL_PRICES`·`DELAYED_MODELS` 제거, 공유 헬퍼 추출, `officialMonthlyPrice` 계산 추가 |
+| `phoneDetailOverridesV2.tsx` | `shared/priceCalculation.ts` import 적용, `officialMonthlyPrice` 계산 추가 |
+
+`phoneDetailOverridesV2.tsx`는 `phone-list` 폴더 안에 있으므로 import 경로가 아래처럼 들어갑니다.
+
+```ts
+import {
+    calcInstallment,
+    getGuaranteedReturnPrice as calcGuaranteedReturnPrice,
+    calculatePromotionDiscount,
+    getSpecialPrice,
+    getInstallmentPaymentTitle as calcInstallmentPaymentTitle,
+    getInstallmentPaymentDescription as calcInstallmentPaymentDescription,
+} from "../shared/priceCalculation"
+```
+
+Framer에서 `../shared/priceCalculation` import가 실패하면 파일 위치가 다르게 생성된 상태입니다. 이때는 Framer 코드 파일 트리에서 `phone-list/phoneDetailOverridesV2.tsx`와 `shared/priceCalculation.ts`가 같은 부모 폴더 아래에 있는지 먼저 확인합니다. 그래도 Framer가 상대경로를 처리하지 못하면 임시로 `shared/priceCalculation.ts`의 전체 내용을 `phoneDetailOverridesV2.tsx` 상단 import 아래에 붙여 넣고, 위 import 블록만 삭제해도 동작합니다.
 
 ---
 
@@ -65,6 +94,7 @@ Figma 원본: `수정 2차_KT마켓_상세 페이지_MO` (node-id: 1151:840)
 ### 주의사항
 
 - `shared/orderComponents.tsx`를 먼저 추가하지 않으면 Step 2 파일들이 **빌드 에러** 납니다.
+- `shared/priceCalculation.ts`를 먼저 추가하지 않으면 `phoneDetailOverridesV2.tsx`가 **빌드 에러** 납니다.
 - `phoneDetailOverridesV2.tsx`에서 삭제된 override 함수들(예: `withPhoneDetail`, `withThumbnail` 등)은 Framer 캔버스에서 해당 컴포넌트의 override 설정을 초기화해야 합니다. 현재 남아있는 override는 아래 7개뿐입니다.
 - `OrderSummarySheet`의 `stepNumber` 프롭은 Framer 프롭 패널에서 더 이상 표시되지 않으므로 기존 설정값은 무시됩니다.
 

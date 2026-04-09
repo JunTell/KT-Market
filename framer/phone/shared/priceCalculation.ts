@@ -83,5 +83,5 @@ export function getInstallmentPaymentTitle(
 export function getInstallmentPaymentDescription(
     installment: number
 ): string {
-    return installment > 0 ? "분할 상환 수수료 5.9% 포함" : "카드 또는 현금결제"
+    return installment > 0 ? "할부이자 5.9% 포함" : "카드 또는 현금결제"
 }
