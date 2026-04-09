@@ -562,7 +562,15 @@ export default function UserInfoForm(props: Props) {
             <div style={listStyle}>
                 <InfoRow label="요금제명" value={orderData?.planName} />
                 <InfoRow
-                    label={`월 납부액 (${orderData?.showInterest ? "할부이자 포함" : "할부이자 미포함"})`}
+                    label={
+                        <span>
+                            월 납부액
+                            <br />
+                            <span style={{ fontSize: "8px", fontWeight: 400, color: "#8B95A1" }}>
+                                ({orderData?.showInterest ? "할부이자 포함" : "할부이자 미포함"})
+                            </span>
+                        </span>
+                    }
                     value={`${formatPrice(orderData?.monthlyPayment || 0)}원`}
                 />
             </div>

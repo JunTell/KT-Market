@@ -337,6 +337,24 @@ const getMustReadSteps = (planName: string) => [
             </ul>
         ),
     },
+    {
+        title: "배송 유의사항을 확인해주세요.",
+        content: (
+            <>
+                <p style={{ marginBottom: "10px", color: "#FF3B30", fontWeight: 600 }}>
+                    재고 부족 시 발송이 지연될 수 있어요
+                </p>
+                <p style={{ marginBottom: "10px", color: "#4E5968", fontSize: "13px" }}>
+                    일부 상품은 재고 상황에 따라 발송까지 추가 시간이 소요될 수 있으니 미리 확인 부탁드려요.
+                </p>
+                <ul style={mustReadListStyle}>
+                    <li>오후 3시 이전 신청 및 주문 확인 완료 시 당일 우체국 택배로 발송됩니다.</li>
+                    <li>오후 3시 이후 신청 건은 다음날 출고됩니다.</li>
+                    <li>공휴일·주말에는 당일 발송이 불가합니다.</li>
+                </ul>
+            </>
+        ),
+    },
 ]
 
 // --- 가격 정보 렌더링 공통 컴포넌트 ---
@@ -681,7 +699,15 @@ export default function ApplicationGatePage(props: Props) {
                 <div style={listStyle}>
                     <InfoRow label="요금제명" value={orderInfo.planName} />
                     <InfoRow
-                        label={`월 납부액 (${orderInfo.showInterest ? "할부이자 포함" : "할부이자 미포함"})`}
+                        label={
+                            <span>
+                                월 납부액
+                                <br />
+                                <span style={{ fontSize: "8px", fontWeight: 400, color: "#8B95A1" }}>
+                                    ({orderInfo.showInterest ? "할부이자 포함" : "할부이자 미포함"})
+                                </span>
+                            </span>
+                        }
                         value={`${formatPrice(orderInfo.price)}원`}
                     />
                 </div>

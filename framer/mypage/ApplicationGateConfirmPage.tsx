@@ -507,7 +507,15 @@ export default function ApplicationGateConfirm(props: Props) {
                 <div style={listStyle}>
                     <InfoRow label="요금제명" value={orderInfo.planName} />
                     <InfoRow
-                        label={`월 납부액 (${orderInfo.showInterest ? "할부이자 포함" : "할부이자 미포함"})`}
+                        label={
+                            <span>
+                                월 납부액
+                                <br />
+                                <span style={{ fontSize: "8px", fontWeight: 400, color: "#8B95A1" }}>
+                                    ({orderInfo.showInterest ? "할부이자 포함" : "할부이자 미포함"})
+                                </span>
+                            </span>
+                        }
                         value={`${formatPrice(orderInfo.price)}원`}
                     />
                 </div>

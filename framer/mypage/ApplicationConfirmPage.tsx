@@ -665,7 +665,12 @@ export default function ApplicationConfirmPage(props: Props) {
                             </div>
                             {/* 💡 최종 기기값(finalPrice) 대신 "월 납부액(totalMonthPayment)"으로 변경 */}
                             <div style={devicePriceStyle}>
-                                월 납부액 ({data.showInterest ? "할부이자 포함" : "할부이자 미포함"}) {formatPrice(data.totalMonthPayment)}원
+                                월 납부액{" "}
+                                <span style={{ fontSize: "8px", fontWeight: 400, color: "#8B95A1" }}>
+                                    ({data.showInterest ? "할부이자 포함" : "할부이자 미포함"})
+                                </span>
+                                <br />
+                                {formatPrice(data.totalMonthPayment)}원
                             </div>
                         </div>
                     </div>

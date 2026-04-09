@@ -2518,6 +2518,38 @@ export default function PlanBenefitSelector(props) {
                 })}
             </div>
 
+            {/* 요금제 하단 안내 */}
+            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    style={{ flexShrink: 0 }}
+                >
+                    <circle cx="7" cy="7" r="6.5" stroke="#9CA3AF" />
+                    <text
+                        x="7"
+                        y="11"
+                        textAnchor="middle"
+                        fontSize="9"
+                        fill="#9CA3AF"
+                        fontWeight="600"
+                    >
+                        i
+                    </text>
+                </svg>
+                <span
+                    style={{
+                        fontSize: 12,
+                        color: "#6B7280",
+                        fontFamily: '"Pretendard","Inter",sans-serif',
+                    }}
+                >
+                    최소 6개월간 요금제를 유지해주세요
+                </span>
+            </div>
+
             {/* ── 팝업 ── */}
             <AnimatePresence>
                 {showPopup && (
