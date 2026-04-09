@@ -1319,10 +1319,21 @@ const SkeletonCard = ({ delay = 0 }) => (
 )
 
 // ─── 사은품 슬라이더 ─────────────────────────────────────────────────
-const FreebieSlider = ({ freebies }: { freebies: Freebie[] }) => {
+const FreebieSlider = ({
+    freebies,
+    selectedFreebie,
+    onFreebieSelect,
+}: {
+    freebies: Freebie[]
+    selectedFreebie: Freebie | null
+    onFreebieSelect: (freebie: Freebie) => void
+}) => {
     const [activeIdx, setActiveIdx] = useState(0)
     const scrollRef = useRef<HTMLDivElement>(null)
     const timerRef = useRef<any>(null)
+    const isPointerDownRef = useRef(false)
+    const pointerStartXRef = useRef(0)
+    const scrollStartLeftRef = useRef(0)
 
     const handleScroll = () => {
         clearTimeout(timerRef.current)
@@ -1336,11 +1347,35 @@ const FreebieSlider = ({ freebies }: { freebies: Freebie[] }) => {
         }, 80)
     }
 
+    const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+        if (!scrollRef.current) return
+        isPointerDownRef.current = true
+        pointerStartXRef.current = event.clientX
+        scrollStartLeftRef.current = scrollRef.current.scrollLeft
+        scrollRef.current.setPointerCapture?.(event.pointerId)
+    }
+
+    const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+        if (!isPointerDownRef.current || !scrollRef.current) return
+        const deltaX = event.clientX - pointerStartXRef.current
+        scrollRef.current.scrollLeft = scrollStartLeftRef.current - deltaX
+    }
+
+    const handlePointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+        isPointerDownRef.current = false
+        scrollRef.current?.releasePointerCapture?.(event.pointerId)
+    }
+
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <div
                 ref={scrollRef}
                 onScroll={handleScroll}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerEnd}
+                onPointerCancel={handlePointerEnd}
+                onPointerLeave={handlePointerEnd}
                 style={
                     {
                         display: "flex",
@@ -1349,12 +1384,22 @@ const FreebieSlider = ({ freebies }: { freebies: Freebie[] }) => {
                         scrollbarWidth: "none",
                         WebkitOverflowScrolling: "touch",
                         scrollSnapType: "x mandatory",
+                        cursor: "grab",
+                        touchAction: "pan-x",
+                        userSelect: "none",
                     } as React.CSSProperties
                 }
             >
                 {freebies.map((f) => (
                     <div
                         key={f.no}
+                        onClick={(event) => {
+                            event.stopPropagation()
+                            onFreebieSelect(f)
+                        }}
+                        onPointerDown={(event) => {
+                            event.stopPropagation()
+                        }}
                         style={
                             {
                                 flexShrink: 0,
@@ -1366,9 +1411,16 @@ const FreebieSlider = ({ freebies }: { freebies: Freebie[] }) => {
                                 alignItems: "center",
                                 gap: 8,
                                 borderRadius: 9,
-                                border: "0.8px solid #CFCFCF",
-                                backgroundColor: "#FFF",
+                                border:
+                                    selectedFreebie?.no === f.no
+                                        ? "1px solid #0055FF"
+                                        : "0.8px solid #CFCFCF",
+                                backgroundColor:
+                                    selectedFreebie?.no === f.no
+                                        ? "#ECF4FF"
+                                        : "#FFF",
                                 boxSizing: "border-box",
+                                cursor: "pointer",
                             } as React.CSSProperties
                         }
                     >
@@ -1480,6 +1532,9 @@ const PlanCard = ({
 }) => {
     const hasFreebiePlan = FREEBIE_PLAN_PIDS.has(plan.pid)
     const showFreebie = isActive && hasFreebiePlan
+    const displayMonthlyPrice = isChoiceDiscount
+        ? Math.round(plan.price * 0.75)
+        : plan.price
     const subtitle = [
         plan.data,
         plan.tethering ? `공유 데이터 ${plan.tethering}` : "",
@@ -1587,56 +1642,44 @@ const PlanCard = ({
                             }}
                         />
                     ) : freebies.length > 0 ? (
-                        <FreebieSlider freebies={freebies} />
+                        <FreebieSlider
+                            freebies={freebies}
+                            selectedFreebie={selectedFreebie}
+                            onFreebieSelect={onFreebieSelect}
+                        />
                     ) : (
                         <span style={{ fontSize: 13, color: "#9CA3AF" }}>
                             해당 요금제에 적용 가능한 할인 제품이 없습니다.
                         </span>
                     )}
 
-                    <div
-                        style={{
-                            fontSize: 11,
-                            color: "#6B7280",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 4,
-                        }}
-                    >
-                        <span>할인 상품 · 초이스 유의사항 안내</span>
-                        <span
-                            style={{
-                                width: 14,
-                                height: 14,
-                                borderRadius: "50%",
-                                border: "1px solid #9CA3AF",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: 10,
-                                color: "#9CA3AF",
-                                flexShrink: 0,
-                            }}
-                        >
-                            ?
-                        </span>
-                    </div>
                 </>
             )}
 
             {/* 하단: 할인라벨 + 월 요금 */}
-            {isChoiceDiscount ? (
-                <div
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    alignItems: isChoiceDiscount ? "flex-end" : "center",
+                    gap: 8,
+                }}
+            >
+                <span
                     style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-end",
+                        fontSize: 13,
+                        color: "#0055FF",
+                        fontWeight: 500,
                     }}
                 >
+                    {discountLabel}
+                </span>
+                {isChoiceDiscount ? (
                     <div
                         style={{
                             display: "flex",
                             flexDirection: "column",
+                            alignItems: "flex-end",
                             gap: 2,
                         }}
                     >
@@ -1645,9 +1688,10 @@ const PlanCard = ({
                                 fontSize: 12,
                                 color: "#9CA3AF",
                                 textDecoration: "line-through",
+                                textDecorationThickness: "1.5px",
                             }}
                         >
-                            {plan.price.toLocaleString()}원
+                            월 {plan.price.toLocaleString()}원
                         </span>
                         <span
                             style={{
@@ -1656,37 +1700,10 @@ const PlanCard = ({
                                 color: "#111827",
                             }}
                         >
-                            {Math.round(plan.price * 0.75).toLocaleString()}원
+                            월 {displayMonthlyPrice.toLocaleString()}원
                         </span>
                     </div>
-                    <span
-                        style={{
-                            fontSize: 13,
-                            color: "#0055FF",
-                            fontWeight: 500,
-                        }}
-                    >
-                        {discountLabel}
-                    </span>
-                </div>
-            ) : (
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "flex-end",
-                        alignItems: "center",
-                        gap: 8,
-                    }}
-                >
-                    <span
-                        style={{
-                            fontSize: 13,
-                            color: "#0055FF",
-                            fontWeight: 500,
-                        }}
-                    >
-                        {discountLabel}
-                    </span>
+                ) : (
                     <span
                         style={{
                             fontSize: 16,
@@ -1694,10 +1711,10 @@ const PlanCard = ({
                             color: "#111827",
                         }}
                     >
-                        월 {plan.price.toLocaleString()}원
+                        월 {displayMonthlyPrice.toLocaleString()}원
                     </span>
-                </div>
-            )}
+                )}
+            </div>
         </motion.div>
     )
 }
@@ -1781,6 +1798,9 @@ const SelectableCard = ({
     ]
         .filter(Boolean)
         .join(" | ")
+    const displayMonthlyPrice = isChoiceDiscount
+        ? Math.round(plan.price * 0.75)
+        : plan.price
 
     return (
         <motion.div
@@ -1879,56 +1899,44 @@ const SelectableCard = ({
                             }}
                         />
                     ) : freebies.length > 0 ? (
-                        <FreebieSlider freebies={freebies} />
+                        <FreebieSlider
+                            freebies={freebies}
+                            selectedFreebie={selectedFreebie}
+                            onFreebieSelect={onFreebieSelect}
+                        />
                     ) : (
                         <span style={{ fontSize: 13, color: "#9CA3AF" }}>
                             해당 요금제에 적용 가능한 할인 제품이 없습니다.
                         </span>
                     )}
 
-                    <div
-                        style={{
-                            fontSize: 11,
-                            color: "#6B7280",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 4,
-                        }}
-                    >
-                        <span>할인 상품 · 초이스 유의사항 안내</span>
-                        <span
-                            style={{
-                                width: 14,
-                                height: 14,
-                                borderRadius: "50%",
-                                border: "1px solid #9CA3AF",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: 10,
-                                color: "#9CA3AF",
-                                flexShrink: 0,
-                            }}
-                        >
-                            ?
-                        </span>
-                    </div>
                 </>
             )}
 
             {/* 하단: 할인라벨 + 월 요금 */}
-            {isChoiceDiscount ? (
-                <div
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    alignItems: isChoiceDiscount ? "flex-end" : "center",
+                    gap: 8,
+                }}
+            >
+                <span
                     style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-end",
+                        fontSize: 13,
+                        color: "#0055FF",
+                        fontWeight: 500,
                     }}
                 >
+                    {discountLabel}
+                </span>
+                {isChoiceDiscount ? (
                     <div
                         style={{
                             display: "flex",
                             flexDirection: "column",
+                            alignItems: "flex-end",
                             gap: 2,
                         }}
                     >
@@ -1937,9 +1945,10 @@ const SelectableCard = ({
                                 fontSize: 12,
                                 color: "#9CA3AF",
                                 textDecoration: "line-through",
+                                textDecorationThickness: "1.5px",
                             }}
                         >
-                            {plan.price.toLocaleString()}원
+                            월 {plan.price.toLocaleString()}원
                         </span>
                         <span
                             style={{
@@ -1948,37 +1957,10 @@ const SelectableCard = ({
                                 color: "#111827",
                             }}
                         >
-                            {Math.round(plan.price * 0.75).toLocaleString()}원
+                            월 {displayMonthlyPrice.toLocaleString()}원
                         </span>
                     </div>
-                    <span
-                        style={{
-                            fontSize: 13,
-                            color: "#0055FF",
-                            fontWeight: 500,
-                        }}
-                    >
-                        {discountLabel}
-                    </span>
-                </div>
-            ) : (
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "flex-end",
-                        alignItems: "center",
-                        gap: 8,
-                    }}
-                >
-                    <span
-                        style={{
-                            fontSize: 13,
-                            color: "#0055FF",
-                            fontWeight: 500,
-                        }}
-                    >
-                        {discountLabel}
-                    </span>
+                ) : (
                     <span
                         style={{
                             fontSize: 16,
@@ -1986,10 +1968,10 @@ const SelectableCard = ({
                             color: "#111827",
                         }}
                     >
-                        월 {plan.price.toLocaleString()}원
+                        월 {displayMonthlyPrice.toLocaleString()}원
                     </span>
-                </div>
-            )}
+                )}
+            </div>
         </motion.div>
     )
 }
@@ -2159,10 +2141,19 @@ export default function PlanBenefitSelector(props) {
     const [customPlan, setCustomPlan] = useState<Plan | null>(null)
     const scrollRef = useRef<HTMLDivElement>(null)
     const dragControls = useDragControls()
+    const hasInitializedTabRef = useRef(false)
 
     // ─── 사은품 fetch (선택된 요금제가 사은품 대상일 때만) ───────────────
     const [freebies, setFreebies] = useState<Freebie[]>([])
     const [freebieLoading, setFreebieLoading] = useState(false)
+
+    React.useEffect(() => {
+        if (hasInitializedTabRef.current || !props.cheaperTab) return
+
+        hasInitializedTabRef.current = true
+        setActiveTab(props.cheaperTab)
+        onTabChange?.(props.cheaperTab)
+    }, [props.cheaperTab, onTabChange])
 
     React.useEffect(() => {
         if (!selectedPlanPid || !FREEBIE_PLAN_PIDS.has(selectedPlanPid)) {
@@ -2302,13 +2293,13 @@ export default function PlanBenefitSelector(props) {
                         overflow: "visible",
                         border: "1px solid #E5E7EB",
                         backgroundColor: "#F9FAFB",
-                        paddingTop: 10,
                     }}
                 >
                     {(["기기 할인", "요금할인"] as const).map((tab) => (
                         <button
                             key={tab}
                             onClick={() => {
+                                hasInitializedTabRef.current = true
                                 setActiveTab(tab)
                                 onTabChange?.(tab)
                             }}
@@ -2392,8 +2383,8 @@ export default function PlanBenefitSelector(props) {
                         }}
                     >
                         {activeTab === "기기 할인"
-                            ? "통신사 지원금과 대리점 지원금을 함께 받아요"
-                            : "선택약정 할인과 대리점 지원금을 함께 받아요"}
+                            ? "통신사 지원금과 KT마켓 지원금을 함께 받아요"
+                            : "선택약정 할인과 KT마켓 지원금을 함께 받아요"}
                     </span>
                 </div>
             </div>
@@ -2440,20 +2431,22 @@ export default function PlanBenefitSelector(props) {
                                 <div
                                     style={{
                                         display: "flex",
-                                        flexDirection: "column",
-                                        alignItems: "flex-start",
+                                        justifyContent: "flex-start",
                                         marginLeft: 14,
-                                        marginBottom: 0,
+                                        marginBottom: 4,
                                     }}
                                 >
                                     <div
                                         style={{
                                             backgroundColor: "#0055FF",
-                                            color: "#FFF",
-                                            borderRadius: 6,
-                                            padding: "3px 9px",
-                                            fontSize: 11,
+                                            color: "#FFFFFF",
+                                            borderRadius: 999,
+                                            padding: "2px 7px",
+                                            fontSize: 10,
                                             fontWeight: 700,
+                                            lineHeight: 1.2,
+                                            boxShadow:
+                                                "0 4px 10px rgba(0,85,255,0.18)",
                                             fontFamily:
                                                 '"Pretendard","Inter",sans-serif',
                                             whiteSpace: "nowrap",
@@ -2461,17 +2454,6 @@ export default function PlanBenefitSelector(props) {
                                     >
                                         추천
                                     </div>
-                                    <div
-                                        style={{
-                                            width: 0,
-                                            height: 0,
-                                            borderLeft: "5px solid transparent",
-                                            borderRight:
-                                                "5px solid transparent",
-                                            borderTop: "6px solid #0055FF",
-                                            marginLeft: 8,
-                                        }}
-                                    />
                                 </div>
                             )}
                             <PlanCard

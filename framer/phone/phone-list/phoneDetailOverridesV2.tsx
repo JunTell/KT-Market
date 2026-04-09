@@ -589,6 +589,7 @@ export function withPriceComponent(Component): ComponentType {
 export function withPriceCard(Component): ComponentType {
     return (props) => {
         const [store] = useStore()
+        const { navigate, routes } = useRouter()
 
         // ── 헬퍼 함수 (withOrderSheet와 동일 로직) ──────────────────
         function calcInstallment(principal: number, months: number) {
@@ -701,6 +702,73 @@ export function withPriceCard(Component): ComponentType {
         const installmentPaymentDescription =
             installment > 0 ? "분할 상환 수수료 5.9% 포함" : "카드 또는 현금결제"
 
+        const releasedModels = [
+            "sm-s942nk",
+            "sm-s942nk512",
+            "sm-s947nk",
+            "sm-s947nk512",
+            "sm-s948nk",
+            "sm-s948nk512",
+        ]
+
+        const getQuantity = () => {
+            const colorEn = store.color?.en
+            const match = store.stocks?.find((item) => item.colorEn === colorEn)
+            return match?.quantity ?? null
+        }
+
+        const quantity = getQuantity()
+        const hasStockData =
+            Array.isArray(store.stocks) &&
+            store.stocks.length > 0 &&
+            !!store.color?.en
+        const isSoldOut = hasStockData && quantity !== null ? quantity <= 0 : false
+
+        const isSamsungExternalPreorder = (model) => {
+            if (releasedModels.includes(model)) return false
+            return typeof S26_MODLE !== "undefined" && S26_MODLE.includes(model)
+        }
+
+        const getCtaTitle = () => {
+            if (isSoldOut) return "입고 알림"
+
+            const currentModel = store.device?.model
+
+            if (isSamsungExternalPreorder(currentModel)) return "신청하기"
+            if (
+                typeof Iphone17e_MODEL !== "undefined" &&
+                Iphone17e_MODEL.includes(currentModel)
+            )
+                return "신청하기"
+            if (preorderModel.includes(currentModel)) return "신청하기"
+
+            return "신청하기"
+        }
+
+        const getRouteId = (allRoutes, path) => {
+            for (const [key, value] of Object.entries(allRoutes)) {
+                if ((value as any)?.path === path) return key
+            }
+            for (const [key, value] of Object.entries(allRoutes)) {
+                if ((value as any)?.path === "/") return key
+            }
+            return ""
+        }
+
+        const handleApplyClick = () => {
+            const storeJson = JSON.stringify(store)
+            sessionStorage.removeItem("data")
+            sessionStorage.setItem("data", storeJson)
+            localStorage.setItem("kt_data", storeJson)
+
+            const path = isSoldOut
+                ? "/phone/device-notification"
+                : "/phone/user-info"
+            const routeId = getRouteId(routes, path)
+
+            navigate(routeId, "")
+        }
+
         return (
             <Component
                 {...props}
@@ -714,6 +782,9 @@ export function withPriceCard(Component): ComponentType {
                 discount={discount ?? "공통지원금"}
                 isLoading={store.isLoading ?? false}
                 formLink={device?.form_link ?? ""}
+                devicePetName={device?.pet_name ?? ""}
+                ctaTitle={getCtaTitle()}
+                onApplyClick={handleApplyClick}
                 // OrderSheet 모달용 props
                 installmentPaymentTitle={installmentPaymentTitle}
                 installmentPaymentDescription={installmentPaymentDescription}
@@ -1472,7 +1543,7 @@ export function withPlanBasicNotice(Component): ComponentType {
         const officialPlanPrice = planPrice - officialPlanDiscount
         const officialDeviceMonthly =
             (store.installment ?? 24) === 0
-                ? officialPrincipal
+                ? 0
                 : calculateInstallment(officialPrincipal, store.installment ?? 24, 5.9)
         const officialMonthlyPrice = Math.round(
             officialDeviceMonthly + officialPlanPrice
@@ -1484,6 +1555,15 @@ export function withPlanBasicNotice(Component): ComponentType {
                 officialMonthlyPrice={officialMonthlyPrice}
             />
         )
+    }
+}
+
+export function withPlanChoiceNotice(Component): ComponentType {
+    return (props) => {
+        const [store] = useStore()
+        const selectedPlanPid = store.selectedPlanInfo?.pid ?? ""
+
+        return <Component {...props} pplId={selectedPlanPid} />
     }
 }
 
@@ -1537,19 +1617,28 @@ export function withBenefitCategoryTabs(Component): ComponentType {
 
         const handleTabClick = (key: string, sectionId: string, offset: number = 0) => {
             const doScroll = () => {
+                if (typeof window === "undefined") return false
                 const el = document.getElementById(sectionId)
                 if (el) {
                     const top = el.getBoundingClientRect().top + window.scrollY - offset
                     window.scrollTo({ top, behavior: "smooth" })
+                    return true
                 }
+                return false
+            }
+
+            const retryScroll = (attempt = 0) => {
+                const done = doScroll()
+                if (done || attempt >= 12) return
+                window.setTimeout(() => retryScroll(attempt + 1), 120)
             }
 
             if (!store.isExpanded) {
                 setStore({ isExpanded: true })
-                // 펼침 애니메이션이 끝난 뒤 스크롤
-                setTimeout(doScroll, 350)
+                // 펼침 이후 레이아웃이 실제 반영될 때까지 재시도
+                window.setTimeout(() => retryScroll(0), 180)
             } else {
-                doScroll()
+                retryScroll(0)
             }
         }
 

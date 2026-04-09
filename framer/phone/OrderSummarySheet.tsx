@@ -308,8 +308,8 @@ const titleStyle: React.CSSProperties = {
 }
 const totalCardStyle: React.CSSProperties = {
     width: "100%",
-    backgroundColor: "#F9FAFB",
-    border: "1.5px solid #E5E7EB",
+    backgroundColor: "rgb(249, 250, 251)",
+    border: "none",
     borderRadius: 12,
     padding: "16px 18px",
     boxSizing: "border-box",

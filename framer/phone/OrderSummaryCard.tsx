@@ -112,7 +112,7 @@ function OrderSheetContent({
     }
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {/* 카드 1: 월 할부원금 */}
             <OSCard>
                 <OSSectionHeader
@@ -478,6 +478,8 @@ export default function OrderSummaryCard(props) {
         isLoading = false,
         formLink = "",
         devicePetName = "",
+        ctaTitle = "신청하기",
+        onApplyClick,
         // OrderSheet 추가 props
         installmentPaymentTitle = "월 할부원금 (24개월)",
         installmentPaymentDescription = "분할 상환 수수료 5.9% 포함",
@@ -567,19 +569,19 @@ export default function OrderSummaryCard(props) {
                     fontFamily: FONT,
                 }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <rect x="1" y="3" width="15" height="13" rx="1" stroke="#374151" strokeWidth="1.8" />
-                        <path d="M16 8h4l3 4v4h-7V8z" stroke="#374151" strokeWidth="1.8" strokeLinejoin="round" />
-                        <circle cx="5.5" cy="18.5" r="2" stroke="#374151" strokeWidth="1.8" />
-                        <circle cx="18.5" cy="18.5" r="2" stroke="#374151" strokeWidth="1.8" />
+                        <rect x="1" y="3" width="15" height="13" rx="1" stroke="#2563EB" strokeWidth="1.8" />
+                        <path d="M16 8h4l3 4v4h-7V8z" stroke="#2563EB" strokeWidth="1.8" strokeLinejoin="round" />
+                        <circle cx="5.5" cy="18.5" r="2" stroke="#2563EB" strokeWidth="1.8" />
+                        <circle cx="18.5" cy="18.5" r="2" stroke="#2563EB" strokeWidth="1.8" />
                     </svg>
-                    <span style={{ fontSize: "12px", fontWeight: 600, color: "#374151" }}>
+                    <span style={{ fontSize: "12px", fontWeight: 600, color: "#2563EB" }}>
                         {isBefore3PM ? "오후 3시 전 주문시 당일 출발" : "내일 출발"}
                     </span>
                 </div>
 
                 {/* ── 기기명 ── */}
                 {devicePetName && (
-                    <span style={{ fontSize: "16px", fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+                    <span style={{ fontSize: "18px", fontWeight: 700, color: "#111827", fontFamily: FONT }}>
                         {devicePetName}
                     </span>
                 )}
@@ -631,10 +633,16 @@ export default function OrderSummaryCard(props) {
                 </div>
 
                 {/* ── 공식 신청서 작성하기 버튼 ── */}
-                <a
-                    href={formLink || "#"}
-                    target={formLink ? "_blank" : undefined}
-                    rel="noopener noreferrer"
+                <button
+                    onClick={() => {
+                        if (typeof onApplyClick === "function") {
+                            onApplyClick()
+                            return
+                        }
+                        if (formLink && typeof window !== "undefined") {
+                            window.open(formLink, "_blank", "noopener,noreferrer")
+                        }
+                    }}
                     style={{
                         display: "flex",
                         alignItems: "center",
@@ -643,18 +651,24 @@ export default function OrderSummaryCard(props) {
                         height: "52px",
                         backgroundColor: "#0055FF",
                         color: "#FFFFFF",
+                        border: "none",
                         borderRadius: "12px",
                         fontSize: "16px",
                         fontWeight: 700,
-                        textDecoration: "none",
-                        cursor: formLink ? "pointer" : "default",
+                        cursor:
+                            typeof onApplyClick === "function" || !!formLink
+                                ? "pointer"
+                                : "default",
                         fontFamily: FONT,
                         boxSizing: "border-box",
-                        opacity: formLink ? 1 : 0.5,
+                        opacity:
+                            typeof onApplyClick === "function" || !!formLink
+                                ? 1
+                                : 0.5,
                     }}
                 >
-                    공식 신청서 작성하기
-                </a>
+                    {ctaTitle}
+                </button>
             </div>
 
             {/* ── 월 할부 팝업 ── */}
@@ -706,7 +720,7 @@ const wrapperStyle: React.CSSProperties = {
     width: "100%",
     display: "flex",
     flexDirection: "column",
-    gap: "12px",
+    gap: "8px",
     padding: "16px",
     boxSizing: "border-box",
     backgroundColor: "#FFFFFF",

@@ -48,9 +48,26 @@ function InstallmentBtn({
     return (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative", zIndex: 0 }}>
             {isRecommended && (
-                <div style={{ position: "absolute", top: -28, left: "50%", transform: "translateX(-50%)", zIndex: 0, display: "flex", flexDirection: "column", alignItems: "center", pointerEvents: "none" }}>
-                    <div style={{ backgroundColor: "#0055FF", color: "#FFF", borderRadius: 6, padding: "3px 9px", fontSize: 11, fontWeight: 700, fontFamily: FONT, whiteSpace: "nowrap" }}>추천</div>
-                    <div style={{ width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "6px solid #0055FF" }} />
+                <div
+                    style={{
+                        position: "absolute",
+                        top: -10,
+                        right: 8,
+                        zIndex: 0,
+                        padding: "2px 7px",
+                        borderRadius: 999,
+                        backgroundColor: "#0055FF",
+                        color: "#FFFFFF",
+                        fontSize: 10,
+                        fontWeight: 700,
+                        lineHeight: 1.2,
+                        boxShadow: "0 4px 10px rgba(0,85,255,0.18)",
+                        whiteSpace: "nowrap",
+                        pointerEvents: "none",
+                        fontFamily: FONT,
+                    }}
+                >
+                    추천
                 </div>
             )}
             <motion.button
@@ -61,7 +78,7 @@ function InstallmentBtn({
                     height: 50,
                     border: isActive ? "1.5px solid #0055FF" : "1.5px solid #E5E7EB",
                     borderRadius: 10,
-                    backgroundColor: "#FFFFFF",
+                    backgroundColor: isActive ? "rgb(236, 244, 255)" : "#FFFFFF",
                     color: isActive ? "#0055FF" : "#9CA3AF",
                     fontSize: 15,
                     fontWeight: isActive ? 700 : 400,
@@ -117,7 +134,7 @@ export default function InstallmentSelectorSection(props) {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.15 }}
-                            style={{ display: "flex", gap: 8, paddingTop: 32 }}
+                            style={{ display: "flex", gap: 8, paddingTop: 12 }}
                         >
                             {PRIMARY.map(({ label, value }) => (
                                 <InstallmentBtn
@@ -141,7 +158,7 @@ export default function InstallmentSelectorSection(props) {
                                     borderRadius: 10,
                                     backgroundColor: "#FFFFFF",
                                     color: "#9CA3AF",
-                                    fontSize: 20,
+                                    fontSize: 24,
                                     fontWeight: 300,
                                     cursor: "pointer",
                                     fontFamily: FONT,
@@ -163,7 +180,7 @@ export default function InstallmentSelectorSection(props) {
                                 display: "grid",
                                 gridTemplateColumns: "repeat(3, 1fr)",
                                 gap: 8,
-                                paddingTop: 32,
+                                paddingTop: 12,
                             }}
                         >
                             {ALL.map(({ label, value }) => (
