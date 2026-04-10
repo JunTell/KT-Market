@@ -869,7 +869,7 @@ export default function OrderSummaryCard(props) {
         <>
             <div style={wrapperStyle}>
                 {/* ── 배송 배지 ── */}
-                <div
+                {/* <div
                     style={{
                         display: "inline-flex",
                         alignItems: "center",
@@ -923,7 +923,7 @@ export default function OrderSummaryCard(props) {
                             ? "오후 3시 전 주문시 당일 출발"
                             : "내일 출발"}
                     </span>
-                </div>
+                </div> */}
 
                 {/* ── 기기명 + 가격 행 (간격 축소) ── */}
                 <div
