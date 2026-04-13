@@ -45,6 +45,25 @@ const preorderModel = [
 // 아이폰17e
 const DELAYED_MODELS = ["aip17e-256", "aip17e-512"]
 
+// 번호이동을 기본값으로 설정할 기기 모델들
+const NUMBER_PORTING_MODELS = [
+    "aip16-128",
+    "aip16-256",
+    "aip16-512",
+    "aip17-256",
+    "aip17-512",
+    "aip17p-1t",
+    "aip17p-256",
+    "aip17p-512",
+    "aip17pm-1t",
+    "aip17pm-256",
+    "aip17pm-2t",
+    "aip17pm-512",
+    "aipa-1t",
+    "aipa-256",
+    "aipa-512",
+]
+
 // 12-04
 const SPECIAL_PRICES: Record<string, { mnp: number; chg: number }> = {
     // iPhone 13
@@ -1624,6 +1643,10 @@ export function withPhoneDetail(Component): ComponentType {
                 } else if (chgEffective !== null) {
                     bestRegister = "기기변경"
                 }
+                // numberPortingModels는 가격 비교 결과와 무관하게 항상 번호이동 기준
+                if (NUMBER_PORTING_MODELS.includes(modelId)) {
+                    bestRegister = "번호이동"
+                }
                 setStore({ register: bestRegister })
 
                 await fetchInitPlanData(initialPlanId, bestRegister, modelId)
@@ -2073,24 +2096,7 @@ export function withRegister(Component): ComponentType {
             "sm-a175nk-kp",
         ]
 
-        // 번호이동을 기본값으로 설정할 기기 모델들
-        const numberPortingModels = [
-            "aip16-128",
-            "aip16-256",
-            "aip16-512",
-            "aip17-256",
-            "aip17-512",
-            "aip17p-1t",
-            "aip17p-256",
-            "aip17p-512",
-            "aip17pm-1t",
-            "aip17pm-256",
-            "aip17pm-2t",
-            "aip17pm-512",
-            "aipa-1t",
-            "aipa-256",
-            "aipa-512",
-        ]
+        const numberPortingModels = NUMBER_PORTING_MODELS
 
         // 활성화된 통신사 추론
         const getActiveCarrier = () => {
