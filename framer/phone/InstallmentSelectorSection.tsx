@@ -126,33 +126,6 @@ export default function InstallmentSelectorSection(props) {
                 {title}
             </span>
 
-            {/* 일시불 안내 문구 */}
-            <AnimatePresence>
-                {installment === 0 && !isLoading && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        transition={{ duration: 0.18 }}
-                        style={{
-                            display: "flex",
-                            alignItems: "flex-start",
-                            gap: 5,
-                            padding: "8px 10px",
-                            borderRadius: 8,
-                            backgroundColor: "#F3F4F6",
-                            fontFamily: FONT,
-                        }}
-                    >
-                        <span style={{ fontSize: 13, color: "#6B7280", lineHeight: "150%", flexShrink: 0 }}>ⓘ</span>
-                        <span style={{ fontSize: 13, color: "#6B7280", lineHeight: "150%" }}>
-                            일시불 선택 시 개통 후 당월 내 114 또는 KT매장에서 고객님이{" "}
-                            <strong style={{ color: "#374151", fontWeight: 700 }}>직접 결제</strong>해야 합니다.
-                        </span>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
             {isLoading ? (
                 <SkeletonRow />
             ) : (
@@ -249,6 +222,28 @@ export default function InstallmentSelectorSection(props) {
                     )}
                 </AnimatePresence>
             )}
+
+            {/* 일시불 안내 문구 */}
+            <AnimatePresence>
+                {installment === 0 && !isLoading && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.18 }}
+                        style={{ display: "flex", alignItems: "center", gap: 5, fontFamily: FONT }}
+                    >
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                            <circle cx="7" cy="7" r="6.5" stroke="#9CA3AF" />
+                            <text x="7" y="11" textAnchor="middle" fontSize="9" fill="#9CA3AF" fontWeight="600">i</text>
+                        </svg>
+                        <span style={{ fontSize: 12, color: "#6B7280" }}>
+                            일시불 선택 시 개통 후 당월 내 114 또는 KT매장에서 고객님이{" "}
+                            <strong style={{ fontWeight: 700, color: "#6B7280" }}>직접 결제</strong>해야 합니다.
+                        </span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }
