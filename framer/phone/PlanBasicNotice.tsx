@@ -31,13 +31,6 @@ export default function PlanBasicNotice(props) {
                 </div>
             </div>
 
-            {/* 2. 절차 안내 박스 */}
-            <div style={procedureBoxStyle}>
-                <span style={procedureLabelStyle}>절차</span>
-                <span style={procedureFlowStyle}>
-                    신청서 작성 &gt; 해피콜 &gt; 개통 후 발송 &gt; 수령
-                </span>
-            </div>
         </div>
     )
 }
@@ -50,7 +43,6 @@ const containerStyle: React.CSSProperties = {
     flexDirection: "column",
     width: "100%",
     maxWidth: "400px",
-    padding: "8px 0",
     gap: "12px",
     boxSizing: "border-box",
 }
@@ -92,28 +84,6 @@ const subTextStyle: React.CSSProperties = {
     marginTop: "6px",
 }
 
-const procedureBoxStyle: React.CSSProperties = {
-    borderRadius: "12px",
-    backgroundColor: "#F9FAFB",
-    border: "1px solid #F1F3F5",
-    padding: "16px 24px",
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-}
-
-const procedureLabelStyle: React.CSSProperties = {
-    fontSize: "14px",
-    fontWeight: "800",
-    color: "#191F28",
-}
-
-const procedureFlowStyle: React.CSSProperties = {
-    fontSize: "14px",
-    fontWeight: "500",
-    color: "#333D4B",
-    letterSpacing: "-0.3px",
-}
 
 addPropertyControls(PlanBasicNotice, {
     officialMonthlyPrice: {

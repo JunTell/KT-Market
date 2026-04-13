@@ -8,7 +8,7 @@ import {
     Tooltip, QuestionIcon, SkeletonRow, Dashed, ToggleSwitch,
     Row, RedRow, SectionHeader,
     useInstallmentInterest,
-} from "https://framer.com/m/OrderComponents-QLDYR7.js@B8HOuK0Vr7pFdSYgTLEK"
+} from "https://framer.com/m/OrderComponents-QLDYR7.js@hhiQilDauXuXfkuhoANY"
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────
 /**
@@ -96,7 +96,7 @@ export default function OrderSummarySheet(props) {
                     <div style={sectionStyle}>
                         <div style={{ display: "flex", flexDirection: "column" }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-                                <span style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>
+                                <span style={{ fontSize: 12, fontWeight: 700, color: "#111827" }}>
                                     {installmentPaymentTitle}
                                 </span>
                                 <AnimatePresence mode="wait" initial={false}>
@@ -120,10 +120,10 @@ export default function OrderSummarySheet(props) {
                                     exit={{ opacity: 0, y: 4 }}
                                     transition={{ duration: 0.5, ease: "easeInOut" }}
                                     style={{
-                                        minHeight: 18,
                                         fontSize: 12,
                                         color: "#8B95A1",
                                         lineHeight: 1.5,
+                                        gap: 0,
                                     }}
                                 >
                                     {displayDescription}
@@ -132,6 +132,7 @@ export default function OrderSummarySheet(props) {
                         </div>
 
                         {/* 출고가 */}
+                        <div style={{ marginTop: 8 }} />
                         <Row label="출고가" value={`${devicePrice.toLocaleString()}원`} />
 
                         {/* 공시지원금 */}
@@ -204,10 +205,13 @@ export default function OrderSummarySheet(props) {
 
                         {/* 요금제명 */}
                         {plan && (
-                            <Row
-                                label={plan}
-                                value={`월 ${planPrice.toLocaleString()}원`}
-                            />
+                            <>
+                                <div style={{ marginTop: 8 }} />
+                                <Row
+                                    label={plan}
+                                    value={`월 ${planPrice.toLocaleString()}원`}
+                                />
+                            </>
                         )}
 
                         {/* 요금할인 (선택약정) */}
@@ -231,7 +235,7 @@ export default function OrderSummarySheet(props) {
 
                     {/* ── 카드 3: 월 예상 금액 ── */}
                     <div style={totalCardStyle}>
-                        <span style={{ fontSize: 15, fontWeight: 500, color: "#374151" }}>월 예상 금액</span>
+                        <span style={{ fontSize: 17, fontWeight: 500, color: "#374151" }}>월 예상 금액</span>
                         <AnimatePresence mode="wait" initial={false}>
                             <motion.span
                                 key={displayTotalMonthPayment}
@@ -239,7 +243,7 @@ export default function OrderSummarySheet(props) {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 4 }}
                                 transition={{ duration: 0.5, ease: "easeInOut" }}
-                                style={{ fontSize: 20, fontWeight: 700, color: "#0055FF" }}
+                                style={{ fontSize: 21, fontWeight: 700, color: "#0055FF" }}
                             >
                                 {displayTotalMonthPayment.toLocaleString()}원
                             </motion.span>

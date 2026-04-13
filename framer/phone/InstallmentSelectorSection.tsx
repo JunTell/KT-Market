@@ -31,7 +31,7 @@ const SkeletonRow = () => (
         {[0, 1, 2, 3].map((i) => (
             <motion.div
                 key={i}
-                style={{ flex: 1, height: 43, borderRadius: 10, backgroundColor: "#E5E7EB" }}
+                style={{ flex: 1, height: 38, borderRadius: 10, backgroundColor: "#E5E7EB" }}
                 animate={{ opacity: [0.4, 1, 0.4] }}
                 transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: i * 0.07 }}
             />
@@ -79,7 +79,7 @@ function InstallmentBtn({
                 whileTap={{ scale: 0.96 }}
                 style={{
                     width: "100%",
-                    height: 43,
+                    height: 38,
                     border: isActive ? "1.5px solid #0055FF" : "1.5px solid #E5E7EB",
                     borderRadius: 10,
                     backgroundColor: isActive ? "rgb(236, 244, 255)" : "#FFFFFF",
@@ -156,17 +156,22 @@ export default function InstallmentSelectorSection(props) {
                                 onClick={() => setIsExpanded(true)}
                                 whileTap={{ scale: 0.96 }}
                                 style={{
-                                    flex: 1,
-                                    height: 43,
+                                    width: 38,
+                                    height: 38,
+                                    flexShrink: 0,
                                     border: "1.5px solid #E5E7EB",
                                     borderRadius: 10,
                                     backgroundColor: "#FFFFFF",
                                     color: "#9CA3AF",
-                                    fontSize: 24,
+                                    fontSize: 26,
                                     fontWeight: 300,
                                     cursor: "pointer",
                                     fontFamily: FONT,
                                     boxSizing: "border-box",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    lineHeight: 1,
                                 }}
                             >
                                 +
@@ -204,16 +209,20 @@ export default function InstallmentSelectorSection(props) {
                                 onClick={() => setIsExpanded(false)}
                                 whileTap={{ scale: 0.96 }}
                                 style={{
-                                    height: 43,
+                                    height: 38,
                                     border: "1.5px solid #E5E7EB",
                                     borderRadius: 10,
                                     backgroundColor: "#FFFFFF",
                                     color: "#9CA3AF",
-                                    fontSize: 20,
+                                    fontSize: 26,
                                     fontWeight: 300,
                                     cursor: "pointer",
                                     fontFamily: FONT,
                                     boxSizing: "border-box",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    lineHeight: 1,
                                 }}
                             >
                                 −

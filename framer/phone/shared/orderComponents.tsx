@@ -196,10 +196,10 @@ export const Row = ({
 export const RedRow = ({ label, value, tooltip }: { label: string; value: string; tooltip?: string }) => (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            <span style={{ fontSize: 14, fontWeight: 400, color: "#EF4444" }}>{label}</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#EF4444" }}>{label}</span>
             {tooltip && <Tooltip text={tooltip}><QuestionIcon /></Tooltip>}
         </div>
-        <span style={{ fontSize: 14, fontWeight: 500, color: "#EF4444" }}>{value}</span>
+        <span style={{ fontSize: 14, fontWeight: 800, color: "#EF4444" }}>{value}</span>
     </div>
 )
 

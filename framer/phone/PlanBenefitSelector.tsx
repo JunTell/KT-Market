@@ -1403,7 +1403,7 @@ const FreebieSlider = ({
                         style={
                             {
                                 flexShrink: 0,
-                                width: "calc(50% - 4px)",
+                                width: "calc(65% - 4px)",
                                 scrollSnapAlign: "start",
                                 height: 88,
                                 padding: "10px 8px",
@@ -1428,8 +1428,8 @@ const FreebieSlider = ({
                             src={`https://juntell.s3.ap-northeast-2.amazonaws.com/freebie/${f.no}.png`}
                             alt={f.title}
                             style={{
-                                width: 44,
-                                height: 44,
+                                width: 54,
+                                height: 54,
                                 objectFit: "contain",
                                 flexShrink: 0,
                             }}
@@ -1441,7 +1441,7 @@ const FreebieSlider = ({
                             style={{
                                 display: "flex",
                                 flexDirection: "column",
-                                gap: 2,
+                                gap: 8,
                                 minWidth: 0,
                                 flex: 1,
                             }}
@@ -1449,7 +1449,7 @@ const FreebieSlider = ({
                             <span
                                 style={
                                     {
-                                        fontSize: 11,
+                                        fontSize: 12,
                                         fontWeight: 500,
                                         color: "#374151",
                                         lineHeight: 1.3,
@@ -1463,18 +1463,20 @@ const FreebieSlider = ({
                             >
                                 {f.title}
                             </span>
-                            <span
-                                style={{
-                                    fontSize: 12,
-                                    fontWeight: 700,
-                                    color: "#111827",
-                                }}
-                            >
-                                월 {(f.monthly_price ?? 0).toLocaleString()}원
-                            </span>
-                            <span style={{ fontSize: 10, color: "#9CA3AF" }}>
-                                할부 수수료 별도
-                            </span>
+                            <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
+                                <span
+                                    style={{
+                                        fontSize: 13,
+                                        fontWeight: 700,
+                                        color: "#111827",
+                                    }}
+                                >
+                                    월 {(f.monthly_price ?? 0).toLocaleString()}원
+                                </span>
+                                <span style={{ fontSize: 10, color: "#9CA3AF" }}>
+                                    할부 수수료 별도
+                                </span>
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -1589,7 +1591,7 @@ const PlanCard = ({
                 <div style={{ flex: 1 }}>
                     <div
                         style={{
-                            fontSize: 15,
+                            fontSize: 17,
                             fontWeight: 700,
                             color: "#111827",
                         }}
@@ -1599,7 +1601,8 @@ const PlanCard = ({
                     {subtitle && (
                         <div
                             style={{
-                                fontSize: 12,
+                                fontSize: 13,
+                                fontWeight: 500,
                                 color: "#6B7280",
                                 marginTop: 2,
                             }}
@@ -1615,7 +1618,7 @@ const PlanCard = ({
                 <>
                     <div
                         style={{
-                            fontSize: 12,
+                            fontSize: 13,
                             fontWeight: 600,
                             color: "#374151",
                         }}
@@ -1667,7 +1670,7 @@ const PlanCard = ({
                         style={{
                             fontSize: 13,
                             color: "#0055FF",
-                            fontWeight: 500,
+                            fontWeight: 600,
                         }}
                     >
                         {discountLabel}
@@ -1691,7 +1694,7 @@ const PlanCard = ({
                         </span>
                         <span
                             style={{
-                                fontSize: 15,
+                                fontSize: 18,
                                 fontWeight: 700,
                                 color: "#374151",
                             }}
@@ -1713,14 +1716,14 @@ const PlanCard = ({
                         style={{
                             fontSize: 13,
                             color: "#0055FF",
-                            fontWeight: 500,
+                            fontWeight: 600,
                         }}
                     >
                         {discountLabel}
                     </span>
                     <span
                         style={{
-                            fontSize: 16,
+                            fontSize: 18,
                             fontWeight: 700,
                             color: "#111827",
                         }}
@@ -1856,7 +1859,7 @@ const SelectableCard = ({
                 <div style={{ flex: 1 }}>
                     <div
                         style={{
-                            fontSize: 15,
+                            fontSize: 17,
                             fontWeight: 700,
                             color: "#111827",
                         }}
@@ -1866,7 +1869,8 @@ const SelectableCard = ({
                     {subtitle && (
                         <div
                             style={{
-                                fontSize: 12,
+                                fontSize: 13,
+                                fontWeight: 500,
                                 color: "#6B7280",
                                 marginTop: 2,
                             }}
@@ -1885,7 +1889,7 @@ const SelectableCard = ({
                 <>
                     <div
                         style={{
-                            fontSize: 12,
+                            fontSize: 13,
                             fontWeight: 600,
                             color: "#374151",
                         }}
@@ -1937,7 +1941,7 @@ const SelectableCard = ({
                         style={{
                             fontSize: 13,
                             color: "#0055FF",
-                            fontWeight: 500,
+                            fontWeight: 600,
                         }}
                     >
                         {discountLabel}
@@ -1961,7 +1965,7 @@ const SelectableCard = ({
                         </span>
                         <span
                             style={{
-                                fontSize: 15,
+                                fontSize: 18,
                                 fontWeight: 700,
                                 color: "#374151",
                             }}
@@ -1983,14 +1987,14 @@ const SelectableCard = ({
                         style={{
                             fontSize: 13,
                             color: "#0055FF",
-                            fontWeight: 500,
+                            fontWeight: 600,
                         }}
                     >
                         {discountLabel}
                     </span>
                     <span
                         style={{
-                            fontSize: 16,
+                            fontSize: 18,
                             fontWeight: 700,
                             color: "#111827",
                         }}
@@ -2859,7 +2863,7 @@ const wrapperStyle: React.CSSProperties = {
 const columnStyle: React.CSSProperties = {
     display: "flex",
     flexDirection: "column",
-    gap: 8,
+    gap: 10,
 }
 const stepBadge: React.CSSProperties = {
     width: 24,

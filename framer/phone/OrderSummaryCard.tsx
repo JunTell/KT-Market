@@ -18,7 +18,7 @@ import {
     Card as OSCard,
     SectionHeader as OSSectionHeader,
     useInstallmentInterest,
-} from "https://framer.com/m/OrderComponents-QLDYR7.js@B8HOuK0Vr7pFdSYgTLEK"
+} from "https://framer.com/m/OrderComponents-QLDYR7.js@hhiQilDauXuXfkuhoANY"
 
 // ─────────────────────────────────────────
 // 스켈레톤
@@ -1057,7 +1057,7 @@ export default function OrderSummaryCard(props) {
                         style={{
                             fontSize: 12,
                             color: "#374151",
-                            lineHeight: 1.6,
+                            lineHeight: 1.4,
                             fontFamily: FONT,
                         }}
                     >
