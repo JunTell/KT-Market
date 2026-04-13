@@ -67,21 +67,22 @@ const redTitleStyle: React.CSSProperties = {
 const mainTextStyle: React.CSSProperties = {
     fontSize: "15px",
     fontWeight: "600",
-    color: "#191F28",
+    color: "#111827",
     lineHeight: "1.4",
     letterSpacing: "-0.5px",
     wordBreak: "keep-all",
+    fontFamily: '"Pretendard", "Inter", sans-serif',
 }
 
-// 💡 가독성을 높이기 위해 폰트 크기, 굵기, 색상 진하기를 조정했습니다.
 const subTextStyle: React.CSSProperties = {
     fontSize: "13px",
     fontWeight: "500",
-    color: "#4E5968", // 기존보다 더 진한 회색 (가독성 향상)
+    color: "#4E5968",
     lineHeight: "1.5",
     letterSpacing: "-0.3px",
     wordBreak: "keep-all",
     marginTop: "6px",
+    fontFamily: '"Pretendard", "Inter", sans-serif',
 }
 
 

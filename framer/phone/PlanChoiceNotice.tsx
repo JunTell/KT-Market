@@ -119,7 +119,7 @@ const iconBadgeStyle: React.CSSProperties = {
 const titleStyle: React.CSSProperties = {
     fontSize: "13px",
     fontWeight: "bold",
-    fontFamily: "'Samsung Sharp Sans', sans-serif",
+    fontFamily: '"Pretendard", "Inter", sans-serif',
     color: "#191F28",
     margin: 0,
 }

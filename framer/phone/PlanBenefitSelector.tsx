@@ -2390,7 +2390,7 @@ export default function PlanBenefitSelector(props) {
                     ))}
                 </div>
                 {/* 탭 설명 */}
-                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <svg
                         width="14"
                         height="14"
@@ -2523,7 +2523,7 @@ export default function PlanBenefitSelector(props) {
             </div>
 
             {/* 요금제 하단 안내 */}
-            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: -4 }}>
                 <svg
                     width="14"
                     height="14"

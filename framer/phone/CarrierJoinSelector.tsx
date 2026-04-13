@@ -6,7 +6,7 @@ import { useMemo } from "react"
 import { addPropertyControls, ControlType } from "framer"
 import { motion, AnimatePresence } from "framer-motion"
 
-const FONT = '"Pretendard"'
+const FONT = '"Pretendard", "Inter", sans-serif'
 
 // ─── 통신사 데이터 ─────────────────────────────────────────────────────
 const CARRIERS = [
@@ -158,8 +158,8 @@ export default function CarrierJoinSelector(props) {
                                 padding: "0 4px",
                                 justifyContent: "center",
                                 alignItems: "center",
-                                borderRadius: 7,
-                                border: isActive ? "1.2px solid #0066FF" : "1.2px solid #E5E7EB",
+                                borderRadius: 8,
+                                border: isActive ? "1.5px solid #0066FF" : "1.5px solid #E5E7EB",
                                 backgroundColor: isActive ? "#ECF4FF" : "#FFFFFF",
                                 cursor: "pointer",
                                 boxSizing: "border-box",
@@ -211,13 +211,13 @@ export default function CarrierJoinSelector(props) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                     transition={{ duration: 0.18 }}
-                    style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: FONT }}
+                    style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: FONT, marginTop: -4 }}
                 >
                     <span style={{ fontSize: 12, fontWeight: 600, color: "#374151", whiteSpace: "nowrap" }}>
                         {activeCarrier.joinType}
                     </span>
                     <span style={{ fontSize: 12, color: "#9CA3AF", flexShrink: 0 }}>|</span>
-                    <span style={{ fontSize: 12, color: "#9CA3AF", lineHeight: 1.5 }}>
+                    <span style={{ fontSize: 12, color: "#9CA3AF", lineHeight: 1.5, flex: 1 }}>
                         {activeCarrier.description}
                     </span>
                 </motion.div>

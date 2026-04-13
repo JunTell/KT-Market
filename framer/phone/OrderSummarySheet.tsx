@@ -5,10 +5,17 @@ import { addPropertyControls, ControlType } from "framer"
 import React, { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-    Tooltip, QuestionIcon, SkeletonRow, Dashed, ToggleSwitch,
+    Tooltip, QuestionIcon, SkeletonRow, ToggleSwitch,
     Row, RedRow, SectionHeader,
     useInstallmentInterest,
 } from "https://framer.com/m/OrderComponents-QLDYR7.js@hhiQilDauXuXfkuhoANY"
+
+// ─── 로컬 점선 구분선 ──────────────────────────────────────────────────────
+const DashedLine = () => (
+    <svg width="100%" height="2" style={{ display: "block", overflow: "visible", margin: "2px 0" }}>
+        <line x1="0" y1="1" x2="100%" y2="1" stroke="#D3D5DA" strokeWidth="1.5" strokeDasharray="4 4" />
+    </svg>
+)
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────
 /**
@@ -94,7 +101,8 @@ export default function OrderSummarySheet(props) {
                 <>
                     {/* ── 카드 1: 월 할부원금 ── */}
                     <div style={sectionStyle}>
-                        <div style={{ display: "flex", flexDirection: "column" }}>
+                        {/* 섹션 헤더 */}
+                        <div style={{ width: "100%", borderBottom: "1.5px solid #A8B2BF", paddingBottom: 8, display: "flex", flexDirection: "column" }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
                                 <span style={{ fontSize: 12, fontWeight: 700, color: "#111827" }}>
                                     {installmentPaymentTitle}
@@ -119,118 +127,106 @@ export default function OrderSummarySheet(props) {
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: 4 }}
                                     transition={{ duration: 0.5, ease: "easeInOut" }}
-                                    style={{
-                                        fontSize: 12,
-                                        color: "#8B95A1",
-                                        lineHeight: 1.5,
-                                        gap: 0,
-                                    }}
+                                    style={{ fontSize: 12, color: "#9CA3AF", lineHeight: 1.5 }}
                                 >
                                     {displayDescription}
                                 </motion.div>
                             </AnimatePresence>
                         </div>
 
-                        {/* 출고가 */}
-                        <div style={{ marginTop: 8 }} />
-                        <Row label="출고가" value={`${devicePrice.toLocaleString()}원`} />
+                        {/* 행 목록 */}
+                        <div style={rowsContainerStyle}>
+                            <Row label="출고가" value={`${devicePrice.toLocaleString()}원`} />
 
-                        {/* 공시지원금 */}
-                        {disclosureSubsidy > 0 && (
-                            <RedRow
-                                label="단말할인(공통)"
-                                value={`-${disclosureSubsidy.toLocaleString()}원`}
-                                tooltip="이동통신사가 공시한 단말기 지원금"
+                            {disclosureSubsidy > 0 && (
+                                <RedRow
+                                    label="단말할인(공통)"
+                                    value={`-${disclosureSubsidy.toLocaleString()}원`}
+                                    tooltip="이동통신사가 공시한 단말기 지원금"
+                                />
+                            )}
+
+                            {ktmarketSubsidy > 0 && (
+                                <RedRow
+                                    label="KT마켓 단독지원금"
+                                    value={`-${ktmarketSubsidy.toLocaleString()}원`}
+                                    tooltip="KT마켓에서만 제공하는 단독 지원금"
+                                />
+                            )}
+
+                            {promotionDiscount > 0 && (
+                                <RedRow
+                                    label="디바이스 추가지원금(단독)"
+                                    value={`-${promotionDiscount.toLocaleString()}원`}
+                                    tooltip="KT마켓 단독 프로모션 추가 지원금"
+                                />
+                            )}
+
+                            {migrationSubsidy > 0 && (
+                                <RedRow label="번호이동 지원금" value={`- ${migrationSubsidy.toLocaleString()}원`} />
+                            )}
+
+                            {guaranteedReturnPrice > 0 && (
+                                <RedRow
+                                    label="미리보상 할인"
+                                    value={`-${guaranteedReturnPrice.toLocaleString()}원`}
+                                    tooltip="미리보상 프로그램 적용 시 단말기 가격의 50% 할인"
+                                />
+                            )}
+
+                            {specialPrice > 0 && (
+                                <RedRow label="스페셜 할인" value={`-${specialPrice.toLocaleString()}원`} />
+                            )}
+
+                            {doubleStorageDiscount > 0 && (
+                                <RedRow label="더블스토리지 할인" value={`-${doubleStorageDiscount.toLocaleString()}원`} />
+                            )}
+
+                            <DashedLine />
+
+                            <Row
+                                label="할부원금"
+                                value={`${(installment === 0 ? 0 : installmentPrincipal).toLocaleString()}원`}
+                                bold large
                             />
-                        )}
-
-                        {/* KT마켓 단독지원금 */}
-                        {ktmarketSubsidy > 0 && (
-                            <RedRow
-                                label="KT마켓 단독지원금"
-                                value={`-${ktmarketSubsidy.toLocaleString()}원`}
-                                tooltip="KT마켓에서만 제공하는 단독 지원금"
-                            />
-                        )}
-
-                        {/* 디바이스 추가지원금(단독) */}
-                        {promotionDiscount > 0 && (
-                            <RedRow
-                                label="디바이스 추가지원금(단독)"
-                                value={`-${promotionDiscount.toLocaleString()}원`}
-                                tooltip="KT마켓 단독 프로모션 추가 지원금"
-                            />
-                        )}
-
-                        {/* 번호이동 지원금 */}
-                        {migrationSubsidy > 0 && (
-                            <RedRow label="번호이동 지원금" value={`- ${migrationSubsidy.toLocaleString()}원`} />
-                        )}
-
-                        {/* 미리보상 할인 */}
-                        {guaranteedReturnPrice > 0 && (
-                            <RedRow
-                                label="미리보상 할인"
-                                value={`-${guaranteedReturnPrice.toLocaleString()}원`}
-                                tooltip="미리보상 프로그램 적용 시 단말기 가격의 50% 할인"
-                            />
-                        )}
-
-                        {/* 스페셜 할인 */}
-                        {specialPrice > 0 && (
-                            <RedRow label="스페셜 할인" value={`-${specialPrice.toLocaleString()}원`} />
-                        )}
-
-                        {/* 더블스토리지 할인 */}
-                        {doubleStorageDiscount > 0 && (
-                            <RedRow label="더블스토리지 할인" value={`-${doubleStorageDiscount.toLocaleString()}원`} />
-                        )}
-
-                        <Dashed />
-
-                        {/* 할부원금 */}
-                        <Row
-                            label="할부원금"
-                            value={`${(installment === 0 ? 0 : installmentPrincipal).toLocaleString()}원`}
-                            bold large
-                        />
+                        </div>
                     </div>
 
                     {/* ── 카드 2: 월 통신요금 ── */}
                     <div style={sectionStyle}>
-                        <SectionHeader
-                            label="월 통신요금"
-                            description="결합 할인 또는 복지할인은 제외된 금액"
-                        />
+                        {/* 섹션 헤더 */}
+                        <div style={{ width: "100%", borderBottom: "1.5px solid #A8B2BF", paddingBottom: 8, display: "flex", flexDirection: "column" }}>
+                            <SectionHeader
+                                label="월 통신요금"
+                                description="결합 할인 또는 복지할인은 제외된 금액"
+                            />
+                        </div>
 
-                        {/* 요금제명 */}
-                        {plan && (
-                            <>
-                                <div style={{ marginTop: 8 }} />
+                        {/* 행 목록 */}
+                        <div style={rowsContainerStyle}>
+                            {plan && (
                                 <Row
                                     label={plan}
                                     value={`월 ${planPrice.toLocaleString()}원`}
                                 />
-                            </>
-                        )}
+                            )}
 
-                        {/* 요금할인 (선택약정) */}
-                        {discount === "선택약정할인" && (
-                            <RedRow
-                                label={planDiscountLabel}
-                                value={`-${planDiscountAmount.toLocaleString()}원`}
-                                tooltip={planTooltip}
+                            {discount === "선택약정할인" && (
+                                <RedRow
+                                    label={planDiscountLabel}
+                                    value={`-${planDiscountAmount.toLocaleString()}원`}
+                                    tooltip={planTooltip}
+                                />
+                            )}
+
+                            <DashedLine />
+
+                            <Row
+                                label="월 통신요금"
+                                value={`${planAfterDiscount.toLocaleString()}원`}
+                                bold large
                             />
-                        )}
-
-                        <Dashed />
-
-                        {/* 월 통신요금 합계 */}
-                        <Row
-                            label="월 통신요금"
-                            value={`${planAfterDiscount.toLocaleString()}원`}
-                            bold large
-                        />
+                        </div>
                     </div>
 
                     {/* ── 카드 3: 월 예상 금액 ── */}
@@ -243,7 +239,7 @@ export default function OrderSummarySheet(props) {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 4 }}
                                 transition={{ duration: 0.5, ease: "easeInOut" }}
-                                style={{ fontSize: 21, fontWeight: 700, color: "#0055FF" }}
+                                style={{ fontSize: 21, fontWeight: 700, color: "#0066FF" }}
                             >
                                 {displayTotalMonthPayment.toLocaleString()}원
                             </motion.span>
@@ -260,39 +256,40 @@ const wrapperStyle: React.CSSProperties = {
     width: "100%",
     display: "flex",
     flexDirection: "column",
-    gap: 12,
+    gap: 11,
     boxSizing: "border-box",
     fontFamily: '"Pretendard", "Inter", sans-serif',
 }
-const stepBadge: React.CSSProperties = {
-    width: 24, height: 24, borderRadius: 6,
-    backgroundColor: "#111827",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    flexShrink: 0,
-}
-const stepNumText: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "#FFFFFF" }
 const titleStyle: React.CSSProperties = {
-    fontSize: 16, fontWeight: 700, color: "#111827",
+    fontSize: 17, fontWeight: 700, color: "#111827",
     fontFamily: '"Pretendard", "Inter", sans-serif',
 }
 const sectionStyle: React.CSSProperties = {
     width: "100%",
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#F8F9FB",
     border: "none",
-    borderRadius: 12,
-    padding: "16px 18px 6px",
+    borderRadius: 22,
+    padding: "15px 6px 11px 6px",
     boxSizing: "border-box",
+    display: "flex",
+    flexDirection: "column",
+    gap: 11,
 }
 const totalCardStyle: React.CSSProperties = {
     width: "100%",
-    backgroundColor: "rgb(249, 250, 251)",
+    backgroundColor: "#F8F9FB",
     border: "none",
-    borderRadius: 12,
-    padding: "16px 18px",
+    borderRadius: 22,
+    padding: "16px",
     boxSizing: "border-box",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
+}
+const rowsContainerStyle: React.CSSProperties = {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
 }
 
 addPropertyControls(OrderSummarySheet, {

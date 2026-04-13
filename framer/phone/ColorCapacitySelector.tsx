@@ -266,9 +266,9 @@ export default function ColorCapacitySelector(props) {
                                             style={{
                                                 display: "flex", alignItems: "center", gap: 14,
                                                 padding: "10px 16px",
-                                                border: isActive ? "1.5px solid #0055FF" : "1px solid #E5E7EB",
+                                                border: isActive ? "1.5px solid #0066FF" : "1.5px solid #E5E7EB",
                                                 borderRadius: 12,
-                                                backgroundColor: isActive ? "#EEF4FF" : "#FFF",
+                                                backgroundColor: isActive ? "#ECF4FF" : "#FFF",
                                                 cursor: color.isSoldOut ? "not-allowed" : "pointer",
                                                 opacity: color.isSoldOut ? 0.45 : 1,
                                                 boxSizing: "border-box",
@@ -277,12 +277,12 @@ export default function ColorCapacitySelector(props) {
                                             {/* 라디오 */}
                                             <div style={{
                                                 width: 20, height: 20, borderRadius: "50%",
-                                                border: `2px solid ${isActive ? "#0055FF" : "#D1D5DB"}`,
+                                                border: `2px solid ${isActive ? "#0066FF" : "#D1D5DB"}`,
                                                 display: "flex", alignItems: "center", justifyContent: "center",
                                                 flexShrink: 0, boxSizing: "border-box",
                                             }}>
                                                 {isActive && (
-                                                    <div style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#0055FF" }} />
+                                                    <div style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#0066FF" }} />
                                                 )}
                                             </div>
 
@@ -330,7 +330,7 @@ const wrapperStyle: React.CSSProperties = {
     width: "100%",
     display: "flex",
     flexDirection: "column",
-    gap: 10,
+    gap: 12,
     boxSizing: "border-box",
     fontFamily: FONT,
 }

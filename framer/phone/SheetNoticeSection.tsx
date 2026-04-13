@@ -1,5 +1,7 @@
 import { addPropertyControls, ControlType } from "framer"
 
+const FONT = '"Pretendard", "Inter", sans-serif'
+
 /**
  * @framerIntrinsicWidth 350
  * @framerIntrinsicHeight 100
@@ -18,6 +20,7 @@ export function SheetNoticeSection(props) {
                 width: "100%",
                 height: "100%",
                 boxSizing: "border-box",
+                fontFamily: FONT,
                 ...props.style,
             }}
         >
@@ -28,14 +31,14 @@ export function SheetNoticeSection(props) {
                     width: "20px",
                     height: "20px",
                     borderRadius: "50%",
-                    backgroundColor: "#191F28", // 노랑 아이콘 배경
+                    backgroundColor: "#191F28",
                     color: "#fff",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     fontWeight: "bold",
                     fontSize: "14px",
-                    fontFamily: "serif",
+                    fontFamily: FONT,
                     marginTop: "2px",
                 }}
             >
@@ -50,21 +53,23 @@ export function SheetNoticeSection(props) {
                     style={{
                         fontSize: "14px",
                         fontWeight: "700",
-                        color: "#4E5968", // 진한 회색 (제목)
+                        color: "#4E5968",
                         textAlign: "left",
                         lineHeight: "1.4",
+                        fontFamily: FONT,
                     }}
                 >
                     {props.title}
                 </div>
                 <div
                     style={{
-                        fontSize: "9px",
+                        fontSize: "12px",
                         fontWeight: "400",
-                        color: "#8B95A1", // 연한 회색 (본문)
+                        color: "#9CA3AF",
                         textAlign: "left",
                         lineHeight: "1.5",
                         whiteSpace: "pre-line",
+                        fontFamily: FONT,
                     }}
                 >
                     {props.description}

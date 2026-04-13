@@ -80,10 +80,10 @@ function InstallmentBtn({
                 style={{
                     width: "100%",
                     height: 38,
-                    border: isActive ? "1.5px solid #0055FF" : "1.5px solid #E5E7EB",
+                    border: isActive ? "1.5px solid #0066FF" : "1.5px solid #E5E7EB",
                     borderRadius: 10,
-                    backgroundColor: isActive ? "rgb(236, 244, 255)" : "#FFFFFF",
-                    color: isActive ? "#0055FF" : "#9CA3AF",
+                    backgroundColor: isActive ? "#ECF4FF" : "#FFFFFF",
+                    color: isActive ? "#0066FF" : "#9CA3AF",
                     fontSize: 15,
                     fontWeight: isActive ? 700 : 400,
                     cursor: "pointer",
@@ -240,7 +240,7 @@ export default function InstallmentSelectorSection(props) {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -4 }}
                         transition={{ duration: 0.18 }}
-                        style={{ display: "flex", alignItems: "center", gap: 5, fontFamily: FONT }}
+                        style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: FONT, marginTop: -4 }}
                     >
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
                             <circle cx="7" cy="7" r="6.5" stroke="#9CA3AF" />
