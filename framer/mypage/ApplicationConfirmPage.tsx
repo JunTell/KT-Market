@@ -294,6 +294,7 @@ interface OrderSummary {
     showInterest: boolean
     doubleStorageDiscount: number // ✨ 더블스토리지 할인 추가
     promotionDiscount: number // ✨ 프로모션 할인 추가
+    youtubePremiumBonus: number
 }
 
 interface Props {
@@ -337,6 +338,7 @@ export default function ApplicationConfirmPage(props: Props) {
                 const devicePrice = parsedSheet.devicePrice || 0
                 const installmentPrincipal = parsedSheet.installmentPrincipal || 0
                 const marketSubsidy = parsedSheet.ktmarketSubsidy || 0
+                const youtubePremiumBonus = parsedSheet.youtubePremiumBonus || 0
                 const doubleStorageDiscount = parsedSheet.doubleStorageDiscount || 0
                 const promotionDiscount = parsedSheet.promotionDiscount || 0
 
@@ -386,6 +388,7 @@ export default function ApplicationConfirmPage(props: Props) {
                     devicePrice: devicePrice,
                     publicSubsidy: publicSubsidy > 0 ? publicSubsidy : 0,
                     marketSubsidy: marketSubsidy,
+                    youtubePremiumBonus: youtubePremiumBonus,
                     finalPrice: installmentPrincipal,
                     totalMonthPayment: displayTotalMonthPayment,
                     showInterest: showInterest,
@@ -775,10 +778,17 @@ export default function ApplicationConfirmPage(props: Props) {
                             isBlue
                         />
                     )}
-                    {data?.marketSubsidy > 0 && (
+                    {(data?.marketSubsidy - data?.youtubePremiumBonus) > 0 && (
                         <PriceRow
-                            label="KT마켓 지원금"
-                            value={`- ${formatPrice(data.marketSubsidy)}원`}
+                            label="대리점 지원금"
+                            value={`- ${formatPrice(data.marketSubsidy - data.youtubePremiumBonus)}원`}
+                            isBlue
+                        />
+                    )}
+                    {data?.youtubePremiumBonus > 0 && (
+                        <PriceRow
+                            label="유튜브 프리미엄 추가지원금"
+                            value={`- ${formatPrice(data.youtubePremiumBonus)}원`}
                             isBlue
                         />
                     )}

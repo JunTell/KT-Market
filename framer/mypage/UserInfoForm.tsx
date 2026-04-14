@@ -345,7 +345,8 @@ export default function UserInfoForm(props: Props) {
     }
 
     return (
-        <div style={{ ...containerStyle, ...animationStyle }}>
+        <div style={{ position: "relative", width: "100%" }}>
+            {/* position:fixed 요소는 transform/overflow:hidden 영향을 받지 않도록 최상위 wrapper에 배치 */}
             <SelectionModal
                 isOpen={showSelectionModal}
                 onClose={() => setShowSelectionModal(false)}
@@ -383,316 +384,318 @@ export default function UserInfoForm(props: Props) {
                 </div>
             )}
 
-            <div style={{ padding: "0 20px 0px 20px" }}>
-                <h2
-                    style={{
-                        fontSize: "20px",
-                        fontWeight: 700,
-                        margin: 0,
-                        color: "#191F28",
-                        lineHeight: "1.4",
-                    }}
-                >
-                    아래 정보가 맞는지
-                    <br />
-                    확인해주세요
-                </h2>
-            </div>
-
-            {orderData && (
-                <div style={productCardStyle}>
-                    <div style={productImageWrapperStyle}>
-                        {orderData.imageUrl ? (
-                            <img
-                                src={orderData.imageUrl}
-                                alt="Device"
-                                style={imgStyle}
-                            />
-                        ) : (
-                            <div
-                                style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    background: "#eee",
-                                }}
-                            />
-                        )}
-                    </div>
-                    <div style={productInfoStyle}>
-                        <div style={productTitleStyle}>
-                            {orderData.devicePetName}
-                        </div>
-                        <div style={productSpecStyle}>
-                            {orderData.deviceCapacity} · {orderData.deviceColor}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <div style={dividerStyle} />
-
-            <div style={sectionHeaderStyle} ref={subscriberRef}>
-                <div style={iconCircleStyle}>
-                    <UserIcon />
-                </div>
-                <div style={headerTitleStyle}>가입자 정보</div>
-            </div>
-
-            <div style={listStyle}>
-                {showInputForm ? (
-                    <div
-                        key="input-form"
-                        style={{ animation: "fadeIn 0.4s ease" }}
-                    >
-                        <div>
-                            <InputGroup
-                                label="이름"
-                                value={formData.userName}
-                                onChange={(e: any) =>
-                                    handleInputChange(
-                                        "userName",
-                                        e.target.value
-                                    )
-                                }
-                                onBlur={() => handleInputBlur("userName")}
-                                placeholder="실명 입력"
-                                error={
-                                    touched.userName && !isNameValid
-                                        ? "이름을 입력해주세요"
-                                        : undefined
-                                }
-                            />
-                            <InputGroup
-                                label="생년월일 (6자리)"
-                                placeholder="예: 900101"
-                                value={formData.userDob}
-                                inputMode="numeric"
-                                autoComplete="bday"
-                                pattern="[0-9]*"
-                                onChange={(e: any) =>
-                                    handleInputChange("userDob", e.target.value)
-                                }
-                                onBlur={() => handleInputBlur("userDob")}
-                                error={
-                                    touched.userDob && !isDobValid
-                                        ? "생년월일 6자리를 입력해주세요"
-                                        : undefined
-                                }
-                            />
-                            <InputGroup
-                                label="휴대폰 번호"
-                                placeholder="숫자만 입력"
-                                value={formData.userPhone}
-                                type="tel"
-                                inputMode="tel"
-                                autoComplete="tel-national"
-                                onChange={(e: any) =>
-                                    handleInputChange(
-                                        "userPhone",
-                                        e.target.value
-                                    )
-                                }
-                                onBlur={() => handleInputBlur("userPhone")}
-                                error={
-                                    touched.userPhone && !isPhoneValid
-                                        ? "휴대폰 번호를 정확히 입력해주세요"
-                                        : undefined
-                                }
-                            />
-                            <button
-                                style={{
-                                    ...smallButtonStyle,
-                                    width: "100%",
-                                    marginTop: "20px",
-                                    padding: "16px",
-                                    backgroundColor: isFormComplete
-                                        ? "#333D4B"
-                                        : "#E5E8EB",
-                                    color: isFormComplete
-                                        ? "#FFFFFF"
-                                        : "#B0B8C1",
-                                    fontWeight: 700,
-                                    fontSize: "15px",
-                                    borderRadius: "12px",
-                                    transition: "all 0.2s",
-                                }}
-                                onClick={handleSaveInput}
-                            >
-                                {isFormComplete && isInitialEntry
-                                    ? "입력 완료 (자동 저장 중...)"
-                                    : "입력 완료"}
-                            </button>
-                        </div>
-                    </div>
-                ) : (
-                    <div
-                        key="summary-view"
+            <div style={{ ...containerStyle, ...animationStyle }}>
+                <div style={{ padding: "0 20px 0px 20px" }}>
+                    <h2
                         style={{
-                            animation: "fadeIn 0.4s ease",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "20px",
+                            fontSize: "20px",
+                            fontWeight: 700,
+                            margin: 0,
+                            color: "#191F28",
+                            lineHeight: "1.4",
                         }}
                     >
-                        <InfoRow
-                            label="이름"
-                            value={formData.userName}
-                            hasButton={true}
-                            buttonLabel="수정"
-                            onEdit={handleEditClick}
-                        />
-                        <InfoRow label="생년월일" value={formData.userDob} />
-                        <InfoRow label="연락처" value={formData.userPhone} />
-                    </div>
-                )}
-            </div>
-
-            <div style={dividerStyle} />
-
-            <div style={sectionHeaderStyle}>
-                <div style={{ ...iconCircleStyle, backgroundColor: "#8B5CF6" }}>
-                    <PhoneIcon />
+                        아래 정보가 맞는지
+                        <br />
+                        확인해주세요
+                    </h2>
                 </div>
-                <div style={headerTitleStyle}>개통 정보</div>
-            </div>
-            <div style={listStyle}>
-                <InfoRow label="가입유형" value={orderData?.joinType} />
-                <InfoRow label="할인유형" value={orderData?.discountType} />
-                <InfoRow
-                    label="약정기간"
-                    value={`${orderData?.contract || 24}개월`}
-                />
-            </div>
 
-            <div style={dividerStyle} />
-
-            <div style={sectionHeaderStyle}>
-                <div style={{ ...iconCircleStyle, backgroundColor: "#22C55E" }}>
-                    <PlanIcon />
-                </div>
-                <div style={headerTitleStyle}>요금제 정보</div>
-            </div>
-            <div style={listStyle}>
-                <InfoRow label="요금제명" value={orderData?.planName} />
-                <InfoRow
-                    label={
-                        <span>
-                            월 납부액
-                            <br />
-                            <span style={{ fontSize: "8px", fontWeight: 400, color: "#8B95A1" }}>
-                                ({orderData?.showInterest ? "할부이자 포함" : "할부이자 미포함"})
-                            </span>
-                        </span>
-                    }
-                    value={`${formatPrice(orderData?.monthlyPayment || 0)}원`}
-                />
-            </div>
-
-            <div style={warningBoxStyle}>
-                <div style={warningIconStyle}>i</div>
-                <div style={warningTextStyle}>
-                    <div style={{ fontWeight: 700, marginBottom: "4px" }}>
-                        최소 6개월간 요금제를 유지해주세요.
-                    </div>
-                    <div style={{ color: "#4E5968", fontSize: "13px" }}>
-                        6개월 뒤에는 LTE/5G 50,000원 이상 요금제로 변경할 수
-                        있어요.
-                    </div>
-                </div>
-            </div>
-
-            {inlineError && (
-                <div style={{
-                    margin: "0 20px",
-                    padding: "12px 16px",
-                    backgroundColor: "#FFF1F1",
-                    border: "1px solid #FFCDD2",
-                    borderRadius: "10px",
-                    fontSize: "13px",
-                    color: "#D32F2F",
-                    lineHeight: "1.5",
-                }}>
-                    {inlineError}
-                </div>
-            )}
-
-            <div style={bottomContainerStyle}>
-                <div style={termsSectionStyle}>
-                    <div
-                        style={termHeaderContainerStyle}
-                        onClick={() => {
-                            setIsAgreed(!isAgreed)
-                            setModalError("")
-                        }}
-                    >
-                        <Checkbox checked={isAgreed} />
-                        <span style={termHeaderTitleStyle}>
-                            개인정보 수집 및 이용 동의 (필수)
-                        </span>
-                        <div
-                            style={termExpandIconStyle}
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                setIsTermExpanded(!isTermExpanded)
-                            }}
-                        >
-                            <ChevronDown
-                                style={{
-                                    transform: isTermExpanded
-                                        ? "rotate(180deg)"
-                                        : "rotate(0deg)",
-                                    transition: "transform 0.2s",
-                                }}
-                            />
-                        </div>
-                    </div>
-
-                    {isTermExpanded && (
-                        <div style={termDetailContainerStyle}>
-                            <div style={termDescriptionStyle}>
-                                고객님이 입력한 개인정보는 상담, 개통,
-                                배송을 위해 수집되며,
-                                <br />
-                                관계 법령에 따라 6개월간 보관 후 파기됩니다.
-                            </div>
-                            <div style={termTableStyle}>
-                                <div style={termTableRowStyle}>
-                                    <div style={termTableHeaderStyle}>
-                                        수집목적
-                                    </div>
-                                    <div style={termTableCellStyle}>
-                                        가입상담, 개통, 배송
-                                    </div>
-                                </div>
+                {orderData && (
+                    <div style={productCardStyle}>
+                        <div style={productImageWrapperStyle}>
+                            {orderData.imageUrl ? (
+                                <img
+                                    src={orderData.imageUrl}
+                                    alt="Device"
+                                    style={imgStyle}
+                                />
+                            ) : (
                                 <div
                                     style={{
-                                        ...termTableRowStyle,
-                                        borderBottom: "none",
+                                        width: "100%",
+                                        height: "100%",
+                                        background: "#eee",
                                     }}
-                                >
-                                    <div style={termTableHeaderStyle}>
-                                        수집항목
-                                    </div>
-                                    <div style={termTableCellStyle}>
-                                        이름, 생년월일, 연락처
-                                    </div>
-                                </div>
+                                />
+                            )}
+                        </div>
+                        <div style={productInfoStyle}>
+                            <div style={productTitleStyle}>
+                                {orderData.devicePetName}
+                            </div>
+                            <div style={productSpecStyle}>
+                                {orderData.deviceCapacity} · {orderData.deviceColor}
                             </div>
                         </div>
-                    )}
+                    </div>
+                )}
 
-                    {modalError && (
-                        <div style={bottomErrorStyle}>{modalError}</div>
+                <div style={dividerStyle} />
+
+                <div style={sectionHeaderStyle} ref={subscriberRef}>
+                    <div style={iconCircleStyle}>
+                        <UserIcon />
+                    </div>
+                    <div style={headerTitleStyle}>가입자 정보</div>
+                </div>
+
+                <div style={listStyle}>
+                    {showInputForm ? (
+                        <div
+                            key="input-form"
+                            style={{ animation: "fadeIn 0.4s ease" }}
+                        >
+                            <div>
+                                <InputGroup
+                                    label="이름"
+                                    value={formData.userName}
+                                    onChange={(e: any) =>
+                                        handleInputChange(
+                                            "userName",
+                                            e.target.value
+                                        )
+                                    }
+                                    onBlur={() => handleInputBlur("userName")}
+                                    placeholder="실명 입력"
+                                    error={
+                                        touched.userName && !isNameValid
+                                            ? "이름을 입력해주세요"
+                                            : undefined
+                                    }
+                                />
+                                <InputGroup
+                                    label="생년월일 (6자리)"
+                                    placeholder="예: 900101"
+                                    value={formData.userDob}
+                                    inputMode="numeric"
+                                    autoComplete="bday"
+                                    pattern="[0-9]*"
+                                    onChange={(e: any) =>
+                                        handleInputChange("userDob", e.target.value)
+                                    }
+                                    onBlur={() => handleInputBlur("userDob")}
+                                    error={
+                                        touched.userDob && !isDobValid
+                                            ? "생년월일 6자리를 입력해주세요"
+                                            : undefined
+                                    }
+                                />
+                                <InputGroup
+                                    label="휴대폰 번호"
+                                    placeholder="숫자만 입력"
+                                    value={formData.userPhone}
+                                    type="tel"
+                                    inputMode="tel"
+                                    autoComplete="tel-national"
+                                    onChange={(e: any) =>
+                                        handleInputChange(
+                                            "userPhone",
+                                            e.target.value
+                                        )
+                                    }
+                                    onBlur={() => handleInputBlur("userPhone")}
+                                    error={
+                                        touched.userPhone && !isPhoneValid
+                                            ? "휴대폰 번호를 정확히 입력해주세요"
+                                            : undefined
+                                    }
+                                />
+                                <button
+                                    style={{
+                                        ...smallButtonStyle,
+                                        width: "100%",
+                                        marginTop: "20px",
+                                        padding: "16px",
+                                        backgroundColor: isFormComplete
+                                            ? "#333D4B"
+                                            : "#E5E8EB",
+                                        color: isFormComplete
+                                            ? "#FFFFFF"
+                                            : "#B0B8C1",
+                                        fontWeight: 700,
+                                        fontSize: "15px",
+                                        borderRadius: "12px",
+                                        transition: "all 0.2s",
+                                    }}
+                                    onClick={handleSaveInput}
+                                >
+                                    {isFormComplete && isInitialEntry
+                                        ? "입력 완료 (자동 저장 중...)"
+                                        : "입력 완료"}
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div
+                            key="summary-view"
+                            style={{
+                                animation: "fadeIn 0.4s ease",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "20px",
+                            }}
+                        >
+                            <InfoRow
+                                label="이름"
+                                value={formData.userName}
+                                hasButton={true}
+                                buttonLabel="수정"
+                                onEdit={handleEditClick}
+                            />
+                            <InfoRow label="생년월일" value={formData.userDob} />
+                            <InfoRow label="연락처" value={formData.userPhone} />
+                        </div>
                     )}
                 </div>
 
-                <button
-                    style={confirmButtonStyle}
-                    onClick={handleApplyClick}
-                    disabled={isLoading}
-                >
-                    {isLoading ? "접수 중..." : "주문하기"}
-                </button>
+                <div style={dividerStyle} />
+
+                <div style={sectionHeaderStyle}>
+                    <div style={{ ...iconCircleStyle, backgroundColor: "#8B5CF6" }}>
+                        <PhoneIcon />
+                    </div>
+                    <div style={headerTitleStyle}>개통 정보</div>
+                </div>
+                <div style={listStyle}>
+                    <InfoRow label="가입유형" value={orderData?.joinType} />
+                    <InfoRow label="할인유형" value={orderData?.discountType} />
+                    <InfoRow
+                        label="약정기간"
+                        value={`${orderData?.contract || 24}개월`}
+                    />
+                </div>
+
+                <div style={dividerStyle} />
+
+                <div style={sectionHeaderStyle}>
+                    <div style={{ ...iconCircleStyle, backgroundColor: "#22C55E" }}>
+                        <PlanIcon />
+                    </div>
+                    <div style={headerTitleStyle}>요금제 정보</div>
+                </div>
+                <div style={listStyle}>
+                    <InfoRow label="요금제명" value={orderData?.planName} />
+                    <InfoRow
+                        label={
+                            <span>
+                                월 납부액
+                                <br />
+                                <span style={{ fontSize: "8px", fontWeight: 400, color: "#8B95A1" }}>
+                                    ({orderData?.showInterest ? "할부이자 포함" : "할부이자 미포함"})
+                                </span>
+                            </span>
+                        }
+                        value={`${formatPrice(orderData?.monthlyPayment || 0)}원`}
+                    />
+                </div>
+
+                <div style={warningBoxStyle}>
+                    <div style={warningIconStyle}>i</div>
+                    <div style={warningTextStyle}>
+                        <div style={{ fontWeight: 700, marginBottom: "4px" }}>
+                            최소 6개월간 요금제를 유지해주세요.
+                        </div>
+                        <div style={{ color: "#4E5968", fontSize: "13px" }}>
+                            6개월 뒤에는 LTE/5G 50,000원 이상 요금제로 변경할 수
+                            있어요.
+                        </div>
+                    </div>
+                </div>
+
+                {inlineError && (
+                    <div style={{
+                        margin: "0 20px",
+                        padding: "12px 16px",
+                        backgroundColor: "#FFF1F1",
+                        border: "1px solid #FFCDD2",
+                        borderRadius: "10px",
+                        fontSize: "13px",
+                        color: "#D32F2F",
+                        lineHeight: "1.5",
+                    }}>
+                        {inlineError}
+                    </div>
+                )}
+
+                <div style={bottomContainerStyle}>
+                    <div style={termsSectionStyle}>
+                        <div
+                            style={termHeaderContainerStyle}
+                            onClick={() => {
+                                setIsAgreed(!isAgreed)
+                                setModalError("")
+                            }}
+                        >
+                            <Checkbox checked={isAgreed} />
+                            <span style={termHeaderTitleStyle}>
+                                개인정보 수집 및 이용 동의 (필수)
+                            </span>
+                            <div
+                                style={termExpandIconStyle}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    setIsTermExpanded(!isTermExpanded)
+                                }}
+                            >
+                                <ChevronDown
+                                    style={{
+                                        transform: isTermExpanded
+                                            ? "rotate(180deg)"
+                                            : "rotate(0deg)",
+                                        transition: "transform 0.2s",
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        {isTermExpanded && (
+                            <div style={termDetailContainerStyle}>
+                                <div style={termDescriptionStyle}>
+                                    고객님이 입력한 개인정보는 상담, 개통,
+                                    배송을 위해 수집되며,
+                                    <br />
+                                    관계 법령에 따라 6개월간 보관 후 파기됩니다.
+                                </div>
+                                <div style={termTableStyle}>
+                                    <div style={termTableRowStyle}>
+                                        <div style={termTableHeaderStyle}>
+                                            수집목적
+                                        </div>
+                                        <div style={termTableCellStyle}>
+                                            가입상담, 개통, 배송
+                                        </div>
+                                    </div>
+                                    <div
+                                        style={{
+                                            ...termTableRowStyle,
+                                            borderBottom: "none",
+                                        }}
+                                    >
+                                        <div style={termTableHeaderStyle}>
+                                            수집항목
+                                        </div>
+                                        <div style={termTableCellStyle}>
+                                            이름, 생년월일, 연락처
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {modalError && (
+                            <div style={bottomErrorStyle}>{modalError}</div>
+                        )}
+                    </div>
+
+                    <button
+                        style={confirmButtonStyle}
+                        onClick={handleApplyClick}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? "접수 중..." : "주문하기"}
+                    </button>
+                </div>
             </div>
         </div>
     )

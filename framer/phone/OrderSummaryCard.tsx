@@ -829,11 +829,12 @@ export default function OrderSummaryCard(props) {
 
     const animatedPrice = useAnimatedNumber(finalPrice, 1000)
 
-    const discountMan = totalDeviceDiscountAmount > 0
-        ? Math.round(totalDeviceDiscountAmount / 10000)
-        : (originPrice > 0 && originPrice > finalPrice)
-            ? Math.round((originPrice - finalPrice) / 10000)
-            : 0
+    const discountMan =
+        totalDeviceDiscountAmount > 0
+            ? Math.round(totalDeviceDiscountAmount / 10000)
+            : originPrice > 0 && originPrice > finalPrice
+                ? Math.round((originPrice - finalPrice) / 10000)
+                : 0
 
     if (!isMounted) return <div style={{ width: "100%", height: "120px" }} />
 
@@ -938,7 +939,7 @@ export default function OrderSummaryCard(props) {
                             style={{
                                 fontSize: "14px",
                                 fontWeight: 500,
-                                color: "#6B7280",
+                                color: "#111827",
                                 fontFamily: FONT,
                             }}
                         >
@@ -958,9 +959,18 @@ export default function OrderSummaryCard(props) {
                             style={{
                                 display: "flex",
                                 alignItems: "baseline",
-                                gap: "3px",
+                                gap: "4px",
                             }}
                         >
+                            <span
+                                style={{
+                                    fontSize: "16px",
+                                    color: "#0066FF",
+                                    fontWeight: 600,
+                                }}
+                            >
+                                최저가
+                            </span>
                             <motion.span
                                 key={animatedPrice}
                                 style={{

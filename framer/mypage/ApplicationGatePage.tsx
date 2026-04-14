@@ -244,6 +244,7 @@ interface OrderSummary {
     devicePrice: number
     installmentPrincipal: number
     ktMarketSubsidy: number
+    youtubePremiumBonus: number
     commonDiscount: number
     doubleStorageDiscount: number
     promotionDiscount: number
@@ -391,10 +392,17 @@ const PriceInfoSection = ({
                 isHighlight
             />
         )}
-        {orderInfo.ktMarketSubsidy > 0 && (
+        {(orderInfo.ktMarketSubsidy - orderInfo.youtubePremiumBonus) > 0 && (
             <PriceRow
-                label="KT마켓 지원금"
-                value={`- ${formatPrice(orderInfo.ktMarketSubsidy)}원`}
+                label="대리점 지원금"
+                value={`- ${formatPrice(orderInfo.ktMarketSubsidy - orderInfo.youtubePremiumBonus)}원`}
+                isHighlight
+            />
+        )}
+        {orderInfo.youtubePremiumBonus > 0 && (
+            <PriceRow
+                label="유튜브 프리미엄 추가지원금"
+                value={`- ${formatPrice(orderInfo.youtubePremiumBonus)}원`}
                 isHighlight
             />
         )}
@@ -522,6 +530,7 @@ export default function ApplicationGatePage(props: Props) {
                 const installmentPrincipal =
                     parsedSheet.installmentPrincipal || 0
                 const ktMarketSubsidy = parsedSheet.ktmarketSubsidy || 0
+                const youtubePremiumBonus = parsedSheet.youtubePremiumBonus || 0
                 const doubleStorageDiscount =
                     parsedSheet.doubleStorageDiscount || 0
                 const promotionDiscount = parsedSheet.promotionDiscount || 0
@@ -548,6 +557,7 @@ export default function ApplicationGatePage(props: Props) {
                     devicePrice,
                     installmentPrincipal,
                     ktMarketSubsidy,
+                    youtubePremiumBonus,
                     commonDiscount: commonDiscount > 0 ? commonDiscount : 0,
                     doubleStorageDiscount,
                     promotionDiscount,
@@ -572,6 +582,7 @@ export default function ApplicationGatePage(props: Props) {
                     devicePrice: 1287000,
                     installmentPrincipal: 417000,
                     ktMarketSubsidy: 420000,
+                    youtubePremiumBonus: 0,
                     commonDiscount: 450000,
                     doubleStorageDiscount: 0,
                     promotionDiscount: 0,

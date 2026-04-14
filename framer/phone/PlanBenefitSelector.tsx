@@ -1955,6 +1955,24 @@ const SelectableCard = ({
                 </>
             )}
 
+            {/* YouTube 프리미엄 기본 혜택 뱃지 */}
+            {YOUTUBE_PLAN_PIDS.has(plan.pid) && (
+                <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    borderTop: "1px solid #E5E7EB",
+                    paddingTop: 10,
+                }}>
+                    <YoutubePremiumIcon />
+                    <span style={{ fontSize: 13, color: "#374151" }}>
+                        <span style={{ color: "#9CA3AF", fontWeight: 500 }}>기본제공 혜택</span>
+                        {"  "}
+                        <span style={{ fontWeight: 700 }}>유튜브 프리미엄 라이트</span>
+                    </span>
+                </div>
+            )}
+
             {/* 하단: 할인라벨 + 월 요금 */}
             {isYakjeong ? (
                 <div
