@@ -4,8 +4,10 @@
 // 클릭 시: 바텀시트 모달 (용량 세그먼트 탭 + 색상 리스트)
 
 import { addPropertyControls, ControlType } from "framer"
-import React, { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import React, { useState, useEffect, useRef } from "react"
+import { motion, AnimatePresence, useDragControls } from "framer-motion"
+
+const CARD_BORDER_RADIUS = 10.526 // px — matches 8dp at 1.316 density
 
 interface Color {
     kr: string
@@ -50,6 +52,26 @@ export default function ColorCapacitySelector(props) {
     } = props
 
     const [showModal, setShowModal] = useState(false)
+    const touchStartY = useRef(0)
+    const dragControls = useDragControls()
+
+    // 모달 열릴 때 배경 스크롤 차단
+    useEffect(() => {
+        if (showModal) {
+            document.body.style.overflow = "hidden"
+        } else {
+            document.body.style.overflow = ""
+        }
+        return () => { document.body.style.overflow = "" }
+    }, [showModal])
+
+    const handleSheetTouchStart = (e: React.TouchEvent) => {
+        touchStartY.current = e.touches[0].clientY
+    }
+    const handleSheetTouchEnd = (e: React.TouchEvent) => {
+        const delta = e.changedTouches[0].clientY - touchStartY.current
+        if (delta > 60) setShowModal(false)
+    }
 
     const activeColor: Color | null = selectedColor ?? (colors.length > 0 ? colors[0] : null)
     const activeCapacity: Capacity | null =
@@ -72,7 +94,7 @@ export default function ColorCapacitySelector(props) {
                 <Pulse w={80} h={16} r={4} />
                 <div style={{
                     width: "100%", height: 72,
-                    borderRadius: 10.526, border: "1px solid #DADADA",
+                    borderRadius: CARD_BORDER_RADIUS, border: "1px solid #DADADA",
                     backgroundColor: "#FFF", padding: "0 16px",
                     display: "flex", alignItems: "center", gap: 14, boxSizing: "border-box",
                 }}>
@@ -90,7 +112,7 @@ export default function ColorCapacitySelector(props) {
         <>
             <div style={wrapperStyle}>
                 {/* 섹션 타이틀 */}
-                <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+                <span style={{ fontSize: 17, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
                     {title}
                 </span>
 
@@ -100,7 +122,7 @@ export default function ColorCapacitySelector(props) {
                     whileTap={{ scale: 0.985 }}
                     style={{
                         width: "100%", height: 72,
-                        borderRadius: 10.526,
+                        borderRadius: CARD_BORDER_RADIUS,
                         border: "1px solid #DADADA",
                         backgroundColor: "#FFF",
                         display: "flex", alignItems: "center",
@@ -124,10 +146,10 @@ export default function ColorCapacitySelector(props) {
 
                     {/* 색상명 + 용량 */}
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
-                        <span style={{ fontSize: 15, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+                        <span style={{ fontSize: 17, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
                             {activeColor?.kr ?? "색상 선택"}
                         </span>
-                        <span style={{ fontSize: 13, color: "#9CA3AF", fontFamily: FONT }}>
+                        <span style={{ fontSize: 15, color: "#9CA3AF", fontFamily: FONT }}>
                             {activeCapacity?.capacity ?? ""}
                         </span>
                     </div>
@@ -162,6 +184,16 @@ export default function ColorCapacitySelector(props) {
                             key="sheet"
                             initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
                             transition={{ type: "spring", stiffness: 340, damping: 32 }}
+                            drag="y"
+                            dragControls={dragControls}
+                            dragListener={false}
+                            dragConstraints={{ top: 0, bottom: 0 }}
+                            dragElastic={{ top: 0, bottom: 0.18 }}
+                            onDragEnd={(_, info) => {
+                                if (info.offset.y > 120 || info.velocity.y > 700) {
+                                    setShowModal(false)
+                                }
+                            }}
                             style={{
                                 position: "fixed", bottom: 0, left: 0, right: 0,
                                 margin: "0 auto", maxWidth: 440, width: "100%",
@@ -173,8 +205,13 @@ export default function ColorCapacitySelector(props) {
                                 maxHeight: "80vh", fontFamily: FONT,
                             }}
                         >
-                            {/* 핸들 */}
-                            <div style={{ padding: "14px 20px 0", flexShrink: 0 }}>
+                            {/* 핸들 — 스와이프 다운으로 닫기 */}
+                            <div
+                                style={{ padding: "14px 20px 0", flexShrink: 0, cursor: "grab" }}
+                                onTouchStart={handleSheetTouchStart}
+                                onTouchEnd={handleSheetTouchEnd}
+                                onPointerDown={(event) => dragControls.start(event)}
+                            >
                                 <div style={{
                                     width: 40, height: 4, borderRadius: 9999,
                                     backgroundColor: "#E5E7EB", margin: "0 auto",
@@ -216,7 +253,7 @@ export default function ColorCapacitySelector(props) {
                             {/* 색상 리스트 */}
                             <div style={{
                                 flex: 1, overflowY: "auto",
-                                padding: "12px 20px 32px",
+                                padding: "12px 20px calc(32px + env(safe-area-inset-bottom, 0px))",
                                 display: "flex", flexDirection: "column", gap: 8,
                             }}>
                                 {colors.map((color, index) => {
@@ -229,9 +266,9 @@ export default function ColorCapacitySelector(props) {
                                             style={{
                                                 display: "flex", alignItems: "center", gap: 14,
                                                 padding: "10px 16px",
-                                                border: isActive ? "1.5px solid #0055FF" : "1px solid #E5E7EB",
+                                                border: isActive ? "1.5px solid #0066FF" : "1.5px solid #E5E7EB",
                                                 borderRadius: 12,
-                                                backgroundColor: isActive ? "#EEF4FF" : "#FFF",
+                                                backgroundColor: isActive ? "#ECF4FF" : "#FFF",
                                                 cursor: color.isSoldOut ? "not-allowed" : "pointer",
                                                 opacity: color.isSoldOut ? 0.45 : 1,
                                                 boxSizing: "border-box",
@@ -240,12 +277,12 @@ export default function ColorCapacitySelector(props) {
                                             {/* 라디오 */}
                                             <div style={{
                                                 width: 20, height: 20, borderRadius: "50%",
-                                                border: `2px solid ${isActive ? "#0055FF" : "#D1D5DB"}`,
+                                                border: `2px solid ${isActive ? "#0066FF" : "#D1D5DB"}`,
                                                 display: "flex", alignItems: "center", justifyContent: "center",
                                                 flexShrink: 0, boxSizing: "border-box",
                                             }}>
                                                 {isActive && (
-                                                    <div style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#0055FF" }} />
+                                                    <div style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#0066FF" }} />
                                                 )}
                                             </div>
 
@@ -266,7 +303,7 @@ export default function ColorCapacitySelector(props) {
                                             {/* 색상명 */}
                                             <div style={{ flex: 1 }}>
                                                 <span style={{
-                                                    fontSize: 15,
+                                                    fontSize: 17,
                                                     fontWeight: isActive ? 700 : 400,
                                                     color: isActive ? "#111827" : "#374151",
                                                     fontFamily: FONT,
@@ -293,7 +330,7 @@ const wrapperStyle: React.CSSProperties = {
     width: "100%",
     display: "flex",
     flexDirection: "column",
-    gap: 10,
+    gap: 12,
     boxSizing: "border-box",
     fontFamily: FONT,
 }

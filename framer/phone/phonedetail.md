@@ -15,7 +15,7 @@
 [주문 플로우]
 페이지 이동 구조는 아래 순서를 따른다:
 
-1. /phone/[model] — 휴대폰 상세 페이지 (BottomSheetOrderSheetComponent)
+1. /phone/[model] — 휴대폰 상세 페이지 (OrderFlowBottomSheet)
    - "카카오로 10초 간편 주문" 버튼:
      - 로그인 O → /phone/userinfo 로 이동
      - 로그인 X → /api/auth/kakao?redirect=/phone/user-info 로 이동 (카카오 로그인 후 /phone/user-info 로 리다이렉트)

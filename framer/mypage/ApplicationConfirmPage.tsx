@@ -1,5 +1,5 @@
 import { addPropertyControls, ControlType } from "framer"
-import { checkAuth, userState } from "https://framer.com/m/AuthStore-jiikDX.js"
+const API_URL = "https://kt-market-puce.vercel.app"
 import * as React from "react"
 import { useState, useEffect } from "react"
 
@@ -291,6 +291,7 @@ interface OrderSummary {
     marketSubsidy: number
     finalPrice: number
     totalMonthPayment: number // 💡 월 납부액 추가
+    showInterest: boolean
     doubleStorageDiscount: number // ✨ 더블스토리지 할인 추가
     promotionDiscount: number // ✨ 프로모션 할인 추가
 }
@@ -302,6 +303,8 @@ interface Props {
 export default function ApplicationConfirmPage(props: Props) {
     const [data, setData] = useState<OrderSummary | null>(null)
     const [isLoading, setIsLoading] = useState(true)
+    const [authUserId, setAuthUserId] = useState<string | null>(null)
+    const [isLoggedIn, setIsLoggedIn] = useState(false)
 
     // 💡 Kakao Sync State
     const [kakaoStatus, setKakaoStatus] = useState<"NONE" | "ADDED" | "BLOCKED" | "LOADING" | null>(null)
@@ -311,10 +314,20 @@ export default function ApplicationConfirmPage(props: Props) {
         const load = async () => {
             if (typeof window === "undefined") return
             try {
-                await checkAuth() // 카카오 로그인 상태 동기화 완료 후 진행
+                // 직접 auth/me 호출 (AuthStore 비동기 race condition 회피)
+                let kakaoUser: { id?: string; full_name?: string; phone?: string } = {}
+                try {
+                    const authRes = await fetch(`${API_URL}/api/auth/me`, { credentials: "include" })
+                    const authData = authRes.ok ? await authRes.json() : { isLoggedIn: false }
+                    if (authData.isLoggedIn && authData.user) {
+                        kakaoUser = authData.user
+                        setAuthUserId(authData.user.id || null)
+                        setIsLoggedIn(true)
+                    }
+                } catch { /* 인증 실패 시 빈 값 유지 */ }
 
-                const sheetStr = sessionStorage.getItem("sheet")
-                const dataStr = sessionStorage.getItem("data")
+                const sheetStr = sessionStorage.getItem("sheet") || localStorage.getItem("kt_sheet")
+                const dataStr = sessionStorage.getItem("data") || localStorage.getItem("kt_data")
                 const userStr = sessionStorage.getItem("user-info")
 
                 const parsedSheet = sheetStr ? JSON.parse(sheetStr) : {}
@@ -336,18 +349,25 @@ export default function ApplicationConfirmPage(props: Props) {
 
                 const registerType = parsedData.register || "기기변경"
                 const telecomStr =
-                    registerType === "번호이동" ? "타사 -> KT" : "기기변경 (KT)"
+                    registerType === "번호이동" ? "타사 -> KT" :
+                    registerType === "신규가입" ? "신규가입 (KT)" :
+                    "기기변경 (KT)"
 
-                // 카카오 로그인 이용자: sessionStorage 미설정 시 userState 값으로 보완
+                // 카카오 로그인 이용자: sessionStorage 미설정 시 auth/me 값으로 보완
                 const resolvedName =
                     parsedUser.userName ||
-                    (userState.isLoggedIn ? userState.fullName : "") ||
+                    kakaoUser.full_name ||
                     "-"
                 const resolvedPhone =
                     parsedUser.userPhone ||
-                    (userState.isLoggedIn ? userState.phoneNumber : "") ||
+                    kakaoUser.phone ||
                     "-"
                 const resolvedDob = parsedUser.userDob || "-"
+
+                const showInterest = sessionStorage.getItem("phone_installment_interest_visible") === "true"
+                const displayTotalMonthPayment = showInterest
+                    ? (parsedSheet.totalMonthPayment || 0)
+                    : (parsedSheet.totalMonthPaymentNoInterest || parsedSheet.totalMonthPayment || 0)
 
                 setData({
                     petName: parsedData.device?.pet_name || "기기명 없음",
@@ -361,13 +381,14 @@ export default function ApplicationConfirmPage(props: Props) {
                     discountType: parsedSheet.discount || "공시지원금",
                     contract: parsedSheet.installment || 24,
                     planName: parsedSheet.planName || "요금제 정보 없음",
-                    planData: "무제한",
+                    planData: parsedData.selectedPlanInfo?.data || "무제한",
                     monthlyPayment: parsedSheet.planPrice || 0,
                     devicePrice: devicePrice,
                     publicSubsidy: publicSubsidy > 0 ? publicSubsidy : 0,
                     marketSubsidy: marketSubsidy,
                     finalPrice: installmentPrincipal,
-                    totalMonthPayment: parsedSheet.totalMonthPayment || 0,
+                    totalMonthPayment: displayTotalMonthPayment,
+                    showInterest: showInterest,
                     doubleStorageDiscount: doubleStorageDiscount,
                     promotionDiscount: promotionDiscount,
                 })
@@ -382,17 +403,18 @@ export default function ApplicationConfirmPage(props: Props) {
     }, [])
 
     const handleKakaoSync = async () => {
-        if (!userState.isLoggedIn || !userState.id) {
+        if (!isLoggedIn || !authUserId) {
             setSyncMessage("로그인이 필요한 혜택입니다.")
             return
         }
-        
+
         setKakaoStatus("LOADING")
         try {
-            const res = await fetch("/api/kakao/sync-channel", {
+            const res = await fetch(`${API_URL}/api/kakao/sync-channel`, {
                 method: "POST",
+                credentials: "include",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ profile_id: userState.id })
+                body: JSON.stringify({ profile_id: authUserId })
             })
             const result = await res.json()
             
@@ -426,6 +448,9 @@ export default function ApplicationConfirmPage(props: Props) {
     }
 
     const handleHomeClick = () => {
+        sessionStorage.removeItem("data")
+        sessionStorage.removeItem("sheet")
+        sessionStorage.removeItem("user-info")
         window.location.href = props.homeUrl
     }
 
@@ -565,7 +590,7 @@ export default function ApplicationConfirmPage(props: Props) {
             </div>
 
             {/* 💡 카카오 채널 혜택 섹션 */}
-            {userState.isLoggedIn && (
+            {isLoggedIn && (
                 <div style={kakaoBannerContainerStyle}>
                     <div style={kakaoBannerHeaderStyle}>
                         <div style={kakaoIconBoxStyle}>
@@ -640,8 +665,12 @@ export default function ApplicationConfirmPage(props: Props) {
                             </div>
                             {/* 💡 최종 기기값(finalPrice) 대신 "월 납부액(totalMonthPayment)"으로 변경 */}
                             <div style={devicePriceStyle}>
-                                월 납부액 {formatPrice(data.totalMonthPayment)}
-                                원
+                                월 납부액{" "}
+                                <span style={{ fontSize: "8px", fontWeight: 400, color: "#8B95A1" }}>
+                                    ({data.showInterest ? "할부이자 포함" : "할부이자 미포함"})
+                                </span>
+                                <br />
+                                {formatPrice(data.totalMonthPayment)}원
                             </div>
                         </div>
                     </div>

@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('full_name, avatar_url, phone, kakao_id, is_active')
+      .select('full_name, avatar_url, phone, kakao_id, birthday, is_active')
       .eq('id', user.id)
       .single()
 
@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
           avatar_url: profile?.avatar_url ?? null,
           phone: profile?.phone ?? null,
           kakao_id: profile?.kakao_id ?? null,
+          birthday: profile?.birthday ?? null,
         },
       },
       { headers: cors }

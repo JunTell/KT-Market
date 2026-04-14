@@ -31,7 +31,7 @@ const SkeletonRow = () => (
         {[0, 1, 2, 3].map((i) => (
             <motion.div
                 key={i}
-                style={{ flex: 1, height: 50, borderRadius: 10, backgroundColor: "#E5E7EB" }}
+                style={{ flex: 1, height: 38, borderRadius: 10, backgroundColor: "#E5E7EB" }}
                 animate={{ opacity: [0.4, 1, 0.4] }}
                 transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: i * 0.07 }}
             />
@@ -41,30 +41,59 @@ const SkeletonRow = () => (
 
 // ─── 개별 버튼 ────────────────────────────────────────────────────────
 function InstallmentBtn({
-    label, value, isActive, onClick,
+    label, value, isActive, onClick, isRecommended = false,
 }: {
-    label: string; value: number; isActive: boolean; onClick: () => void
+    label: string; value: number; isActive: boolean; onClick: () => void; isRecommended?: boolean
 }) {
     return (
-        <motion.button
-            onClick={onClick}
-            whileTap={{ scale: 0.96 }}
-            style={{
-                flex: 1,
-                height: 50,
-                border: isActive ? "1.5px solid #0055FF" : "1.5px solid #E5E7EB",
-                borderRadius: 10,
-                backgroundColor: "#FFFFFF",
-                color: isActive ? "#0055FF" : "#9CA3AF",
-                fontSize: 15,
-                fontWeight: isActive ? 700 : 400,
-                cursor: "pointer",
-                fontFamily: FONT,
-                boxSizing: "border-box",
-            }}
-        >
-            {label}
-        </motion.button>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative", zIndex: isRecommended ? 1 : 0 }}>
+            {isRecommended && (
+                <span
+                    style={{
+                        position: "absolute",
+                        top: -12,
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        zIndex: 2,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "0.75px 9.71px",
+                        borderRadius: 11.549,
+                        backgroundColor: "#0066FF",
+                        color: "#FFFFFF",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        lineHeight: "150%",
+                        letterSpacing: "0.068px",
+                        whiteSpace: "nowrap",
+                        pointerEvents: "none",
+                        fontFamily: FONT,
+                    }}
+                >
+                    최다
+                </span>
+            )}
+            <motion.button
+                onClick={onClick}
+                whileTap={{ scale: 0.96 }}
+                style={{
+                    width: "100%",
+                    height: 38,
+                    border: isActive ? "1.5px solid #0066FF" : "1.5px solid #E5E7EB",
+                    borderRadius: 10,
+                    backgroundColor: isActive ? "#ECF4FF" : "#FFFFFF",
+                    color: isActive ? "#0066FF" : "#9CA3AF",
+                    fontSize: 15,
+                    fontWeight: isActive ? 700 : 400,
+                    cursor: "pointer",
+                    fontFamily: FONT,
+                    boxSizing: "border-box",
+                }}
+            >
+                {label}
+            </motion.button>
+        </div>
     )
 }
 
@@ -73,7 +102,7 @@ function InstallmentBtn({
  * @framerSupportedLayoutWidth any
  * @framerSupportedLayoutHeight auto
  */
-export default function InstallmentSectionComponent(props) {
+export default function InstallmentSelectorSection(props) {
     const {
         installment = 24,
         onInstallmentChange = null,
@@ -87,17 +116,13 @@ export default function InstallmentSectionComponent(props) {
     if (isGuaranteedReturn) return null
 
     const handleClick = (value: number) => {
-        if (isGuaranteedReturn && value !== 0 && value !== 24) {
-            alert("미리보상을 선택하신 고객님의 경우\n일시불 혹은 24개월 할부만 선택하실 수 있습니다.")
-            return
-        }
         onInstallmentChange?.(value)
     }
 
     return (
         <div style={wrapperStyle}>
             {/* 타이틀 */}
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+            <span style={{ fontSize: 17, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
                 {title}
             </span>
 
@@ -122,6 +147,7 @@ export default function InstallmentSectionComponent(props) {
                                     value={value}
                                     isActive={installment === value}
                                     onClick={() => handleClick(value)}
+                                    isRecommended={value === 24}
                                 />
                             ))}
 
@@ -130,17 +156,22 @@ export default function InstallmentSectionComponent(props) {
                                 onClick={() => setIsExpanded(true)}
                                 whileTap={{ scale: 0.96 }}
                                 style={{
-                                    flex: 1,
-                                    height: 50,
+                                    width: 38,
+                                    height: 38,
+                                    flexShrink: 0,
                                     border: "1.5px solid #E5E7EB",
                                     borderRadius: 10,
                                     backgroundColor: "#FFFFFF",
                                     color: "#9CA3AF",
-                                    fontSize: 20,
+                                    fontSize: 26,
                                     fontWeight: 300,
                                     cursor: "pointer",
                                     fontFamily: FONT,
                                     boxSizing: "border-box",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    lineHeight: 1,
                                 }}
                             >
                                 +
@@ -157,7 +188,7 @@ export default function InstallmentSectionComponent(props) {
                             style={{
                                 display: "grid",
                                 gridTemplateColumns: "repeat(3, 1fr)",
-                                gap: 8,
+                                gap: 8
                             }}
                         >
                             {ALL.map(({ label, value }) => (
@@ -168,8 +199,8 @@ export default function InstallmentSectionComponent(props) {
                                     isActive={installment === value}
                                     onClick={() => {
                                         handleClick(value)
-                                        setIsExpanded(false)
                                     }}
+                                    isRecommended={value === 24}
                                 />
                             ))}
 
@@ -178,16 +209,20 @@ export default function InstallmentSectionComponent(props) {
                                 onClick={() => setIsExpanded(false)}
                                 whileTap={{ scale: 0.96 }}
                                 style={{
-                                    height: 50,
+                                    height: 38,
                                     border: "1.5px solid #E5E7EB",
                                     borderRadius: 10,
                                     backgroundColor: "#FFFFFF",
                                     color: "#9CA3AF",
-                                    fontSize: 20,
+                                    fontSize: 26,
                                     fontWeight: 300,
                                     cursor: "pointer",
                                     fontFamily: FONT,
                                     boxSizing: "border-box",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    lineHeight: 1,
                                 }}
                             >
                                 −
@@ -196,6 +231,28 @@ export default function InstallmentSectionComponent(props) {
                     )}
                 </AnimatePresence>
             )}
+
+            {/* 일시불 안내 문구 */}
+            <AnimatePresence>
+                {installment === 0 && !isLoading && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.18 }}
+                        style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: FONT, marginTop: -4 }}
+                    >
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                            <circle cx="7" cy="7" r="6.5" stroke="#9CA3AF" />
+                            <text x="7" y="11" textAnchor="middle" fontSize="9" fill="#9CA3AF" fontWeight="600">i</text>
+                        </svg>
+                        <span style={{ fontSize: 12, color: "#6B7280" }}>
+                            일시불 선택 시 개통 후 당월 내 114 또는 KT매장에서 고객님이{" "}
+                            <strong style={{ fontWeight: 700, color: "#6B7280" }}>직접 결제</strong>해야 합니다.
+                        </span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }
@@ -205,11 +262,13 @@ const wrapperStyle: React.CSSProperties = {
     display: "flex",
     flexDirection: "column",
     gap: 12,
+    position: "relative",
+    zIndex: 0,
     boxSizing: "border-box",
     fontFamily: FONT,
 }
 
-addPropertyControls(InstallmentSectionComponent, {
+addPropertyControls(InstallmentSelectorSection, {
     isLoading: { type: ControlType.Boolean, title: "Loading", defaultValue: false },
     title: { type: ControlType.String, title: "Title", defaultValue: "단말기 할부 기간" },
     installment: {

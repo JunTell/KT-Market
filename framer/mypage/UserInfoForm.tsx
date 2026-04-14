@@ -1,25 +1,10 @@
 import { addPropertyControls, ControlType } from "framer"
-import { checkAuth, userState } from "https://framer.com/m/AuthStore-jiikDX.js"
+
 import LoadingIndicator from "https://framer.com/m/LoadingIndicator-9X6k.js"
 import * as React from "react"
 import { useState, useEffect, useRef, useCallback } from "react"
 
 const API_URL = "https://kt-market-puce.vercel.app"
-
-
-function isAdultFromBirth6(birth6: string): boolean {
-    if (!/^\d{6}$/.test(birth6)) return false
-    const yy = parseInt(birth6.slice(0, 2), 10)
-    const mm = parseInt(birth6.slice(2, 4), 10)
-    const dd = parseInt(birth6.slice(4, 6), 10)
-    const fullYear = yy <= new Date().getFullYear() % 100 ? 2000 + yy : 1900 + yy
-    const today = new Date()
-
-    if (fullYear < 2006) return true
-    if (fullYear > 2006) return false
-    const birthdayThisYear = new Date(today.getFullYear(), mm - 1, dd)
-    return today >= birthdayThisYear
-}
 
 const formatPhoneNumber = (value: string) => {
     const numbers = value.replace(/[^0-9]/g, "")
@@ -39,6 +24,7 @@ interface OrderData {
     planPrice: number
     devicePrice: number
     monthlyPayment: number
+    showInterest: boolean
     joinType: string
     discountType: string
     contract: number
@@ -73,9 +59,11 @@ export default function UserInfoForm(props: Props) {
     const [isEditing, setIsEditing] = useState(false)
     const [isInitialEntry, setIsInitialEntry] = useState(true)
 
-    const [showTermsModal, setShowTermsModal] = useState(false)
+    const [showSelectionModal, setShowSelectionModal] = useState(false)
     const [isTermExpanded, setIsTermExpanded] = useState(false)
     const [isAgreed, setIsAgreed] = useState(true)
+    const [inlineError, setInlineError] = useState("")
+    const [modalError, setModalError] = useState("")
 
     const [touched, setTouched] = useState({
         userName: false,
@@ -87,6 +75,12 @@ export default function UserInfoForm(props: Props) {
     const isProcessing = useRef(false)
 
     useEffect(() => {
+        if (!inlineError) return
+        const t = setTimeout(() => setInlineError(""), 4000)
+        return () => clearTimeout(t)
+    }, [inlineError])
+
+    useEffect(() => {
         setIsMounted(true)
         loadSessionData()
     }, [])
@@ -95,11 +89,18 @@ export default function UserInfoForm(props: Props) {
         if (typeof window === "undefined") return
 
         try {
-            await checkAuth()
-            
-            const sheetStr = sessionStorage.getItem("sheet")
-            const dataStr = sessionStorage.getItem("data")
+            // userState 스토어 대신 API 직접 호출 — checkAuth() 후 Data() 스토어 반영 지연 race condition 방지
+            const authRes = await fetch(`${API_URL}/api/auth/me`, { credentials: "include" })
+            const authData = authRes.ok ? await authRes.json() : { isLoggedIn: false }
+
+            // sessionStorage 우선, 없으면 localStorage fallback (Safari OAuth 리다이렉트 후 초기화 대응)
+            const sheetStr = sessionStorage.getItem("sheet") || localStorage.getItem("kt_sheet")
+            const dataStr = sessionStorage.getItem("data") || localStorage.getItem("kt_data")
             const savedUserInfoStr = sessionStorage.getItem("user-info")
+
+            // 읽은 후 localStorage 정리 (다음 주문과 혼재 방지)
+            if (!sessionStorage.getItem("sheet") && sheetStr) localStorage.removeItem("kt_sheet")
+            if (!sessionStorage.getItem("data") && dataStr) localStorage.removeItem("kt_data")
 
             let parsedSheet = null
             let parsedData = null
@@ -110,6 +111,10 @@ export default function UserInfoForm(props: Props) {
             setFullSheetData(parsedSheet)
 
             if (parsedSheet && parsedData) {
+                const showInterest = sessionStorage.getItem("phone_installment_interest_visible") === "true"
+                const displayMonthlyPayment = showInterest
+                    ? (parsedSheet.totalMonthPayment || 0)
+                    : (parsedSheet.totalMonthPaymentNoInterest || parsedSheet.totalMonthPayment || 0)
                 setOrderData({
                     deviceModel: parsedData.device?.model || "",
                     devicePetName: parsedData.device?.pet_name || "기기명 없음",
@@ -120,7 +125,8 @@ export default function UserInfoForm(props: Props) {
                     planName: parsedSheet.planName || "",
                     planPrice: parsedSheet.planPrice || 0,
                     devicePrice: parsedSheet.devicePrice || 0,
-                    monthlyPayment: parsedSheet.totalMonthPayment || 0,
+                    monthlyPayment: displayMonthlyPayment,
+                    showInterest: showInterest,
                     discountType: parsedSheet.discount || "공통지원금",
                     contract: parsedSheet.installment || 24,
                     funnel: "ktmarket_web",
@@ -136,6 +142,7 @@ export default function UserInfoForm(props: Props) {
                     planPrice: 90000,
                     devicePrice: 1550000,
                     monthlyPayment: 105240,
+                    showInterest: false,
                     joinType: "기기변경",
                     discountType: "공통지원금",
                     contract: 24,
@@ -143,14 +150,18 @@ export default function UserInfoForm(props: Props) {
                 })
             }
 
-            if (userState.isLoggedIn) {
+            if (authData.isLoggedIn && authData.user) {
+                const kakaoUser = authData.user
+                // birthday: DB는 "YYYYMMDD" 8자리, 폼은 "YYMMDD" 6자리
+                const rawBirthday: string = kakaoUser.birthday ?? ""
+                const formattedDob = rawBirthday.length === 8 ? rawBirthday.slice(2) : rawBirthday
                 setFormData({
-                    userName: userState.fullName || "",
-                    userDob: "981128", // 예시로 설정된 생년월일 (스토어에 없을 시)
-                    userPhone: formatPhoneNumber(userState.phoneNumber || ""),
+                    userName: kakaoUser.full_name || "",
+                    userDob: formattedDob,
+                    userPhone: formatPhoneNumber(kakaoUser.phone || ""),
                 })
-                setIsInitialEntry(false)
-                setIsEditing(false)
+                setIsInitialEntry(!formattedDob && !kakaoUser.phone)
+                setIsEditing(!formattedDob || !kakaoUser.phone)
             } else if (savedUserInfoStr) {
                 const savedUser = JSON.parse(savedUserInfoStr)
                 setFormData({
@@ -210,7 +221,7 @@ export default function UserInfoForm(props: Props) {
             setIsInitialEntry(false)
             sessionStorage.setItem("user-info", JSON.stringify(formData))
         } else {
-            alert("이름, 생년월일, 연락처를 모두 올바르게 입력해주세요.")
+            setInlineError("이름, 생년월일, 연락처를 모두 올바르게 입력해주세요.")
         }
     }, [isFormComplete, formData])
 
@@ -242,50 +253,36 @@ export default function UserInfoForm(props: Props) {
             return
         }
 
-        if (!isAdultFromBirth6(formData.userDob)) {
-            alert(
-                "미성년자는 법정대리인 정보를 동반하여야 신청 하실 수 있습니다.\\n(현재 페이지에서는 미성년자 신청이 제한됩니다.)"
-            )
+        if (!isAgreed) {
+            setModalError("개인정보 수집 및 이용 동의가 필요합니다.")
             return
         }
 
-        setShowTermsModal(true)
+        setShowSelectionModal(true)
     }
 
-    const handleFinalSubmit = async () => {
-        if (isLoading || isProcessing.current) {
-            return
-        }
+    const handleModalConfirm = (selectedType: string) => {
+        setShowSelectionModal(false)
+        handleFinalSubmit(selectedType === "consultation")
+    }
 
-        if (!isAgreed) {
-            alert("개인정보 수집 및 이용 동의는 필수입니다.")
-            return
-        }
-
-        if (!formData.userName || formData.userName.trim() === "") {
-            alert("이름을 입력해주세요.")
-            return
-        }
-
-        if (!formData.userDob || formData.userDob.length !== 6) {
-            alert("생년월일 6자리를 정확히 입력해주세요.")
-            return
-        }
-
-        if (
-            !formData.userPhone ||
-            formData.userPhone.replace(/-/g, "").length < 10
-        ) {
-            alert("휴대폰 번호를 정확히 입력해주세요.")
-            return
-        }
+    const handleFinalSubmit = async (isConsultation: boolean) => {
+        if (isLoading || isProcessing.current) return
 
         isProcessing.current = true
         setIsLoading(true)
+        setModalError("")
 
         try {
             const parsedData = JSON.parse(sessionStorage.getItem("data") ?? "null")
             const parsedSheet = JSON.parse(sessionStorage.getItem("sheet") ?? "null")
+
+            if (!parsedData || !parsedSheet) {
+                setModalError("주문 정보를 찾을 수 없습니다. 이전 페이지로 돌아가 다시 시도해주세요.")
+                setIsLoading(false)
+                isProcessing.current = false
+                return
+            }
 
             const res = await fetch(`${API_URL}/api/my/orders`, {
                 method: "POST",
@@ -299,6 +296,7 @@ export default function UserInfoForm(props: Props) {
                         userPhone: formData.userPhone,
                         userDob: formData.userDob,
                     },
+                    isConsultation,
                 }),
             })
 
@@ -310,7 +308,7 @@ export default function UserInfoForm(props: Props) {
             window.location.href = props.nextPageUrl
         } catch (e: any) {
             console.error("Submit error:", e)
-            alert(`저장 중 오류가 발생했습니다: ${e.message}`)
+            setModalError("저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
             setIsLoading(false)
             isProcessing.current = false
         }
@@ -348,6 +346,12 @@ export default function UserInfoForm(props: Props) {
 
     return (
         <div style={{ ...containerStyle, ...animationStyle }}>
+            <SelectionModal
+                isOpen={showSelectionModal}
+                onClose={() => setShowSelectionModal(false)}
+                onConfirm={handleModalConfirm}
+            />
+
             {isLoading && (
                 <div
                     style={{
@@ -462,6 +466,9 @@ export default function UserInfoForm(props: Props) {
                                 label="생년월일 (6자리)"
                                 placeholder="예: 900101"
                                 value={formData.userDob}
+                                inputMode="numeric"
+                                autoComplete="bday"
+                                pattern="[0-9]*"
                                 onChange={(e: any) =>
                                     handleInputChange("userDob", e.target.value)
                                 }
@@ -476,6 +483,9 @@ export default function UserInfoForm(props: Props) {
                                 label="휴대폰 번호"
                                 placeholder="숫자만 입력"
                                 value={formData.userPhone}
+                                type="tel"
+                                inputMode="tel"
+                                autoComplete="tel-national"
                                 onChange={(e: any) =>
                                     handleInputChange(
                                         "userPhone",
@@ -565,7 +575,15 @@ export default function UserInfoForm(props: Props) {
             <div style={listStyle}>
                 <InfoRow label="요금제명" value={orderData?.planName} />
                 <InfoRow
-                    label="월 납부액"
+                    label={
+                        <span>
+                            월 납부액
+                            <br />
+                            <span style={{ fontSize: "8px", fontWeight: 400, color: "#8B95A1" }}>
+                                ({orderData?.showInterest ? "할부이자 포함" : "할부이자 미포함"})
+                            </span>
+                        </span>
+                    }
                     value={`${formatPrice(orderData?.monthlyPayment || 0)}원`}
                 />
             </div>
@@ -583,99 +601,99 @@ export default function UserInfoForm(props: Props) {
                 </div>
             </div>
 
-            <div style={bottomContainerStyle}>
-                <button style={confirmButtonStyle} onClick={handleApplyClick}>
-                    신청하기
-                </button>
-            </div>
-
-            {showTermsModal && (
-                <div style={overlayStyle}>
-                    <div style={modalSheetStyle}>
-                        <div
-                            style={termHeaderContainerStyle}
-                            onClick={() => setIsAgreed(!isAgreed)}
-                        >
-                            <Checkbox checked={isAgreed} />
-                            <span style={termHeaderTitleStyle}>
-                                개인정보 수집 및 이용 동의 (필수)
-                            </span>
-                            <div
-                                style={termExpandIconStyle}
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    setIsTermExpanded(!isTermExpanded)
-                                }}
-                            >
-                                <ChevronDown
-                                    style={{
-                                        transform: isTermExpanded
-                                            ? "rotate(180deg)"
-                                            : "rotate(0deg)",
-                                        transition: "transform 0.2s",
-                                    }}
-                                />
-                            </div>
-                        </div>
-
-                        {isTermExpanded && (
-                            <div style={termDetailContainerStyle}>
-                                <div style={termDescriptionStyle}>
-                                    고객님이 입력한 개인정보는 상담, 개통,
-                                    배송을 위해 수집되며,
-                                    <br />
-                                    관계 법령에 따라 6개월간 보관 후 파기됩니다.
-                                </div>
-                                <div style={termTableStyle}>
-                                    <div style={termTableRowStyle}>
-                                        <div style={termTableHeaderStyle}>
-                                            수집목적
-                                        </div>
-                                        <div style={termTableCellStyle}>
-                                            가입상담, 개통, 배송
-                                        </div>
-                                    </div>
-                                    <div
-                                        style={{
-                                            ...termTableRowStyle,
-                                            borderBottom: "none",
-                                        }}
-                                    >
-                                        <div style={termTableHeaderStyle}>
-                                            수집항목
-                                        </div>
-                                        <div style={termTableCellStyle}>
-                                            이름, 생년월일, 연락처
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        <div style={{ marginTop: "30px" }}>
-                            <button
-                                style={{
-                                    ...confirmButtonStyle,
-                                    backgroundColor: isAgreed
-                                        ? "#4285F4"
-                                        : "#A0C3FF",
-                                    cursor: isAgreed
-                                        ? "pointer"
-                                        : "not-allowed",
-                                }}
-                                onClick={handleFinalSubmit}
-                                disabled={isLoading || !isAgreed}
-                            >
-                                {isLoading ? "접수 중..." : "동의하고 신청완료"}
-                            </button>
-                        </div>
-                    </div>
-                    <div
-                        style={overlayBackgroundStyle}
-                        onClick={() => !isLoading && setShowTermsModal(false)}
-                    />
+            {inlineError && (
+                <div style={{
+                    margin: "0 20px",
+                    padding: "12px 16px",
+                    backgroundColor: "#FFF1F1",
+                    border: "1px solid #FFCDD2",
+                    borderRadius: "10px",
+                    fontSize: "13px",
+                    color: "#D32F2F",
+                    lineHeight: "1.5",
+                }}>
+                    {inlineError}
                 </div>
             )}
+
+            <div style={bottomContainerStyle}>
+                <div style={termsSectionStyle}>
+                    <div
+                        style={termHeaderContainerStyle}
+                        onClick={() => {
+                            setIsAgreed(!isAgreed)
+                            setModalError("")
+                        }}
+                    >
+                        <Checkbox checked={isAgreed} />
+                        <span style={termHeaderTitleStyle}>
+                            개인정보 수집 및 이용 동의 (필수)
+                        </span>
+                        <div
+                            style={termExpandIconStyle}
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                setIsTermExpanded(!isTermExpanded)
+                            }}
+                        >
+                            <ChevronDown
+                                style={{
+                                    transform: isTermExpanded
+                                        ? "rotate(180deg)"
+                                        : "rotate(0deg)",
+                                    transition: "transform 0.2s",
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    {isTermExpanded && (
+                        <div style={termDetailContainerStyle}>
+                            <div style={termDescriptionStyle}>
+                                고객님이 입력한 개인정보는 상담, 개통,
+                                배송을 위해 수집되며,
+                                <br />
+                                관계 법령에 따라 6개월간 보관 후 파기됩니다.
+                            </div>
+                            <div style={termTableStyle}>
+                                <div style={termTableRowStyle}>
+                                    <div style={termTableHeaderStyle}>
+                                        수집목적
+                                    </div>
+                                    <div style={termTableCellStyle}>
+                                        가입상담, 개통, 배송
+                                    </div>
+                                </div>
+                                <div
+                                    style={{
+                                        ...termTableRowStyle,
+                                        borderBottom: "none",
+                                    }}
+                                >
+                                    <div style={termTableHeaderStyle}>
+                                        수집항목
+                                    </div>
+                                    <div style={termTableCellStyle}>
+                                        이름, 생년월일, 연락처
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {modalError && (
+                        <div style={bottomErrorStyle}>{modalError}</div>
+                    )}
+                </div>
+
+                <button
+                    style={confirmButtonStyle}
+                    onClick={handleApplyClick}
+                    disabled={isLoading}
+                >
+                    {isLoading ? "접수 중..." : "주문하기"}
+                </button>
+            </div>
         </div>
     )
 }
@@ -759,10 +777,18 @@ const InputGroup = ({
     onBlur,
     placeholder,
     error,
+    type = "text",
+    inputMode,
+    autoComplete,
+    pattern,
 }: any) => (
     <div style={{ marginBottom: "20px" }}>
         <div style={{ ...inputLabelStyle, marginBottom: "8px" }}>{label}</div>
         <input
+            type={type}
+            inputMode={inputMode}
+            autoComplete={autoComplete}
+            pattern={pattern}
             style={{
                 ...inputStyle,
                 padding: "16px",
@@ -1078,47 +1104,17 @@ const bottomContainerStyle: React.CSSProperties = {
     marginTop: "auto",
     padding: "20px 20px 40px 20px",
 }
-
-// Modal
-const overlayStyle: React.CSSProperties = {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 9999,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "flex-end",
-}
-const overlayBackgroundStyle: React.CSSProperties = {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(0,0,0,0.4)",
-    zIndex: 1,
-}
-const modalSheetStyle: React.CSSProperties = {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: "24px",
-    borderTopRightRadius: "24px",
-    padding: "30px 24px 40px 24px",
-    zIndex: 2,
-    boxShadow: "0 -4px 20px rgba(0,0,0,0.1)",
-    animation: "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-    position: "relative",
-    maxHeight: "80vh",
-    display: "flex",
-    flexDirection: "column",
-    overflowY: "auto",
+const termsSectionStyle: React.CSSProperties = {
+    backgroundColor: "#FFFFFF",
+    border: "1px solid #E5E8EB",
+    borderRadius: "16px",
+    padding: "18px 16px",
+    marginBottom: "14px",
 }
 const termHeaderContainerStyle: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: "16px",
     cursor: "pointer",
 }
 const termHeaderTitleStyle: React.CSSProperties = {
@@ -1169,6 +1165,182 @@ const termTableCellStyle: React.CSSProperties = {
     lineHeight: "1.5",
     backgroundColor: "#FFFFFF",
     boxSizing: "border-box",
+}
+const bottomErrorStyle: React.CSSProperties = {
+    marginTop: "16px",
+    padding: "10px 14px",
+    backgroundColor: "#FFF1F1",
+    border: "1px solid #FFCDD2",
+    borderRadius: "8px",
+    fontSize: "13px",
+    color: "#D32F2F",
+    lineHeight: "1.5",
+}
+
+// ─── SelectionModal ────────────────────────────────────────────────────────
+const SelectCard = ({ selected, onClick, title, desc, iconType, hasLightning }: any) => (
+    <div
+        onClick={onClick}
+        style={{
+            flex: 1,
+            border: selected ? "2px solid #446DF6" : "2px solid #E5E8EB",
+            borderRadius: "16px",
+            padding: "16px 14px",
+            cursor: "pointer",
+            backgroundColor: selected ? "#F0F4FF" : "#FAFAFA",
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+            transition: "all 0.15s",
+            position: "relative",
+        }}
+    >
+        {hasLightning && (
+            <div style={{
+                position: "absolute",
+                top: "10px",
+                right: "10px",
+                backgroundColor: "#FFF3CD",
+                borderRadius: "6px",
+                padding: "2px 6px",
+                fontSize: "11px",
+                fontWeight: 700,
+                color: "#B8860B",
+            }}>
+                ⚡ 빠른신청
+            </div>
+        )}
+        <div style={{
+            width: "40px",
+            height: "40px",
+            borderRadius: "12px",
+            backgroundColor: selected ? "#446DF6" : "#E5E8EB",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "background 0.15s",
+        }}>
+            {iconType === "phone" ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                    <line x1="12" y1="18" x2="12.01" y2="18" />
+                </svg>
+            ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+            )}
+        </div>
+        <div style={{ fontSize: "14px", fontWeight: 700, color: "#191F28", whiteSpace: "pre-line", lineHeight: 1.4 }}>
+            {title}
+        </div>
+        <div style={{ fontSize: "12px", color: "#8B95A1", whiteSpace: "pre-line", lineHeight: 1.5 }}>
+            {desc}
+        </div>
+    </div>
+)
+
+const SelectionModal = ({ isOpen, onClose, onConfirm }: any) => {
+    const [selectedType, setSelectedType] = useState("app")
+
+    if (!isOpen) return null
+
+    return (
+        <div
+            style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                backgroundColor: "rgba(0,0,0,0.5)",
+                zIndex: 99999,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "flex-end",
+                fontFamily: '"Pretendard", "Inter", sans-serif',
+            }}
+            onClick={onClose}
+        >
+            <div
+                style={{
+                    backgroundColor: "#FFFFFF",
+                    width: "100%",
+                    maxWidth: "440px",
+                    borderRadius: "20px 20px 0 0",
+                    padding: "24px 20px 40px",
+                    position: "relative",
+                    boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "20px",
+                    animation: "slideUp 0.3s cubic-bezier(0.16,1,0.3,1) forwards",
+                }}
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* 핸들 바 */}
+                <div style={{ width: "40px", height: "4px", backgroundColor: "#E5E8EB", borderRadius: "2px", margin: "0 auto" }} />
+
+                {/* 닫기 */}
+                <div
+                    onClick={onClose}
+                    style={{ position: "absolute", top: "20px", right: "16px", cursor: "pointer", padding: "8px" }}
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="#191F28" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                </div>
+
+                {/* 타이틀 */}
+                <h2 style={{ fontSize: "20px", fontWeight: 700, color: "#191F28", margin: 0 }}>
+                    함께 하면 더 좋아요
+                </h2>
+
+                {/* 카드 선택 */}
+                <div style={{ display: "flex", gap: "12px" }}>
+                    <SelectCard
+                        selected={selectedType === "app"}
+                        onClick={() => setSelectedType("app")}
+                        title="휴대폰만 신청"
+                        desc={`3분만에 온라인신청서 작성하고\n휴대폰 배송 받기`}
+                        iconType="phone"
+                        hasLightning={true}
+                    />
+                    <SelectCard
+                        selected={selectedType === "consultation"}
+                        onClick={() => setSelectedType("consultation")}
+                        title={`휴대폰 신청 후\n인터넷·TV 상담`}
+                        desc={`상담 후 신청 시\n현금 지원금 추가 제공`}
+                        iconType="chat"
+                        hasLightning={false}
+                    />
+                </div>
+
+                {/* 안내 */}
+                <p style={{ fontSize: "13px", color: "#3B72F2", fontWeight: 600, lineHeight: 1.5, margin: 0, wordBreak: "keep-all" }}>
+                    ※ 인터넷·TV 상담은 선택 사항이에요.<br />휴대폰 신청과는 무관해요.
+                </p>
+
+                {/* 다음 버튼 */}
+                <button
+                    onClick={() => onConfirm(selectedType)}
+                    style={{
+                        width: "100%",
+                        padding: "18px",
+                        backgroundColor: "#446DF6",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "14px",
+                        fontSize: "17px",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                    }}
+                >
+                    다음
+                </button>
+            </div>
+        </div>
+    )
 }
 
 // Warning Box
