@@ -59,6 +59,7 @@ export default function UserInfoForm(props: Props) {
     const [isEditing, setIsEditing] = useState(false)
     const [isInitialEntry, setIsInitialEntry] = useState(true)
 
+    const [showSelectionModal, setShowSelectionModal] = useState(false)
     const [isTermExpanded, setIsTermExpanded] = useState(false)
     const [isAgreed, setIsAgreed] = useState(true)
     const [inlineError, setInlineError] = useState("")
@@ -257,10 +258,15 @@ export default function UserInfoForm(props: Props) {
             return
         }
 
-        handleFinalSubmit()
+        setShowSelectionModal(true)
     }
 
-    const handleFinalSubmit = async () => {
+    const handleModalConfirm = (selectedType: string) => {
+        setShowSelectionModal(false)
+        handleFinalSubmit(selectedType === "consultation")
+    }
+
+    const handleFinalSubmit = async (isConsultation: boolean) => {
         if (isLoading || isProcessing.current) return
 
         isProcessing.current = true
@@ -290,6 +296,7 @@ export default function UserInfoForm(props: Props) {
                         userPhone: formData.userPhone,
                         userDob: formData.userDob,
                     },
+                    isConsultation,
                 }),
             })
 
@@ -339,6 +346,12 @@ export default function UserInfoForm(props: Props) {
 
     return (
         <div style={{ ...containerStyle, ...animationStyle }}>
+            <SelectionModal
+                isOpen={showSelectionModal}
+                onClose={() => setShowSelectionModal(false)}
+                onConfirm={handleModalConfirm}
+            />
+
             {isLoading && (
                 <div
                     style={{
@@ -1162,6 +1175,172 @@ const bottomErrorStyle: React.CSSProperties = {
     fontSize: "13px",
     color: "#D32F2F",
     lineHeight: "1.5",
+}
+
+// ─── SelectionModal ────────────────────────────────────────────────────────
+const SelectCard = ({ selected, onClick, title, desc, iconType, hasLightning }: any) => (
+    <div
+        onClick={onClick}
+        style={{
+            flex: 1,
+            border: selected ? "2px solid #446DF6" : "2px solid #E5E8EB",
+            borderRadius: "16px",
+            padding: "16px 14px",
+            cursor: "pointer",
+            backgroundColor: selected ? "#F0F4FF" : "#FAFAFA",
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+            transition: "all 0.15s",
+            position: "relative",
+        }}
+    >
+        {hasLightning && (
+            <div style={{
+                position: "absolute",
+                top: "10px",
+                right: "10px",
+                backgroundColor: "#FFF3CD",
+                borderRadius: "6px",
+                padding: "2px 6px",
+                fontSize: "11px",
+                fontWeight: 700,
+                color: "#B8860B",
+            }}>
+                ⚡ 빠른신청
+            </div>
+        )}
+        <div style={{
+            width: "40px",
+            height: "40px",
+            borderRadius: "12px",
+            backgroundColor: selected ? "#446DF6" : "#E5E8EB",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "background 0.15s",
+        }}>
+            {iconType === "phone" ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                    <line x1="12" y1="18" x2="12.01" y2="18" />
+                </svg>
+            ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+            )}
+        </div>
+        <div style={{ fontSize: "14px", fontWeight: 700, color: "#191F28", whiteSpace: "pre-line", lineHeight: 1.4 }}>
+            {title}
+        </div>
+        <div style={{ fontSize: "12px", color: "#8B95A1", whiteSpace: "pre-line", lineHeight: 1.5 }}>
+            {desc}
+        </div>
+    </div>
+)
+
+const SelectionModal = ({ isOpen, onClose, onConfirm }: any) => {
+    const [selectedType, setSelectedType] = useState("app")
+
+    if (!isOpen) return null
+
+    return (
+        <div
+            style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                backgroundColor: "rgba(0,0,0,0.5)",
+                zIndex: 99999,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "flex-end",
+                fontFamily: '"Pretendard", "Inter", sans-serif',
+            }}
+            onClick={onClose}
+        >
+            <div
+                style={{
+                    backgroundColor: "#FFFFFF",
+                    width: "100%",
+                    maxWidth: "440px",
+                    borderRadius: "20px 20px 0 0",
+                    padding: "24px 20px 40px",
+                    position: "relative",
+                    boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "20px",
+                    animation: "slideUp 0.3s cubic-bezier(0.16,1,0.3,1) forwards",
+                }}
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* 핸들 바 */}
+                <div style={{ width: "40px", height: "4px", backgroundColor: "#E5E8EB", borderRadius: "2px", margin: "0 auto" }} />
+
+                {/* 닫기 */}
+                <div
+                    onClick={onClose}
+                    style={{ position: "absolute", top: "20px", right: "16px", cursor: "pointer", padding: "8px" }}
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="#191F28" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                </div>
+
+                {/* 타이틀 */}
+                <h2 style={{ fontSize: "20px", fontWeight: 700, color: "#191F28", margin: 0 }}>
+                    함께 하면 더 좋아요
+                </h2>
+
+                {/* 카드 선택 */}
+                <div style={{ display: "flex", gap: "12px" }}>
+                    <SelectCard
+                        selected={selectedType === "app"}
+                        onClick={() => setSelectedType("app")}
+                        title="휴대폰만 신청"
+                        desc={`3분만에 온라인신청서 작성하고\n휴대폰 배송 받기`}
+                        iconType="phone"
+                        hasLightning={true}
+                    />
+                    <SelectCard
+                        selected={selectedType === "consultation"}
+                        onClick={() => setSelectedType("consultation")}
+                        title={`휴대폰 신청 후\n인터넷·TV 상담`}
+                        desc={`상담 후 신청 시\n현금 지원금 추가 제공`}
+                        iconType="chat"
+                        hasLightning={false}
+                    />
+                </div>
+
+                {/* 안내 */}
+                <p style={{ fontSize: "13px", color: "#3B72F2", fontWeight: 600, lineHeight: 1.5, margin: 0, wordBreak: "keep-all" }}>
+                    ※ 인터넷·TV 상담은 선택 사항이에요.<br />휴대폰 신청과는 무관해요.
+                </p>
+
+                {/* 다음 버튼 */}
+                <button
+                    onClick={() => onConfirm(selectedType)}
+                    style={{
+                        width: "100%",
+                        padding: "18px",
+                        backgroundColor: "#446DF6",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "14px",
+                        fontSize: "17px",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                    }}
+                >
+                    다음
+                </button>
+            </div>
+        </div>
+    )
 }
 
 // Warning Box
