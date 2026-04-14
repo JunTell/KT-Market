@@ -229,36 +229,16 @@ interface PlanInfo {
 }
 
 const defaultPlanInfo: PlanInfo = {
-    pid: "ppllistobj_0942",
-    title: "티빙/지니/밀리 초이스 베이직",
+    pid: "ppllistobj_0937",
+    title: "(유튜브 프리미엄) 초이스 베이직",
     price: 90000,
     description:
-        "티빙·지니 스마트 음악감상·밀리의 서재·블라이스 기본제공 / 멤버쉽VIP / 만 34세이하 Y덤 혜택) 스마트기기 or 데이터쉐어링 1회선 무료 택1, 공유데이터 2배 80GB",
+        "유튜브 프리미엄 제공 / 멤버쉽VIP / 만 34세이하 Y덤 혜택) 스마트기기 or 데이터쉐어링 1회선 무료 택1, 공유데이터 2배 80GB",
     data: "완전 무제한",
     tethering: "40GB",
     roaming: "무제한 (최대100Kbps 속도제어)",
     voiceText: "집/이동전화 무제한/기본제공",
     isBenefit: true,
-    // pid: "ppllistobj_0937",
-    // title: "(유튜브 프리미엄) 초이스 베이직",
-    // price: 90000,
-    // description:
-    //     "유튜브 프리미엄 제공 / 멤버쉽VIP /  만 34세이하 Y덤 혜택) 스마트기기 or 데이터쉐어링 1회선 무료 택1, 공유데이터 2배 80GB",
-    // data: "완전 무제한",
-    // tethering: "40GB",
-    // roaming: "무제한 (최대100Kbps 속도제어)",
-    // voiceText: "집/이동전화 무제한/기본제공",
-    // isBenefit: true,
-    // pid: "ppllistobj_0808",
-    // title: "5G 심플 110GB",
-    // price: 69000,
-    // description:
-    //     "나의 데이터 사용량에 맞춤 실속형 요금제 / 만 34세이하 Y덤 혜택 기본데이터 2배 220GB",
-    // data: "110GB+다 쓰면 최대 5Mbps",
-    // tethering: "40GB",
-    // roaming: "",
-    // voiceText: "집/이동전화 무제한/기본제공",
-    // isBenefit: true,
 }
 
 const appliancePlanInfo: PlanInfo = {
@@ -749,6 +729,7 @@ export function withPriceCard(Component): ComponentType {
                 {...props}
                 finalPrice={installmentPrincipal}
                 originPrice={originPrice}
+                totalDeviceDiscountAmount={totalDeviceDiscountAmount}
                 discountRate={discountRate}
                 monthlyPayment={monthlyPayment}
                 installment={installment}
@@ -958,6 +939,7 @@ export function withOrderSheet(Component): ComponentType {
         const [freebie, setFreebie] = useState("")
         const [monthlyPriceFreebie, setMonthlyPriceFreebie] = useState(0)
         const [doubleStorageDiscount, setDoubleStorageDiscount] = useState(0)
+        const [youtubePremiumBonus, setYoutubePremiumBonus] = useState(0)
 
         useEffect(() => {
             setHydrated(true)
@@ -977,6 +959,12 @@ export function withOrderSheet(Component): ComponentType {
 
             const ktmarketSubsidy =
                 store.benefit == "KT마켓 단독혜택" ? store.ktmarketSubsidy : 0
+
+            // YouTube 프리미엄 3종 추가지원금 3만원 — 표시용으로만 분리 (계산은 ktmarketSubsidy에 포함)
+            const YOUTUBE_PIDS = new Set(["ppllistobj_0937", "ppllistobj_0938", "ppllistobj_0939"])
+            const selectedPid = store.selectedPlanInfo?.pid ?? ""
+            const youtubePremiumBonus = (store.benefit === "KT마켓 단독혜택" && YOUTUBE_PIDS.has(selectedPid)) ? 30000 : 0
+
             const preorderDiscount = 0
 
             const promotionDiscount = calculatePromotionDiscount(
@@ -1077,6 +1065,7 @@ export function withOrderSheet(Component): ComponentType {
                 special_price_mnp: specialPriceMnp,
                 special_price_chg: specialPriceChg,
                 doubleStorageDiscount: doubleStorageDiscountValue,
+                youtubePremiumBonus,
             }
         }
 
@@ -1118,6 +1107,7 @@ export function withOrderSheet(Component): ComponentType {
             setSpecialPriceMnp(result.special_price_mnp)
             setSpecialPriceChg(result.special_price_chg)
             setDoubleStorageDiscount(result.doubleStorageDiscount)
+            setYoutubePremiumBonus(result.youtubePremiumBonus)
 
             const noInterestMonthly = result.installmentPrincipal > 0 && store.installment > 0
                 ? Math.round(result.installmentPrincipal / store.installment)
@@ -1244,7 +1234,8 @@ export function withOrderSheet(Component): ComponentType {
                 preorderDiscount={preorderDiscount}
                 devicePrice={devicePrice}
                 totalDeviceDiscountAmount={totalDeviceDiscountAmount}
-                ktmarketSubsidy={ktmarketSubsidy}
+                ktmarketSubsidy={ktmarketSubsidy - youtubePremiumBonus}
+                youtubePremiumBonus={youtubePremiumBonus}
                 disclosureSubsidy={disclosureSubsidy}
                 additionalSubsidy={additionalSubsidy}
                 migrationSubsidy={migrationSubsidy}
@@ -1990,8 +1981,7 @@ export function withColorCapacity(Component): ComponentType {
                 const selectedStock = store.stocks?.find(
                     (stock) => stock.colorEn === color.en
                 )
-                const quantity = selectedStock?.quantity ?? 0
-                if (quantity <= 0) {
+                if (selectedStock && selectedStock.quantity <= 0) {
                     alert("해당 색상은 현재 재고가 없습니다. 입고 알림을 신청해주세요.")
                 }
             }
@@ -2386,6 +2376,8 @@ function register_en(register_kr) {
     }
 }
 
+const YOUTUBE_PLAN_PIDS_SET = new Set(["ppllistobj_0937", "ppllistobj_0938", "ppllistobj_0939"])
+
 function calcKTmarketSubsidy(store): number {
     const discount = discount_en(store.discount)
     const register = register_en(store.register)
@@ -2431,7 +2423,8 @@ function calcKTmarketSubsidy(store): number {
     }
 
     const value = data[matchedKey] ?? 0
-    return value
+    const youtubeBonus = YOUTUBE_PLAN_PIDS_SET.has(planId) ? 30000 : 0
+    return value + youtubeBonus
 }
 
 export function withKTMarketSubsidy(Component): ComponentType {
@@ -2891,7 +2884,7 @@ export function withPlanGrid(Component): ComponentType {
             }
             const planDB = store.register === "번호이동" ? "device_plans_mnp"
                 : store.register === "신규가입" ? "device_plans_new" : "device_plans_chg"
-            const FIXED_PIDS = ["ppllistobj_0942", "ppllistobj_0808", "ppllistobj_0925"]
+            const FIXED_PIDS = ["ppllistobj_0937", "ppllistobj_0938", "ppllistobj_0939", "ppllistobj_0808", "ppllistobj_0925"]
             supabase
                 .from(planDB)
                 .select("plan_id, disclosure_subsidy")
@@ -2989,16 +2982,20 @@ export function withPlanGrid(Component): ComponentType {
             return disclosure + ktmarket + promotion
         }
 
-        // 고정 3개 PID + 선택된 요금제에 대한 총 할인 금액 맵
+        // 고정 3개 PID + YouTube 3종 + 선택된 요금제에 대한 총 할인 금액 맵
         // 기기할인: 단말할인(공통) + KT마켓지원금 + 디바이스 추가지원금(단독)
         // 요금할인: KT마켓지원금 + 디바이스 추가지원금(단독)
-        const GRID_PIDS = ["ppllistobj_0942", "ppllistobj_0808", "ppllistobj_0925"]
+        const GRID_PIDS = ["ppllistobj_0937", "ppllistobj_0808", "ppllistobj_0925"]
         const planPriceMap: Record<string, number> = {
-            "ppllistobj_0942": 90000, "ppllistobj_0808": 69000, "ppllistobj_0925": 37000,
+            "ppllistobj_0937": 90000,  // YouTube 초이스 베이직
+            "ppllistobj_0938": 110000, // YouTube 초이스 스페셜
+            "ppllistobj_0939": 130000, // YouTube 초이스 프리미엄
+            "ppllistobj_0808": 69000,
+            "ppllistobj_0925": 37000,
         }
         const discountAmounts: Record<string, number> = {}
-        for (const pid of GRID_PIDS) {
-            discountAmounts[pid] = calcDiscountLabelAmount(planPriceMap[pid], pid)
+        for (const [pid, price] of Object.entries(planPriceMap)) {
+            discountAmounts[pid] = calcDiscountLabelAmount(price, pid)
         }
         // 현재 선택된 커스텀 요금제 할인 금액도 포함
         if (store.selectedPlanInfo?.pid && !discountAmounts[store.selectedPlanInfo.pid]) {

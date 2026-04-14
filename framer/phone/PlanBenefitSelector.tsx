@@ -1,6 +1,6 @@
 // withPlanGrid override와 함께 사용
 // 준텔DB - plans.csv 전체 등록
-// 고정 3개: 90,000원(ppllistobj_0942) / 69,000원(ppllistobj_0808) / 37,000원(ppllistobj_0925)
+// 고정 3개: 90,000원(ppllistobj_0937) / 69,000원(ppllistobj_0808) / 37,000원(ppllistobj_0925)
 // 4번째 칸: 팝업에서 전체 요금제 선택 가능 (5G/LTE 탭 + 카테고리 + 검색)
 
 import { addPropertyControls, ControlType } from "framer"
@@ -1249,14 +1249,43 @@ const ALL_PLANS: Plan[] = [
     },
 ]
 
+// ─── 유튜브 프리미엄 요금제 PID ─────────────────────────────────────
+const YOUTUBE_PLAN_PIDS = new Set([
+    "ppllistobj_0939", // 유튜브 프리미엄 초이스 프리미엄
+    "ppllistobj_0938", // 유튜브 프리미엄 초이스 스페셜
+    "ppllistobj_0937", // 유튜브 프리미엄 초이스 베이직
+])
+
 // ─── 고정 3개 요금제 ──────────────────────────────────────────────────
 const FIXED_PLAN_PIDS = [
-    "ppllistobj_0942", // 90,000원 티빙/지니/밀리 초이스 베이직
+    "ppllistobj_0937", // 90,000원 유튜브 프리미엄 초이스 베이직
     "ppllistobj_0808", // 69,000원 5G 심플 110GB
     "ppllistobj_0925", // 37,000원 5G 슬림 4GB
 ]
 const FIXED_PLANS = FIXED_PLAN_PIDS.map(
     (pid) => ALL_PLANS.find((p) => p.pid === pid)!
+)
+
+// ─── YouTube Premium 아이콘 ───────────────────────────────────────────
+const YoutubePremiumIcon = () => (
+    <div style={{
+        width: 26,
+        height: 26,
+        borderRadius: 6,
+        backgroundColor: "#FF0000",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        gap: 1,
+    }}>
+        <svg width="13" height="9" viewBox="0 0 20 14" fill="none">
+            <path d="M19.5 2.2C19.3 1.4 18.7 0.8 17.9 0.6C16.4 0.2 10 0.2 10 0.2C10 0.2 3.6 0.2 2.1 0.6C1.3 0.8 0.7 1.4 0.5 2.2C0.1 3.7 0.1 6.8 0.1 6.8C0.1 6.8 0.1 9.9 0.5 11.4C0.7 12.2 1.3 12.8 2.1 13C3.6 13.4 10 13.4 10 13.4C10 13.4 16.4 13.4 17.9 13C18.7 12.8 19.3 12.2 19.5 11.4C19.9 9.9 19.9 6.8 19.9 6.8C19.9 6.8 19.9 3.7 19.5 2.2Z" fill="white" fillOpacity="0.25" />
+            <path d="M8 10L13.2 6.8L8 3.6V10Z" fill="white" />
+        </svg>
+        <span style={{ fontSize: 4, fontWeight: 800, color: "white", letterSpacing: -0.2, lineHeight: 1 }}>Premium</span>
+    </div>
 )
 
 // ─── 카테고리 필터 ────────────────────────────────────────────────────
@@ -1393,34 +1422,22 @@ const FreebieSlider = ({
                 {freebies.map((f) => (
                     <div
                         key={f.no}
-                        onClick={(event) => {
-                            event.stopPropagation()
-                            onFreebieSelect(f)
-                        }}
-                        onPointerDown={(event) => {
-                            event.stopPropagation()
-                        }}
                         style={
                             {
                                 flexShrink: 0,
                                 width: "calc(65% - 4px)",
                                 scrollSnapAlign: "start",
-                                height: 88,
                                 padding: "10px 8px",
                                 display: "flex",
-                                alignItems: "center",
-                                gap: 8,
+                                flexDirection: "column",
+                                alignItems: "flex-start",
+                                gap: 6,
                                 borderRadius: 9,
-                                border:
-                                    selectedFreebie?.no === f.no
-                                        ? "1px solid #0055FF"
-                                        : "0.8px solid #CFCFCF",
-                                backgroundColor:
-                                    selectedFreebie?.no === f.no
-                                        ? "#ECF4FF"
-                                        : "#FFF",
+                                border: "0.8px solid #CFCFCF",
+                                backgroundColor: "#FFF",
                                 boxSizing: "border-box",
-                                cursor: "pointer",
+                                cursor: "default",
+                                pointerEvents: "none",
                             } as React.CSSProperties
                         }
                     >
@@ -1431,7 +1448,7 @@ const FreebieSlider = ({
                                 width: 54,
                                 height: 54,
                                 objectFit: "contain",
-                                flexShrink: 0,
+                                alignSelf: "center",
                             }}
                             onError={(e) => {
                                 e.currentTarget.style.display = "none"
@@ -1441,9 +1458,8 @@ const FreebieSlider = ({
                             style={{
                                 display: "flex",
                                 flexDirection: "column",
-                                gap: 8,
-                                minWidth: 0,
-                                flex: 1,
+                                gap: 4,
+                                width: "100%",
                             }}
                         >
                             <span
@@ -1463,23 +1479,17 @@ const FreebieSlider = ({
                             >
                                 {f.title}
                             </span>
-                            <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
-                                <span
-                                    style={{
-                                        fontSize: 13,
-                                        fontWeight: 700,
-                                        color: "#111827",
-                                    }}
-                                >
-                                    월 {(f.monthly_price ?? 0).toLocaleString()}원
-                                </span>
-                                <span style={{ fontSize: 10, color: "#9CA3AF" }}>
-                                    할부 수수료 별도
-                                </span>
-                            </div>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>
+                                월 {(f.monthly_price ?? 0).toLocaleString()}원
+                            </span>
+                            <span style={{ fontSize: 10, color: "#9CA3AF" }}>
+                                할부 수수료 별도
+                            </span>
                         </div>
                     </div>
                 ))}
+                {/* 마지막 카드 스냅 보정 — 우측 끝까지 스크롤 가능하게 */}
+                <div style={{ flexShrink: 0, width: "calc(35% + 4px)" }} />
             </div>
             {freebies.length > 2 && (
                 <div
@@ -1654,6 +1664,24 @@ const PlanCard = ({
                     )}
 
                 </>
+            )}
+
+            {/* YouTube 프리미엄 기본 혜택 뱃지 */}
+            {isActive && YOUTUBE_PLAN_PIDS.has(plan.pid) && (
+                <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    borderTop: "1px solid #E5E7EB",
+                    paddingTop: 10,
+                }}>
+                    <YoutubePremiumIcon />
+                    <span style={{ fontSize: 13, color: "#374151" }}>
+                        <span style={{ color: "#9CA3AF", fontWeight: 500 }}>기본제공 혜택</span>
+                        {"  "}
+                        <span style={{ fontWeight: 700 }}>유튜브 프리미엄 라이트</span>
+                    </span>
+                </div>
             )}
 
             {/* 하단: 할인라벨 + 월 요금 */}
@@ -2139,6 +2167,24 @@ const PopupPlanCard = ({
                             </span>
                         </div>
                     )}
+                    {/* YouTube 프리미엄 기본 혜택 뱃지 */}
+                    {YOUTUBE_PLAN_PIDS.has(plan.pid) && (
+                        <div style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            borderTop: "1px solid #F3F4F6",
+                            paddingTop: 8,
+                            marginTop: 4,
+                        }}>
+                            <YoutubePremiumIcon />
+                            <span style={{ fontSize: 12, color: "#374151" }}>
+                                <span style={{ color: "#9CA3AF", fontWeight: 500 }}>기본제공 혜택</span>
+                                {"  "}
+                                <span style={{ fontWeight: 700 }}>유튜브 프리미엄 라이트</span>
+                            </span>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -2153,7 +2199,7 @@ const PopupPlanCard = ({
 export default function PlanBenefitSelector(props) {
     const {
         isLoading = false,
-        selectedPlanPid = "ppllistobj_0942",
+        selectedPlanPid = "ppllistobj_0937",
         title = "원하시는 요금제",
         onPlanSelect,
         onTabChange,
@@ -2179,12 +2225,11 @@ export default function PlanBenefitSelector(props) {
     const [freebieLoading, setFreebieLoading] = useState(false)
 
     React.useEffect(() => {
-        if (hasInitializedTabRef.current || !props.cheaperTab) return
-
+        if (hasInitializedTabRef.current) return
         hasInitializedTabRef.current = true
-        setActiveTab(props.cheaperTab)
-        onTabChange?.(props.cheaperTab)
-    }, [props.cheaperTab, onTabChange])
+        // 기본값은 항상 기기 할인 (추천 배지는 cheaperTab 기준으로 별도 표시)
+        onTabChange?.("기기 할인")
+    }, [onTabChange])
 
     React.useEffect(() => {
         if (!selectedPlanPid || !FREEBIE_PLAN_PIDS.has(selectedPlanPid)) {
@@ -2263,8 +2308,10 @@ export default function PlanBenefitSelector(props) {
         !isFixedSelected && !!customPlan && selectedPlanPid === customPlan.pid
 
     const getDiscountLabel = (pid: string) => {
-        const amt = discountAmounts[pid]
-        if (!amt || amt <= 0) return "00만원 할인"
+        const base = discountAmounts[pid] ?? 0
+        const youtubeBonus = YOUTUBE_PLAN_PIDS.has(pid) ? 30000 : 0
+        const amt = base + youtubeBonus
+        if (amt <= 0) return "00만원 할인"
         const man = Math.round(amt / 10000)
         return man > 0 ? `${man}만원 할인` : `${amt.toLocaleString()}원 할인`
     }
@@ -2903,6 +2950,6 @@ addPropertyControls(PlanBenefitSelector, {
     selectedPlanPid: {
         type: ControlType.String,
         title: "Selected Plan PID",
-        defaultValue: "ppllistobj_0942",
+        defaultValue: "ppllistobj_0937",
     },
 })

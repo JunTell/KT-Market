@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
 
     const body = await request.json()
-    const { data: parsedData, sheet: parsedSheet, form: formData } = body
+    const { data: parsedData, sheet: parsedSheet, form: formData, isConsultation } = body
 
     const profileId = user?.id ?? null
     const model: string = parsedData?.device?.model ?? ''
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
         freebie_second: parsedData?.freebieSecond,
         is_guaranteed_return: parsedSheet?.isGuaranteedReturn ?? false,
         installment_principal: parsedSheet?.installmentPrincipal,
-        is_consultation: false,
+        is_consultation: isConsultation ?? false,
       }])
       if (error) throw error
     }
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
         installment: parsedData?.installment || parsedSheet?.installment,
         freebie: parsedSheet?.freebie,
         installment_principal: parsedSheet?.installmentPrincipal,
-        is_consultation: false,
+        is_consultation: isConsultation ?? false,
       }])
       if (error) {
         if ((error as any).code === '23505') return NextResponse.json({ duplicate: true }, { status: 200, headers: cors })
@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
         installment: parsedData?.installment || parsedSheet?.installment,
         installment_principal: parsedSheet?.installmentPrincipal,
         freebie: parsedSheet?.freebie,
-        is_consultation: false,
+        is_consultation: isConsultation ?? false,
       }])
       if (error) {
         if ((error as any).code === '23505') return NextResponse.json({ duplicate: true }, { status: 200, headers: cors })
@@ -227,7 +227,7 @@ export async function POST(request: NextRequest) {
         installment: parsedData?.installment || parsedSheet?.installment,
         freebie: parsedSheet?.freebie,
         installment_principal: parsedSheet?.installmentPrincipal,
-        is_consultation: false,
+        is_consultation: isConsultation ?? false,
       }])
       if (error) throw error
     }

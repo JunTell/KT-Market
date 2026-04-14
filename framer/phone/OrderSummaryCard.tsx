@@ -795,6 +795,7 @@ export default function OrderSummaryCard(props) {
         totalMonthPayment = 0,
         installmentPaymentNoInterest = 0,
         totalMonthPaymentNoInterest = 0,
+        totalDeviceDiscountAmount = 0,
     } = props
 
     const [isMounted, setIsMounted] = useState(false)
@@ -828,12 +829,11 @@ export default function OrderSummaryCard(props) {
 
     const animatedPrice = useAnimatedNumber(finalPrice, 1000)
 
-    const priceColor =
-        direction === "up"
-            ? "#DC2626"
-            : direction === "down"
-                ? "#EF4444"
-                : "#EF4444"
+    const discountMan = totalDeviceDiscountAmount > 0
+        ? Math.round(totalDeviceDiscountAmount / 10000)
+        : (originPrice > 0 && originPrice > finalPrice)
+            ? Math.round((originPrice - finalPrice) / 10000)
+            : 0
 
     if (!isMounted) return <div style={{ width: "100%", height: "120px" }} />
 
@@ -925,20 +925,20 @@ export default function OrderSummaryCard(props) {
                     </span>
                 </div>
 
-                {/* ── 기기명 + 가격 행 (간격 축소) ── */}
+                {/* ── 기기명 + 가격 행 ── */}
                 <div
                     style={{
                         display: "flex",
                         flexDirection: "column",
-                        gap: "2px",
+                        gap: "4px",
                     }}
                 >
                     {devicePetName && (
                         <span
                             style={{
-                                fontSize: "18px",
-                                fontWeight: 700,
-                                color: "#111827",
+                                fontSize: "14px",
+                                fontWeight: 500,
+                                color: "#6B7280",
                                 fontFamily: FONT,
                             }}
                         >
@@ -958,26 +958,16 @@ export default function OrderSummaryCard(props) {
                             style={{
                                 display: "flex",
                                 alignItems: "baseline",
-                                gap: "6px",
+                                gap: "3px",
                             }}
                         >
-                            <span
-                                style={{
-                                    fontSize: "18px",
-                                    fontWeight: 700,
-                                    color: "#FF3A3A",
-                                }}
-                            >
-                                최저가
-                            </span>
                             <motion.span
                                 key={animatedPrice}
                                 style={{
-                                    fontSize: "24px",
+                                    fontSize: "32px",
                                     fontWeight: 800,
-                                    color: priceColor,
-                                    transition: "color 0.4s ease",
-                                    letterSpacing: "-0.5px",
+                                    color: "#111827",
+                                    letterSpacing: "-1px",
                                     fontVariantNumeric: "tabular-nums",
                                     fontFamily: FONT,
                                 }}
@@ -986,8 +976,8 @@ export default function OrderSummaryCard(props) {
                             </motion.span>
                             <span
                                 style={{
-                                    fontSize: "18px",
-                                    fontWeight: 500,
+                                    fontSize: "22px",
+                                    fontWeight: 700,
                                     color: "#111827",
                                     fontFamily: FONT,
                                 }}
@@ -1029,6 +1019,30 @@ export default function OrderSummaryCard(props) {
                             </svg>
                         </button>
                     </div>
+
+                    {/* ── 할인 배지 ── */}
+                    {discountMan > 0 && (
+                        <div
+                            style={{
+                                display: "inline-flex",
+                                alignSelf: "flex-start",
+                                backgroundColor: "#FEE2E2",
+                                borderRadius: 999,
+                                padding: "5px 12px",
+                            }}
+                        >
+                            <span
+                                style={{
+                                    fontSize: 14,
+                                    fontWeight: 700,
+                                    color: "#EF4444",
+                                    fontFamily: FONT,
+                                }}
+                            >
+                                {discountMan}만원 할인
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 {/* ── 신청 전 필독사항 ── */}
