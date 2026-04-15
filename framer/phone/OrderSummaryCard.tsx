@@ -5,6 +5,12 @@ import { addPropertyControls, ControlType } from "framer"
 import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence, useDragControls } from "framer-motion"
 import { createPortal } from "react-dom"
+import { createClient } from "@supabase/supabase-js"
+
+const supabase = createClient(
+    "https://crooiozzbjwdaghqddnu.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNyb29pb3p6Ymp3ZGFnaHFkZG51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk3NzIzNjMsImV4cCI6MjAyNTM0ODM2M30.A51d6iu60yiGWL4cka8j9-r6QLQ2skXAHiqBGaTIEcM"
+)
 import {
     FONT,
     useAnimatedNumber,
@@ -805,16 +811,92 @@ export default function OrderSummaryCard(props) {
     const prevFinalPrice = useRef(finalPrice)
     const [direction, setDirection] = useState<"up" | "down" | null>(null)
     const [isBefore3PM, setIsBefore3PM] = useState(true)
+    const [isWeekend, setIsWeekend] = useState(false)
+    const [viewerCount, setViewerCount] = useState(0)
+    // 마운트 시 1회 고정 — 10~19 랜덤 베이스
+    const randomViewerBase = useRef(Math.floor(Math.random() * 10) + 10)
+
+    const HOLIDAYS = new Set([
+        // 2026년
+        "2026-01-01", // 신정
+        "2026-01-28", // 설날 연휴
+        "2026-01-29", // 설날
+        "2026-01-30", // 설날 연휴
+        "2026-03-01", // 삼일절
+        "2026-05-05", // 어린이날
+        "2026-05-25", // 부처님오신날
+        "2026-06-06", // 현충일
+        "2026-08-15", // 광복절
+        "2026-09-24", // 추석 연휴
+        "2026-09-25", // 추석
+        "2026-09-26", // 추석 연휴
+        "2026-10-03", // 개천절
+        "2026-10-09", // 한글날
+        "2026-12-25", // 성탄절
+        // 2027년
+        "2027-01-01", // 신정
+        "2027-02-17", // 설날 연휴
+        "2027-02-18", // 설날
+        "2027-02-19", // 설날 연휴
+        "2027-03-01", // 삼일절
+        "2027-05-05", // 어린이날
+        "2027-05-13", // 부처님오신날
+        "2027-06-06", // 현충일
+        "2027-08-15", // 광복절
+        "2027-10-03", // 개천절
+        "2027-10-04", // 추석 연휴
+        "2027-10-05", // 추석
+        "2027-10-06", // 추석 연휴
+        "2027-10-09", // 한글날
+        "2027-12-25", // 성탄절
+    ])
 
     useEffect(() => {
         setIsMounted(true)
         const checkTime = () => {
             const now = new Date()
+            const day = now.getDay() // 0: 일요일, 6: 토요일
+            const today = now.toISOString().slice(0, 10) // "2026-04-14"
+            setIsWeekend(day === 0 || day === 6 || HOLIDAYS.has(today))
             setIsBefore3PM(now.getHours() < 15)
         }
         checkTime()
         const timer = setInterval(checkTime, 60000)
         return () => clearInterval(timer)
+    }, [])
+
+    useEffect(() => {
+        // 페이지별 독립 채널: URL 경로 마지막 세그먼트를 채널명에 포함
+        const pagePath = typeof window !== "undefined"
+            ? window.location.pathname.replace(/\//g, "-").replace(/^-|-$/g, "") || "home"
+            : "home"
+        const channelName = `ktmarket-viewers-${pagePath}`
+        const sessionId = Math.random().toString(36).slice(2, 10)
+
+        const channel = supabase.channel(channelName)
+
+        channel
+            .on("presence", { event: "sync" }, () => {
+                const state = channel.presenceState()
+                setViewerCount(Object.keys(state).length)
+            })
+            .on("presence", { event: "join" }, () => {
+                const state = channel.presenceState()
+                setViewerCount(Object.keys(state).length)
+            })
+            .on("presence", { event: "leave" }, () => {
+                const state = channel.presenceState()
+                setViewerCount(Object.keys(state).length)
+            })
+            .subscribe(async (status) => {
+                if (status === "SUBSCRIBED") {
+                    await channel.track({ session_id: sessionId, joined_at: Date.now() })
+                }
+            })
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
     }, [])
 
     useEffect(() => {
@@ -869,61 +951,65 @@ export default function OrderSummaryCard(props) {
     return (
         <>
             <div style={wrapperStyle}>
-                {/* ── 배송 배지 ── */}
-                <div
-                    style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "5px",
-                        border: "1.5px solid #0066FF",
-                        borderRadius: "8px",
-                        padding: "5px 10px",
-                        alignSelf: "flex-start",
-                        fontFamily: FONT,
-                    }}
-                >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <rect
-                            x="1"
-                            y="3"
-                            width="15"
-                            height="13"
-                            rx="1"
-                            stroke="#0066FF"
-                            strokeWidth="1.8"
-                        />
-                        <path
-                            d="M16 8h4l3 4v4h-7V8z"
-                            stroke="#0066FF"
-                            strokeWidth="1.8"
-                            strokeLinejoin="round"
-                        />
-                        <circle
-                            cx="5.5"
-                            cy="18.5"
-                            r="2"
-                            stroke="#0066FF"
-                            strokeWidth="1.8"
-                        />
-                        <circle
-                            cx="18.5"
-                            cy="18.5"
-                            r="2"
-                            stroke="#0066FF"
-                            strokeWidth="1.8"
-                        />
-                    </svg>
-                    <span
+                {/* ── 배송 배지 + 실시간 조회자 수 (flex row) ── */}
+                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                    {/* 배송 배지 (주말 숨김) */}
+                    {!isWeekend && (
+                        <div
+                            style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4.9px",
+                                height: "26.948px",
+                                padding: "2.945px 10px",
+                                backgroundColor: "#EFF6FF",
+                                borderRadius: "20px",
+                                fontFamily: FONT,
+                            }}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                <rect x="1" y="3" width="15" height="13" rx="1" stroke="#3B82F6" strokeWidth="1.8" />
+                                <path d="M16 8h4l3 4v4h-7V8z" stroke="#3B82F6" strokeWidth="1.8" strokeLinejoin="round" />
+                                <circle cx="5.5" cy="18.5" r="2" stroke="#3B82F6" strokeWidth="1.8" />
+                                <circle cx="18.5" cy="18.5" r="2" stroke="#3B82F6" strokeWidth="1.8" />
+                            </svg>
+                            <span style={{ fontSize: "12px", fontWeight: 700, color: "#3B82F6" }}>
+                                {isBefore3PM ? "오후 3시 전 주문시 당일 출발" : "내일 출발"}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* 실시간 조회자 수 */}
+                    <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
                         style={{
-                            fontSize: "12px",
-                            fontWeight: 600,
-                            color: "#0066FF",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4.9px",
+                            height: "26.948px",
+                            padding: "2.945px 10px",
+                            backgroundColor: "#FEF2F2",
+                            borderRadius: "20px",
+                            fontFamily: FONT,
                         }}
                     >
-                        {isBefore3PM
-                            ? "오후 3시 전 주문시 당일 출발"
-                            : "내일 출발"}
-                    </span>
+                        <motion.div
+                            animate={{ opacity: [1, 0.3, 1] }}
+                            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                            style={{
+                                width: "8px",
+                                height: "8px",
+                                borderRadius: "50%",
+                                backgroundColor: "#EF4444",
+                                flexShrink: 0,
+                            }}
+                        />
+                        <span style={{ fontSize: "12px", fontWeight: 700, color: "#EF4444" }}>
+                            현재 {randomViewerBase.current + Math.max(0, viewerCount - 1)}명이 보는 중
+                        </span>
+                    </motion.div>
                 </div>
 
                 {/* ── 기기명 + 가격 행 ── */}
@@ -964,7 +1050,7 @@ export default function OrderSummaryCard(props) {
                         >
                             <span
                                 style={{
-                                    fontSize: "16px",
+                                    fontSize: "14px",
                                     color: "#0066FF",
                                     fontWeight: 600,
                                 }}
@@ -974,7 +1060,7 @@ export default function OrderSummaryCard(props) {
                             <motion.span
                                 key={animatedPrice}
                                 style={{
-                                    fontSize: "32px",
+                                    fontSize: "28px",
                                     fontWeight: 800,
                                     color: "#111827",
                                     letterSpacing: "-1px",
@@ -1055,40 +1141,7 @@ export default function OrderSummaryCard(props) {
                     )}
                 </div>
 
-                {/* ── 신청 전 필독사항 ── */}
-                <div
-                    style={{
-                        backgroundColor: "#F9FAFB",
-                        borderRadius: 12,
-                        padding: "14px ",
-                        boxSizing: "border-box" as const,
-                        display: "flex",
-                        flexDirection: "column" as const,
-                        gap: 6,
-                    }}
-                >
-                    <span
-                        style={{
-                            fontSize: 15,
-                            fontWeight: 700,
-                            color: "#0066FF",
-                            fontFamily: FONT,
-                        }}
-                    >
-                        신청 전 필독사항
-                    </span>
-                    <span
-                        style={{
-                            fontSize: 12,
-                            color: "#374151",
-                            lineHeight: 1.4,
-                            fontFamily: FONT,
-                        }}
-                    >
-                        최종신청 내역에는 KT마켓지원금이 제외된 금액이 보여요.
-                        {"\n"}실제 개통 시 할인 금액이 반영되니 안심하세요.
-                    </span>
-                </div>
+                {/* ── 신청 전 필독사항 (PreOrderNotice 컴포넌트로 분리) ── */}
             </div>
 
             {/* ── 월 할부 팝업 ── */}
