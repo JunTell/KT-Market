@@ -2334,8 +2334,8 @@ export default function PlanBenefitSelector(props) {
         return man > 0 ? `${man}만원 할인` : `${amt.toLocaleString()}원 할인`
     }
 
-    // 추천 요금제: 탭 무관하게 5G 심플 110GB (2번째 고정 요금제) 고정
-    const recommendedPid = "ppllistobj_0808"
+    // 최다 뱃지: 유튜브 프리미엄 초이스 베이직 (1번째 고정 요금제)
+    const recommendedPid = "ppllistobj_0937"
 
     // 스켈레톤
     if (isLoading) {
@@ -2428,29 +2428,6 @@ export default function PlanBenefitSelector(props) {
                             }}
                         >
                             {tab}
-                            {props.cheaperTab === tab && (
-                                <span
-                                    style={{
-                                        position: "absolute",
-                                        top: -10,
-                                        right: 8,
-                                        zIndex: 2,
-                                        padding: "2px 7px",
-                                        borderRadius: 999,
-                                        backgroundColor: "#0055FF",
-                                        color: "#FFFFFF",
-                                        fontSize: 10,
-                                        fontWeight: 700,
-                                        lineHeight: 1.2,
-                                        boxShadow: "0 4px 10px rgba(0,85,255,0.18)",
-                                        whiteSpace: "nowrap",
-                                        pointerEvents: "none",
-                                        fontFamily: '"Pretendard","Inter",sans-serif',
-                                    }}
-                                >
-                                    추천
-                                </span>
-                            )}
                         </button>
                     ))}
                 </div>

@@ -180,14 +180,8 @@ export default function PhoneListPage(props) {
                 setHideFilter(true)
                 break
             case "apple":
-                setIsVisibleMainBanner(true)
-                setMainBannerURL("https://framerusercontent.com/images/hQqRf9KXTIIjEexGc76ihqzSfo.jpeg?scale-down-to=1024&width=3942&height=864")
                 break
             case "phone":
-                if (brand === "애플" && category === "아이폰 17") {
-                    setIsVisibleMainBanner(true)
-                    setMainBannerURL("https://framerusercontent.com/images/hQqRf9KXTIIjEexGc76ihqzSfo.jpeg?scale-down-to=1024&width=3942&height=864")
-                }
                 break
         }
 

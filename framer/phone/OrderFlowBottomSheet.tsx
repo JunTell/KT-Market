@@ -264,12 +264,12 @@ export default function OrderFlowBottomSheet(props) {
                     style={{
                         flex: 1, height: 45, borderRadius: 14,
                         border: "none", backgroundColor: "#EF4444",
-                        color: "#FFFFFF", fontSize: 18, fontWeight: 700,
+                        color: "#FFFFFF", fontSize: 14, fontWeight: 700,
                         cursor: "pointer", fontFamily: FONT,
                         display: "flex", alignItems: "center", justifyContent: "center",
                     }}
                 >
-                    {isSoldOut ? "입고 알림" : "신청하기"}
+                    {isSoldOut ? "입고 알림" : "지금 신청하기"}
                 </button>
             </div>
         </div>
