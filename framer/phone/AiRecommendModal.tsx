@@ -23,7 +23,7 @@ const C = {
     accent: "#7B4AFF",
     accentLight: "#F3EEFF",
     accentGradient: "linear-gradient(135deg, #7B4AFF 0%, #A78BFA 100%)",
-    text: "#191F28",
+    text: "#24292E",
     textSub: "#8B95A1",
     border: "#E5E8EB",
     bg: "#FFFFFF",
@@ -420,6 +420,7 @@ const styles: Record<string, React.CSSProperties> = {
         fontSize: 14,
         color: C.textSub,
         lineHeight: 1.5,
+        letterSpacing: -0.24,
         fontFamily: FONT,
     },
 
@@ -448,6 +449,8 @@ const styles: Record<string, React.CSSProperties> = {
         borderWidth: 1.5,
         borderStyle: "solid" as const,
         fontSize: 15,
+        letterSpacing: -0.3,
+        lineHeight: 1.4,
         fontFamily: FONT,
         cursor: "pointer",
         transition: "all 0.15s",
@@ -470,6 +473,8 @@ const styles: Record<string, React.CSSProperties> = {
         padding: "4px 10px",
         borderRadius: 99,
         whiteSpace: "nowrap" as const,
+        letterSpacing: -0.24,
+        lineHeight: 1.5,
         fontFamily: FONT,
     },
     registerDesc: {
@@ -477,6 +482,7 @@ const styles: Record<string, React.CSSProperties> = {
         color: C.textSub,
         fontFamily: FONT,
         lineHeight: 1.4,
+        letterSpacing: -0.24,
     },
 
     // 데이터 티어
@@ -517,10 +523,13 @@ const styles: Record<string, React.CSSProperties> = {
     tierLabel: {
         fontSize: 15,
         lineHeight: 1.4,
+        letterSpacing: -0.3,
     },
     tierSub: {
         fontSize: 13,
         color: C.textSub,
+        letterSpacing: -0.24,
+        lineHeight: 1.5,
     },
     tierCheck: {
         flexShrink: 0,

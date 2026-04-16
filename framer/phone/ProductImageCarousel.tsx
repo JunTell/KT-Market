@@ -172,7 +172,7 @@ export default function ProductImageCarousel(props) {
     // 이미지 없음
     if (items.length === 0) {
         return (
-            <div style={{ width: "100%", height: `${imageHeight}px`, backgroundColor: "#F3F4F6", borderRadius: "12px", display: "flex", justifyContent: "center", alignItems: "center", color: "#9CA3AF", fontSize: "14px" }}>
+            <div style={{ width: "100%", height: `${imageHeight}px`, backgroundColor: "#F3F4F6", borderRadius: "12px", display: "flex", justifyContent: "center", alignItems: "center", color: "#868E96", fontSize: "14px", letterSpacing: -0.24, lineHeight: 1.4 }}>
                 이미지가 없습니다
             </div>
         )
@@ -246,7 +246,7 @@ export default function ProductImageCarousel(props) {
                         justifyContent: "center",
                         alignItems: "center",
                         boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
-                        color: "#374151",
+                        color: "#3F4750",
                         transition: "opacity 0.2s",
                     }}
                 >
@@ -274,7 +274,7 @@ export default function ProductImageCarousel(props) {
                         justifyContent: "center",
                         alignItems: "center",
                         boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
-                        color: "#374151",
+                        color: "#3F4750",
                         transition: "opacity 0.2s",
                     }}
                 >

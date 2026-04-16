@@ -254,12 +254,24 @@ function OrderSheetContent({
                 }}
             >
                 <span
-                    style={{ fontSize: 15, fontWeight: 500, color: "#374151" }}
+                    style={{
+                        fontSize: 15,
+                        fontWeight: 500,
+                        color: "#3F4750",
+                        letterSpacing: -0.3,
+                        lineHeight: 1.4,
+                    }}
                 >
                     월 예상 금액
                 </span>
                 <span
-                    style={{ fontSize: 20, fontWeight: 700, color: "#0055FF" }}
+                    style={{
+                        fontSize: 20,
+                        fontWeight: 700,
+                        color: "#0055FF",
+                        letterSpacing: -0.4,
+                        lineHeight: 1.3,
+                    }}
                 >
                     {displayTotalMonthPayment.toLocaleString()}원
                 </span>
@@ -361,8 +373,10 @@ function OrderSheetModal({
                             style={{
                                 fontSize: 16,
                                 fontWeight: 700,
-                                color: "#111827",
+                                color: "#24292E",
                                 fontFamily: FONT,
+                                letterSpacing: -0.3,
+                                lineHeight: 1.5,
                             }}
                         >
                             최종 주문서
@@ -377,8 +391,11 @@ function OrderSheetModal({
                             <span
                                 style={{
                                     fontSize: 12,
-                                    color: "#6B7280",
+                                    color: "#868E96",
                                     fontFamily: FONT,
+                                    letterSpacing: -0.24,
+                                    lineHeight: 1.5,
+                                    wordBreak: "keep-all",
                                 }}
                             >
                                 할부이자 표시
@@ -531,8 +548,10 @@ function MonthlyPopup({
                         style={{
                             fontSize: "18px",
                             fontWeight: 700,
-                            color: "#111827",
+                            color: "#24292E",
                             margin: 0,
+                            letterSpacing: -0.36,
+                            lineHeight: 1.3,
                         }}
                     >
                         월 납부금액 안내
@@ -547,8 +566,11 @@ function MonthlyPopup({
                         <span
                             style={{
                                 fontSize: 12,
-                                color: "#6B7280",
+                                color: "#868E96",
                                 fontFamily: FONT,
+                                letterSpacing: -0.24,
+                                lineHeight: 1.5,
+                                wordBreak: "keep-all",
                             }}
                         >
                             할부이자 표시
@@ -570,6 +592,8 @@ function MonthlyPopup({
                             backgroundColor: isYakjeong ? "#F5F3FF" : "#EFF6FF",
                             padding: "3px 8px",
                             borderRadius: "6px",
+                            letterSpacing: -0.24,
+                            lineHeight: 1.5,
                         }}
                     >
                         {isYakjeong ? "선택약정할인 (25%)" : "공통지원금"}
@@ -591,10 +615,24 @@ function MonthlyPopup({
                             alignItems: "center",
                         }}
                     >
-                        <span style={{ fontSize: "14px", color: "#6B7280" }}>
+                        <span
+                            style={{
+                                fontSize: "14px",
+                                color: "#868E96",
+                                letterSpacing: -0.24,
+                                lineHeight: 1.4,
+                            }}
+                        >
                             할부원금
                         </span>
-                        <span style={{ fontSize: "14px", color: "#111827" }}>
+                        <span
+                            style={{
+                                fontSize: "14px",
+                                color: "#24292E",
+                                letterSpacing: -0.24,
+                                lineHeight: 1.4,
+                            }}
+                        >
                             {finalPrice.toLocaleString()}원
                         </span>
                     </div>
@@ -613,7 +651,12 @@ function MonthlyPopup({
                             }}
                         >
                             <span
-                                style={{ fontSize: "14px", color: "#6B7280" }}
+                                style={{
+                                    fontSize: "14px",
+                                    color: "#868E96",
+                                    letterSpacing: -0.24,
+                                    lineHeight: 1.4,
+                                }}
                             >
                                 {installmentLabel}
                             </span>
@@ -621,7 +664,9 @@ function MonthlyPopup({
                                 <span
                                     style={{
                                         fontSize: "11px",
-                                        color: "#9CA3AF",
+                                        color: "#868E96",
+                                        letterSpacing: -0.16,
+                                        lineHeight: 1.4,
                                     }}
                                 >
                                     {interestLabel}
@@ -632,7 +677,9 @@ function MonthlyPopup({
                             style={{
                                 fontSize: "14px",
                                 fontWeight: 700,
-                                color: "#111827",
+                                color: "#24292E",
+                                letterSpacing: -0.24,
+                                lineHeight: 1.4,
                             }}
                         >
                             {displayMonthlyPayment.toLocaleString()}원
@@ -645,10 +692,24 @@ function MonthlyPopup({
                             alignItems: "center",
                         }}
                     >
-                        <span style={{ fontSize: "14px", color: "#6B7280" }}>
+                        <span
+                            style={{
+                                fontSize: "14px",
+                                color: "#868E96",
+                                letterSpacing: -0.24,
+                                lineHeight: 1.4,
+                            }}
+                        >
                             월 요금제
                         </span>
-                        <span style={{ fontSize: "14px", color: "#111827" }}>
+                        <span
+                            style={{
+                                fontSize: "14px",
+                                color: "#24292E",
+                                letterSpacing: -0.24,
+                                lineHeight: 1.4,
+                            }}
+                        >
                             {planPrice.toLocaleString()}원
                         </span>
                     </div>
@@ -661,7 +722,12 @@ function MonthlyPopup({
                             }}
                         >
                             <span
-                                style={{ fontSize: "14px", color: "#7C3AED" }}
+                                style={{
+                                    fontSize: "14px",
+                                    color: "#7C3AED",
+                                    letterSpacing: -0.24,
+                                    lineHeight: 1.4,
+                                }}
                             >
                                 └ 선택약정 25% 할인
                             </span>
@@ -670,6 +736,8 @@ function MonthlyPopup({
                                     fontSize: "14px",
                                     fontWeight: 600,
                                     color: "#7C3AED",
+                                    letterSpacing: -0.24,
+                                    lineHeight: 1.4,
                                 }}
                             >
                                 -{planDiscountAmount.toLocaleString()}원
@@ -680,10 +748,13 @@ function MonthlyPopup({
                         <div
                             style={{
                                 fontSize: "12px",
-                                color: "#9CA3AF",
+                                color: "#868E96",
                                 backgroundColor: "#F9FAFB",
                                 borderRadius: "8px",
                                 padding: "8px 10px",
+                                letterSpacing: -0.24,
+                                lineHeight: 1.5,
+                                wordBreak: "keep-all",
                             }}
                         >
                             공통지원금 선택 시 요금제 별도 할인 없음
@@ -712,7 +783,9 @@ function MonthlyPopup({
                             style={{
                                 fontSize: "15px",
                                 fontWeight: 600,
-                                color: "#111827",
+                                color: "#24292E",
+                                letterSpacing: -0.3,
+                                lineHeight: 1.4,
                             }}
                         >
                             월 예상 납부금
@@ -720,8 +793,10 @@ function MonthlyPopup({
                         <div
                             style={{
                                 fontSize: "11px",
-                                color: "#9CA3AF",
+                                color: "#868E96",
                                 marginTop: "2px",
+                                letterSpacing: -0.16,
+                                lineHeight: 1.4,
                             }}
                         >
                             부가세 포함, 결합할인 미적용 기준 · {interestLabel}
@@ -732,6 +807,8 @@ function MonthlyPopup({
                             fontSize: "20px",
                             fontWeight: 800,
                             color: "#0055FF",
+                            letterSpacing: -0.4,
+                            lineHeight: 1.3,
                         }}
                     >
                         {totalMonthly.toLocaleString()}원
@@ -751,6 +828,8 @@ function MonthlyPopup({
                         fontWeight: 600,
                         cursor: "pointer",
                         fontFamily: '"Pretendard", "Inter", sans-serif',
+                        letterSpacing: -0.3,
+                        lineHeight: 1.4,
                     }}
                 >
                     확인
@@ -867,9 +946,12 @@ export default function OrderSummaryCard(props) {
 
     useEffect(() => {
         // 페이지별 독립 채널: URL 경로 마지막 세그먼트를 채널명에 포함
-        const pagePath = typeof window !== "undefined"
-            ? window.location.pathname.replace(/\//g, "-").replace(/^-|-$/g, "") || "home"
-            : "home"
+        const pagePath =
+            typeof window !== "undefined"
+                ? window.location.pathname
+                    .replace(/\//g, "-")
+                    .replace(/^-|-$/g, "") || "home"
+                : "home"
         const channelName = `ktmarket-viewers-${pagePath}`
         const sessionId = Math.random().toString(36).slice(2, 10)
 
@@ -890,7 +972,10 @@ export default function OrderSummaryCard(props) {
             })
             .subscribe(async (status) => {
                 if (status === "SUBSCRIBED") {
-                    await channel.track({ session_id: sessionId, joined_at: Date.now() })
+                    await channel.track({
+                        session_id: sessionId,
+                        joined_at: Date.now(),
+                    })
                 }
             })
 
@@ -952,7 +1037,14 @@ export default function OrderSummaryCard(props) {
         <>
             <div style={wrapperStyle}>
                 {/* ── 배송 배지 + 실시간 조회자 수 (flex row) ── */}
-                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: "8px",
+                    }}
+                >
                     {/* 배송 배지 (주말 숨김) */}
                     {!isWeekend && (
                         <div
@@ -963,18 +1055,59 @@ export default function OrderSummaryCard(props) {
                                 height: "26.948px",
                                 padding: "2.945px 10px",
                                 backgroundColor: "#EFF6FF",
-                                borderRadius: "20px",
+                                borderRadius: "6.737px",
                                 fontFamily: FONT,
                             }}
                         >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                <rect x="1" y="3" width="15" height="13" rx="1" stroke="#3B82F6" strokeWidth="1.8" />
-                                <path d="M16 8h4l3 4v4h-7V8z" stroke="#3B82F6" strokeWidth="1.8" strokeLinejoin="round" />
-                                <circle cx="5.5" cy="18.5" r="2" stroke="#3B82F6" strokeWidth="1.8" />
-                                <circle cx="18.5" cy="18.5" r="2" stroke="#3B82F6" strokeWidth="1.8" />
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                            >
+                                <rect
+                                    x="1"
+                                    y="3"
+                                    width="15"
+                                    height="13"
+                                    rx="1"
+                                    stroke="#3B82F6"
+                                    strokeWidth="1.8"
+                                />
+                                <path
+                                    d="M16 8h4l3 4v4h-7V8z"
+                                    stroke="#3B82F6"
+                                    strokeWidth="1.8"
+                                    strokeLinejoin="round"
+                                />
+                                <circle
+                                    cx="5.5"
+                                    cy="18.5"
+                                    r="2"
+                                    stroke="#3B82F6"
+                                    strokeWidth="1.8"
+                                />
+                                <circle
+                                    cx="18.5"
+                                    cy="18.5"
+                                    r="2"
+                                    stroke="#3B82F6"
+                                    strokeWidth="1.8"
+                                />
                             </svg>
-                            <span style={{ fontSize: "12px", fontWeight: 700, color: "#3B82F6" }}>
-                                {isBefore3PM ? "오후 3시 전 주문시 당일 출발" : "내일 출발"}
+                            <span
+                                style={{
+                                    fontSize: "12px",
+                                    fontWeight: 700,
+                                    color: "#3B82F6",
+                                    letterSpacing: -0.24,
+                                    lineHeight: 1.5,
+                                    wordBreak: "keep-all",
+                                }}
+                            >
+                                {isBefore3PM
+                                    ? "오후 3시 전 주문시 당일 출발"
+                                    : "내일 출발"}
                             </span>
                         </div>
                     )}
@@ -991,23 +1124,39 @@ export default function OrderSummaryCard(props) {
                             height: "26.948px",
                             padding: "2.945px 10px",
                             backgroundColor: "#FEF2F2",
-                            borderRadius: "20px",
+                            borderRadius: "6.737px",
                             fontFamily: FONT,
                         }}
                     >
                         <motion.div
                             animate={{ opacity: [1, 0.3, 1] }}
-                            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                            transition={{
+                                duration: 1.5,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                            }}
                             style={{
-                                width: "8px",
-                                height: "8px",
+                                width: "7px",
+                                height: "7px",
                                 borderRadius: "50%",
                                 backgroundColor: "#EF4444",
                                 flexShrink: 0,
                             }}
                         />
-                        <span style={{ fontSize: "12px", fontWeight: 700, color: "#EF4444" }}>
-                            현재 {randomViewerBase.current + Math.max(0, viewerCount - 1)}명이 보는 중
+                        <span
+                            style={{
+                                fontSize: "12px",
+                                fontWeight: 700,
+                                color: "#EF4444",
+                                letterSpacing: -0.24,
+                                lineHeight: 1.5,
+                                fontFamily: FONT,
+                            }}
+                        >
+                            현재{" "}
+                            {randomViewerBase.current +
+                                Math.max(0, viewerCount - 1)}
+                            명이 보는 중
                         </span>
                     </motion.div>
                 </div>
@@ -1024,9 +1173,11 @@ export default function OrderSummaryCard(props) {
                         <span
                             style={{
                                 fontSize: "14px",
-                                fontWeight: 500,
-                                color: "#111827",
+                                fontWeight: 700,
+                                color: "#24292E",
                                 fontFamily: FONT,
+                                letterSpacing: -0.24,
+                                lineHeight: 1.4,
                             }}
                         >
                             {devicePetName}
@@ -1053,6 +1204,8 @@ export default function OrderSummaryCard(props) {
                                     fontSize: "14px",
                                     color: "#0066FF",
                                     fontWeight: 600,
+                                    letterSpacing: -0.24,
+                                    lineHeight: 1.4,
                                 }}
                             >
                                 최저가
@@ -1062,7 +1215,7 @@ export default function OrderSummaryCard(props) {
                                 style={{
                                     fontSize: "28px",
                                     fontWeight: 800,
-                                    color: "#111827",
+                                    color: "#24292E",
                                     letterSpacing: "-1px",
                                     fontVariantNumeric: "tabular-nums",
                                     fontFamily: FONT,
@@ -1074,8 +1227,10 @@ export default function OrderSummaryCard(props) {
                                 style={{
                                     fontSize: "22px",
                                     fontWeight: 700,
-                                    color: "#111827",
+                                    color: "#24292E",
                                     fontFamily: FONT,
+                                    letterSpacing: -0.44,
+                                    lineHeight: 1.2,
                                 }}
                             >
                                 원
@@ -1093,11 +1248,13 @@ export default function OrderSummaryCard(props) {
                                 border: "none",
                                 cursor: "pointer",
                                 padding: "4px 0 4px 8px",
-                                color: "#6B7280",
+                                color: "#868E96",
                                 fontSize: "15px",
                                 fontWeight: 500,
                                 fontFamily: FONT,
                                 flexShrink: 0,
+                                letterSpacing: -0.3,
+                                lineHeight: 1.4,
                             }}
                         >
                             월 납부금 확인
@@ -1116,28 +1273,47 @@ export default function OrderSummaryCard(props) {
                         </button>
                     </div>
 
-                    {/* ── 할인 배지 ── */}
+                    {/* ── 출고가 + 할인 인라인 문장 ── */}
                     {discountMan > 0 && (
-                        <div
+                        <p
                             style={{
-                                display: "inline-flex",
-                                alignSelf: "flex-start",
-                                backgroundColor: "#FEE2E2",
-                                borderRadius: 999,
-                                padding: "5px 12px",
+                                margin: 0,
+                                display: "flex",
+                                alignItems: "baseline",
+                                gap: "4px",
+                                flexWrap: "wrap",
                             }}
                         >
                             <span
                                 style={{
-                                    fontSize: 14,
+                                    fontSize: 13,
+                                    fontWeight: 400,
+                                    color: "#868E96",
+                                    fontFamily: FONT,
+                                    letterSpacing: -0.24,
+                                    lineHeight: 1.5,
+                                }}
+                            >
+                                출고가{" "}
+                                {(originPrice > 0
+                                    ? originPrice
+                                    : devicePrice
+                                ).toLocaleString()}
+                                원에서
+                            </span>
+                            <span
+                                style={{
+                                    fontSize: 13,
                                     fontWeight: 700,
                                     color: "#EF4444",
                                     fontFamily: FONT,
+                                    letterSpacing: -0.24,
+                                    lineHeight: 1.5,
                                 }}
                             >
                                 {discountMan}만원 할인
                             </span>
-                        </div>
+                        </p>
                     )}
                 </div>
 

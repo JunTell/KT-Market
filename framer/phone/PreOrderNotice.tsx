@@ -36,6 +36,8 @@ export default function PreOrderNotice(props) {
                 style={{
                     fontSize: 15,
                     fontWeight: 700,
+                    letterSpacing: -0.3,
+                    lineHeight: 1.4,
                     color: titleColor,
                     fontFamily: FONT,
                 }}
@@ -45,8 +47,10 @@ export default function PreOrderNotice(props) {
             <span
                 style={{
                     fontSize: 12,
-                    color: "#374151",
+                    color: "#3F4750",
                     lineHeight: 1.6,
+                    letterSpacing: -0.24,
+                    wordBreak: "keep-all",
                     fontFamily: FONT,
                     whiteSpace: "pre-line",
                 }}

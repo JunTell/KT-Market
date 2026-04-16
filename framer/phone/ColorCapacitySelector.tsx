@@ -112,7 +112,7 @@ export default function ColorCapacitySelector(props) {
         <>
             <div style={wrapperStyle}>
                 {/* 섹션 타이틀 */}
-                <span style={{ fontSize: 17, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+                <span style={{ fontSize: 17, fontWeight: 700, color: "#24292E", fontFamily: FONT, letterSpacing: -0.34, lineHeight: 1.4 }}>
                     {title}
                 </span>
 
@@ -146,10 +146,10 @@ export default function ColorCapacitySelector(props) {
 
                     {/* 색상명 + 용량 */}
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
-                        <span style={{ fontSize: 17, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+                        <span style={{ fontSize: 17, fontWeight: 700, color: "#24292E", fontFamily: FONT, letterSpacing: -0.34, lineHeight: 1.4 }}>
                             {activeColor?.kr ?? "색상 선택"}
                         </span>
-                        <span style={{ fontSize: 15, color: "#9CA3AF", fontFamily: FONT }}>
+                        <span style={{ fontSize: 15, color: "#868E96", fontFamily: FONT, letterSpacing: -0.3, lineHeight: 1.4 }}>
                             {activeCapacity?.capacity ?? ""}
                         </span>
                     </div>
@@ -237,8 +237,9 @@ export default function ColorCapacitySelector(props) {
                                                         borderRadius: 7,
                                                         backgroundColor: isActive ? "#FFFFFF" : "transparent",
                                                         boxShadow: isActive ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
-                                                        color: isActive ? "#111827" : "#9CA3AF",
+                                                        color: isActive ? "#24292E" : "#868E96",
                                                         fontSize: 14, fontWeight: isActive ? 700 : 400,
+                                                        letterSpacing: -0.24, lineHeight: 1.4,
                                                         cursor: "pointer", fontFamily: FONT,
                                                     }}
                                                 >
@@ -305,13 +306,15 @@ export default function ColorCapacitySelector(props) {
                                                 <span style={{
                                                     fontSize: 17,
                                                     fontWeight: isActive ? 700 : 400,
-                                                    color: isActive ? "#111827" : "#374151",
+                                                    color: isActive ? "#24292E" : "#3F4750",
                                                     fontFamily: FONT,
+                                                    letterSpacing: -0.34,
+                                                    lineHeight: 1.4,
                                                 }}>
                                                     {color.kr}
                                                 </span>
                                                 {color.isSoldOut && (
-                                                    <span style={{ fontSize: 12, color: "#9CA3AF", marginLeft: 6 }}>품절</span>
+                                                    <span style={{ fontSize: 12, color: "#868E96", marginLeft: 6, letterSpacing: -0.24, lineHeight: 1.5 }}>품절</span>
                                                 )}
                                             </div>
                                         </motion.div>

@@ -1836,7 +1836,7 @@ export function withPhoneDetail(Component): ComponentType {
                                     fontSize: "22px",
                                     fontWeight: 800,
                                     marginBottom: "16px",
-                                    color: "#191F28",
+                                    color: "#24292E",
                                     letterSpacing: "-0.5px",
                                 }}
                             >
@@ -1857,7 +1857,7 @@ export function withPhoneDetail(Component): ComponentType {
                                 style={{
                                     fontSize: "15px",
                                     lineHeight: 1.6,
-                                    color: "#4E5968",
+                                    color: "#3F4750",
                                     marginBottom: "32px",
                                     whiteSpace: "pre-line",
                                     wordBreak: "keep-all",
@@ -1878,6 +1878,8 @@ export function withPhoneDetail(Component): ComponentType {
                                     borderRadius: "999px",
                                     fontSize: "16px",
                                     fontWeight: 700,
+                                    letterSpacing: -0.3,
+                                    lineHeight: 1.5,
                                     cursor: "pointer",
                                     transition: "background-color 0.2s",
                                 }}

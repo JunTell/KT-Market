@@ -8,7 +8,7 @@ import {
     FONT,
     useAnimatedNumber,
     useInstallmentInterest,
-} from "https://framer.com/m/OrderComponents-QLDYR7.js@hhiQilDauXuXfkuhoANY"
+} from "https://framer.com/m/OrderComponents-QLDYR7.js@CXixzf1QqqP7wVgBfUj5"
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────
 
@@ -129,154 +129,84 @@ export default function OrderFlowBottomSheet(props) {
             zIndex: 120,
             backgroundColor: "#FFFFFF",
             borderRadius: "20px 20px 0 0",
-            boxShadow: "0 -4px 28px rgba(0,0,0,0.13)",
+            boxShadow: "0 -2px 12px rgba(0,0,0,0.10)",
             fontFamily: FONT,
         }}>
-            {/*
-            월 통신요금 + 월 할부금
+            {/* 월 예상 금액 + 신청하기 버튼 */}
             <div style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                margin: "14px 16px 8px",
-                backgroundColor: "#F9FAFB",
-                borderRadius: 12,
-                padding: "12px 14px",
-                boxSizing: "border-box" as const,
+                display: "flex", alignItems: "center",
+                padding: "14px 16px",
+                paddingBottom: "calc(14px + env(safe-area-inset-bottom, 10px))",
+                gap: 12,
             }}>
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 2, flex: 1 }}>
-                    <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>월 통신요금</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
-                        {Math.round(planAfterDiscount).toLocaleString()}원
-                    </span>
-                </div>
-                <span style={{ fontSize: 16, color: "#D1D5DB", fontWeight: 400, flexShrink: 0 }}>+</span>
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 2, flex: 1 }}>
-                    <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>월 할부금</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
-                        {Math.round(displayInstallment).toLocaleString()}원
-                    </span>
-                </div>
-                <span style={{ fontSize: 16, color: "#D1D5DB", fontWeight: 400, flexShrink: 0 }}>=</span>
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 2, alignItems: "flex-end" }}>
-                    <span style={{ fontSize: 11, color: "#9CA3AF", fontFamily: FONT }}>월 예상</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#0055FF", fontFamily: FONT }}>
-                        {displayTotal.toLocaleString()}원
-                    </span>
-                </div>
-            </div>
-            */}
-
-            {/* 월 예상 금액 행 */}
-            <div style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "14px 20px 10px",
-            }}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
-                    <span style={{ fontSize: 15, color: "#374151", fontWeight: 600, fontFamily: FONT }}>
-                        월 예상 금액
-                    </span>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <span style={{ fontSize: 12, fontWeight: 500, color: "#9CA3AF", fontFamily: FONT }}>부가세 포함</span>
-                        {installment > 0 && (
-                            <>
-                                <span style={{ fontSize: 11, color: "#D1D5DB", fontFamily: FONT }}>·</span>
-                                <AnimatePresence mode="wait" initial={false}>
-                                    <motion.span
-                                        key={showInterest ? "interest-on" : "interest-off"}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        transition={{ duration: 0.5 }}
-                                        style={{ fontSize: 12, fontWeight: 500, color: "#9CA3AF", fontFamily: FONT }}
-                                    >
-                                        {showInterest ? "할부이자 포함" : "할부이자 미포함"}
-                                    </motion.span>
-                                </AnimatePresence>
-                            </>
-                        )}
+                {/* 왼쪽: 가격 정보 */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <span style={{
+                            fontSize: 13, fontWeight: 500,
+                            color: "#868E96",
+                            letterSpacing: -0.2, lineHeight: 1.4,
+                            fontFamily: FONT,
+                        }}>
+                            월 예상 금액
+                        </span>
+                        {/* {installment > 0 && (
+                            <AnimatePresence mode="wait" initial={false}>
+                                <motion.span
+                                    key={showInterest ? "interest-on" : "interest-off"}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.4 }}
+                                    style={{
+                                        fontSize: 11, fontWeight: 400,
+                                        color: "#ADB5BD",
+                                        letterSpacing: -0.16, lineHeight: 1.4,
+                                        fontFamily: FONT,
+                                    }}
+                                >
+                                    {showInterest ? "이자 포함" : "이자 미포함"}
+                                </motion.span>
+                            </AnimatePresence>
+                        )} */}
                     </div>
+                    <motion.span
+                        style={{
+                            fontSize: 22, fontWeight: 800, lineHeight: 1.2,
+                            letterSpacing: -0.5,
+                            color: direction === "up" ? "#EF4444" : direction === "down" ? "#3B82F6" : "#24292E",
+                            transition: "color 0.4s ease",
+                            fontVariantNumeric: "tabular-nums",
+                            fontFamily: FONT,
+                        }}
+                    >
+                        {animatedPayment.toLocaleString()}원
+                    </motion.span>
                 </div>
-                <motion.span
-                    style={{
-                        fontSize: 21,
-                        fontWeight: 700,
-                        lineHeight: 1.2,
-                        color: direction === "up" ? "#EF4444" : direction === "down" ? "#0055FF" : "#111827",
-                        transition: "color 0.4s ease",
-                        fontVariantNumeric: "tabular-nums",
-                        fontFamily: FONT,
-                    }}
-                >
-                    {animatedPayment.toLocaleString()}원
-                </motion.span>
-            </div>
 
-            {/* 버튼 행: 전화 | 카카오톡 상담 | 입고 알림 */}
-            <div style={{
-                display: "flex", gap: 8,
-                padding: "0 16px",
-                paddingBottom: "calc(16px + env(safe-area-inset-bottom, 10px))",
-            }}>
-                {/* 전화 아이콘 버튼 */}
-                <button
-                    onClick={handlePhoneClick}
-                    style={{
-                        width: 45, height: 45, borderRadius: 14,
-                        border: "1.5px solid #E5E7EB",
-                        backgroundColor: "#FFFFFF",
-                        cursor: "pointer", flexShrink: 0,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                    }}
-                >
-                    <svg width="25" height="25" viewBox="0 0 24 24" fill="none">
-                        <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V20a1 1 0 01-1 1C9.61 21 3 14.39 3 6a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.25 1.01l-2.2 2.2z"
-                            fill="#3B82F6" />
-                    </svg>
-                </button>
-
-                {/* 카카오톡 상담 버튼 */}
-                <a
-                    href={kakaoTalkLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                        flex: 1, height: 45, borderRadius: 14,
-                        border: "none", backgroundColor: "#FEE500",
-                        color: "#191919", fontSize: 14, fontWeight: 700,
-                        cursor: "pointer", fontFamily: FONT,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        textDecoration: "none",
-                        gap: 6,
-                    }}
-                >
-                    <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
-                        <ellipse cx="9" cy="8.1" rx="7.5" ry="6.3" fill="#191919" />
-                        <ellipse cx="9" cy="13.5" rx="3" ry="1.8" fill="#FEE500" />
-                        <path d="M5.4 7.2c0-.5.4-.9.9-.9s.9.4.9.9-.4.9-.9.9-.9-.4-.9-.9zM8.1 7.2c0-.5.4-.9.9-.9s.9.4.9.9-.4.9-.9.9-.9-.4-.9-.9zM10.8 7.2c0-.5.4-.9.9-.9s.9.4.9.9-.4.9-.9.9-.9-.4-.9-.9z" fill="#FEE500" />
-                    </svg>
-                    카카오톡 상담
-                </a>
-
-                {/* 신청/입고알림 버튼 */}
+                {/* 오른쪽: 신청하기 버튼 */}
                 <button
                     onClick={isSoldOut ? handleRestockClick : handleFormLink}
                     style={{
-                        flex: 1, height: 45, borderRadius: 14,
-                        border: "none", backgroundColor: "#EF4444",
-                        color: "#FFFFFF", fontSize: 14, fontWeight: 700,
+                        flex: 1, height: 54, borderRadius: 14,
+                        border: "none",
+                        backgroundColor: isSoldOut ? "#3F4750" : "#0066FF",
+                        color: "#FFFFFF",
+                        fontSize: 17, fontWeight: 700,
+                        letterSpacing: -0.3, lineHeight: 1,
                         cursor: "pointer", fontFamily: FONT,
                         display: "flex", alignItems: "center", justifyContent: "center",
+                        flexShrink: 0,
                     }}
                 >
-                    {isSoldOut ? "입고 알림" : "지금 신청하기"}
+                    {isSoldOut ? "입고 알림" : "신청하기"}
                 </button>
             </div>
         </div>
     )
 
     return (
-        <div style={{ width: "100%", minHeight: 148 }}>
+        <div style={{ width: "100%", minHeight: 86 }}>
             {/* portal 없이 직접 렌더링 — Framer 캔버스에서 portal은 에디터 외부 body에 붙음 */}
             {bar}
         </div>

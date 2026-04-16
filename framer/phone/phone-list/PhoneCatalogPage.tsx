@@ -572,7 +572,9 @@ function ProductCard({ product, onClick, rank }) {
                 <span style={{
                     fontSize: "clamp(12px, 3.2vw, 14px)",
                     fontFamily: "Pretendard Medium, sans-serif",
-                    color: "#9CA3AF",
+                    color: "#868E96",
+                    letterSpacing: -0.24,
+                    lineHeight: 1.4,
                     overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                 }}>
                     {product.pet_name}
@@ -580,7 +582,7 @@ function ProductCard({ product, onClick, rank }) {
                 <span style={{
                     fontSize: "clamp(18px, 5vw, 22px)",
                     fontFamily: "Pretendard Bold, sans-serif",
-                    fontWeight: 700, color: "#111827", letterSpacing: "-0.5px",
+                    fontWeight: 700, color: "#24292E", letterSpacing: "-0.5px",
                 }}>
                     {calcPrice()}원
                 </span>
@@ -597,6 +599,8 @@ function ProductCard({ product, onClick, rank }) {
                             fontSize: "clamp(11px, 3vw, 13px)",
                             fontFamily: "Pretendard Bold, sans-serif",
                             fontWeight: 700, color: "#EF4444",
+                            letterSpacing: -0.24,
+                            lineHeight: 1.5,
                         }}>
                             {discountRate}%
                         </span>
@@ -620,6 +624,7 @@ function ProductCard({ product, onClick, rank }) {
                 fontFamily: "Pretendard Medium, sans-serif",
 
                 fontWeight: 600, textAlign: "center", whiteSpace: "nowrap",
+                letterSpacing: -0.24, lineHeight: 1.4,
 
             }}>
 
