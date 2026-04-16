@@ -2105,6 +2105,21 @@ export function withRegister(Component): ComponentType {
                 let initialRegister = store.register
                 let initialCarrier = store.carrier || store.currentCarrier
 
+                // AI 맞춤 추천 데이터가 있으면 우선 적용
+                try {
+                    const aiRaw = typeof window !== "undefined"
+                        ? window.sessionStorage.getItem("kt_ai_recommend")
+                        : null
+                    if (aiRaw) {
+                        const aiData = JSON.parse(aiRaw)
+                        if (aiData.carrier && aiData.register) {
+                            initialCarrier = aiData.carrier
+                            initialRegister = aiData.register
+                        }
+                    }
+                } catch {}
+
+                // 모델별 강제 설정 (AI 추천보다 우선)
                 if (numberPortingModels.includes(deviceModel)) {
                     initialRegister = "번호이동"
                     initialCarrier = "SKT"
