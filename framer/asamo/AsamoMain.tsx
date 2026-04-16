@@ -16,26 +16,26 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // 재고 현황 (재고.md 기준 2026-04-06) — 모델별 총 잔여 수량
 const TOTAL_STOCK_MAP: Record<string, number> = {
-    "aip17-256":   75,  // BK16 + PE4 + WE55 (BE 품절)
-    "aip17e-256":  50,  // BK13 + PK23 + WE14
-    "aip17p-256":  12,  // BE12
-    "aip17p-512":  4,   // SR4
+    "aip17-256": 75,  // BK16 + PE4 + WE55 (BE 품절)
+    "aip17e-256": 50,  // BK13 + PK23 + WE14
+    "aip17p-256": 12,  // BE12
+    "aip17p-512": 4,   // SR4
     "aip17pm-256": 5,   // BE5
     "aip17pm-512": 18,  // SR18
-    "aipa-1t":     2,   // BE1 + BK1
-    "aipa-256":    25,  // BE6 + BK5 + GD8 + WE6
-    "aipa-512":    34,  // BE5 + BK14 + GD4 + WE11
+    "aipa-1t": 2,   // BE1 + BK1
+    "aipa-256": 25,  // BE6 + BK5 + GD8 + WE6
+    "aipa-512": 34,  // BE5 + BK14 + GD4 + WE11
 }
 
 // 현재 모델(17시리즈) 추가 및 중복 오타 수정
 const GONGGU_MODELS = [
     "aip17e-256",
-    "aip17e-512",
+    // "aip17e-512",
     "aip17-256",
-    "aip17-512",
-    "aip17p-256",
-    "aip17p-512",
-    "aip17pm-256",
+    // "aip17-512",
+    // "aip17p-256",
+    // "aip17p-512",
+    // "aip17pm-256",
     "aip17pm-512",
     "aipa-256",
     "aipa-512",
@@ -411,13 +411,13 @@ function StockUrgencyBanner({ totalStock }: { totalStock: number }) {
                 backgroundColor: isSoldOut
                     ? "#F3F4F6"
                     : isUrgent
-                    ? "#FFF1F0"
-                    : "#FFF8F0",
+                        ? "#FFF1F0"
+                        : "#FFF8F0",
                 color: isSoldOut
                     ? "#86868b"
                     : isUrgent
-                    ? "#FF3B30"
-                    : "#FF9500",
+                        ? "#FF3B30"
+                        : "#FF9500",
             }}
         >
             <span>{isSoldOut ? "⚠️" : isUrgent ? "🔥" : "⏰"}</span>
@@ -425,8 +425,8 @@ function StockUrgencyBanner({ totalStock }: { totalStock: number }) {
                 {isSoldOut
                     ? "현재 일시품절 상태입니다"
                     : isUrgent
-                    ? `잔여 ${totalStock}개 · 지금 바로 신청하세요`
-                    : `마감 임박 · 잔여 ${totalStock}개`}
+                        ? `잔여 ${totalStock}개 · 지금 바로 신청하세요`
+                        : `마감 임박 · 잔여 ${totalStock}개`}
             </span>
         </div>
     )
