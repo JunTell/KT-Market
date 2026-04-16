@@ -122,10 +122,10 @@ export default function EventMainBanner(props) {
 
         // 버튼
         btn1Text = "간편 사전예약하기",
-        btn1Link = "",
+        btn1Link = "/forms/preorder-alram",
         btn1OnClick,
         btn2Text = "출시 예정 모델 보러가기",
-        btn2Link = "",
+        btn2Link = "#upcoming-models",
         btn2OnClick,
         btnBottomOffset = 26,
         btnSideOffset = 27,
@@ -153,8 +153,17 @@ export default function EventMainBanner(props) {
 
     const handleBtn2 = useCallback(() => {
         if (typeof btn2OnClick === "function") return btn2OnClick()
-        if (btn2Link && typeof window !== "undefined")
-            window.location.href = btn2Link
+        if (!btn2Link || typeof window === "undefined") return
+
+        // 앵커 링크(#)면 smooth scroll, 아니면 페이지 이동
+        if (btn2Link.startsWith("#")) {
+            const el = document.querySelector(btn2Link)
+            if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "start" })
+                return
+            }
+        }
+        window.location.href = btn2Link
     }, [btn2OnClick, btn2Link])
 
     const stats = [
@@ -222,9 +231,9 @@ export default function EventMainBanner(props) {
                             scale: [1, 1.08, 1.05, 1.08, 1.03, 1.05, 1],
                         }}
                         transition={{
-                            duration: 1.6,
+                            duration: 1.2,
                             repeat: Infinity,
-                            repeatDelay: 2.4,
+                            repeatDelay: 0.8,
                             ease: "easeInOut",
                         }}
                         style={{
@@ -244,7 +253,7 @@ export default function EventMainBanner(props) {
                 <div
                     style={{
                         position: "absolute",
-                        bottom: btnBottomOffset,
+                        bottom: btnBottomOffset + 27 * t,
                         left: btnSideOffset,
                         right: btnSideOffset,
                         display: "flex",
@@ -365,7 +374,7 @@ const btn1Style: React.CSSProperties = {
 
 const btn2Style: React.CSSProperties = {
     display: "flex",
-    width: "100%",
+    width: "80%",
     padding: "10px 18px",
     justifyContent: "center",
     alignItems: "center",
@@ -435,7 +444,7 @@ addPropertyControls(EventMainBanner, {
     btn1Link: {
         type: ControlType.String,
         title: "버튼1 링크",
-        defaultValue: "",
+        defaultValue: "/forms/preorder-alram",
     },
     btn2Text: {
         type: ControlType.String,
@@ -445,7 +454,7 @@ addPropertyControls(EventMainBanner, {
     btn2Link: {
         type: ControlType.String,
         title: "버튼2 링크",
-        defaultValue: "",
+        defaultValue: "#upcoming-models",
     },
     btnBottomOffset: {
         type: ControlType.Number,

@@ -4,6 +4,7 @@
 
 import * as React from "react"
 import { addPropertyControls, ControlType } from "framer"
+import { motion } from "framer-motion"
 
 const FONT = '"Pretendard", "Inter", sans-serif'
 
@@ -126,57 +127,35 @@ export default function WhyPreorder(props) {
                 {/* ══ 타이틀 ══ */}
                 <div
                     style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        width: 298,
-                        position: "relative",
+                        textAlign: "center",
+                        letterSpacing: "0.716px",
                     }}
                 >
-                    {/* 형광 밑줄 */}
                     <div
                         style={{
-                            position: "absolute",
-                            top: 36,
-                            left: "50%",
-                            transform: "translateX(-50%)",
-                            width: 130,
-                            height: 19,
-                            background: "#D5F85D",
-                            zIndex: 0,
-                        }}
-                    />
-                    <div
-                        style={{
-                            position: "relative",
-                            zIndex: 1,
-                            textAlign: "center",
-                            letterSpacing: "0.716px",
+                            fontFamily: FONT,
+                            fontSize: 28,
+                            fontWeight: 700,
+                            color: "#000",
+                            lineHeight: 1.25,
                         }}
                     >
-                        <div
-                            style={{
-                                fontFamily: FONT,
-                                fontSize: 28,
-                                fontWeight: 700,
-                                color: "#000",
-                                lineHeight: 1.25,
-                            }}
-                        >
-                            {titleLine1}
-                        </div>
-                        <div
-                            style={{
-                                fontFamily: FONT,
-                                fontSize: 32,
-                                fontWeight: 800,
-                                color: "#2A86FF",
-                                lineHeight: 1.25,
-                            }}
-                        >
-                            {titleLine2}
-                        </div>
+                        {titleLine1}
                     </div>
+                    <span
+                        style={{
+                            fontFamily: FONT,
+                            fontSize: 32,
+                            fontWeight: 800,
+                            color: "#2A86FF",
+                            lineHeight: 1.25,
+                            backgroundImage: "linear-gradient(transparent 60%, #D5F85D 60%)",
+                            backgroundRepeat: "no-repeat",
+                            backgroundSize: "100% 100%",
+                        }}
+                    >
+                        {titleLine2}
+                    </span>
                 </div>
 
                 {/* ══ 카드 리스트 ══ */}
@@ -191,21 +170,30 @@ export default function WhyPreorder(props) {
                         width: 296,
                     }}
                 >
-                    <BenefitCard
-                        number="01"
-                        title={card1Title}
-                        desc={card1Desc}
-                    />
-                    <BenefitCard
-                        number="02"
-                        title={card2Title}
-                        desc={card2Desc}
-                    />
-                    <BenefitCard
-                        number="03"
-                        title={card3Title}
-                        desc={card3Desc}
-                    />
+                    {[
+                        { number: "01", title: card1Title, desc: card1Desc },
+                        { number: "02", title: card2Title, desc: card2Desc },
+                        { number: "03", title: card3Title, desc: card3Desc },
+                    ].map((card, i) => (
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, y: 24 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: "-30px" }}
+                            transition={{
+                                duration: 0.5,
+                                delay: i * 0.15,
+                                ease: "easeOut",
+                            }}
+                            style={{ width: "100%" }}
+                        >
+                            <BenefitCard
+                                number={card.number}
+                                title={card.title}
+                                desc={card.desc}
+                            />
+                        </motion.div>
+                    ))}
                 </div>
             </div>
         </div>

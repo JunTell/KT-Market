@@ -7,6 +7,7 @@
 import * as React from "react"
 import { useCallback } from "react"
 import { addPropertyControls, ControlType } from "framer"
+import { motion } from "framer-motion"
 
 // ─── 폰트 ───────────────────────────────────────────────────────────
 const FONT = '"Pretendard", "Inter", sans-serif'
@@ -49,7 +50,7 @@ interface DeviceCardProps {
     imageWidth?: number
     imageHeight?: number
     imageRight?: number
-    imageTop?: number
+    imageBottom?: number
 }
 
 function DeviceCard({
@@ -62,7 +63,7 @@ function DeviceCard({
     imageWidth = 60,
     imageHeight = 52,
     imageRight = -6,
-    imageTop = 4,
+    imageBottom = 0,
 }: DeviceCardProps) {
     const colors = BADGE_COLORS[badgeColor] || BADGE_COLORS.green
 
@@ -162,7 +163,7 @@ function DeviceCard({
                     style={{
                         position: "absolute",
                         right: imageRight,
-                        top: imageTop,
+                        bottom: imageBottom,
                         width: imageWidth,
                         height: imageHeight,
                         objectFit: "contain",
@@ -216,7 +217,7 @@ export default function UpcomingModels(props) {
 
         // CTA 버튼
         ctaText = "사전예약 알림 신청",
-        ctaLink = "",
+        ctaLink = "/forms/preorder-alram",
         ctaOnClick,
 
         style,
@@ -230,6 +231,7 @@ export default function UpcomingModels(props) {
 
     return (
         <div
+            id="upcoming-models"
             style={{
                 width: "100%",
                 maxWidth: 440,
@@ -251,44 +253,28 @@ export default function UpcomingModels(props) {
             {/* ══ 타이틀 ══ */}
             <div
                 style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                    gap: 8,
-                    position: "relative",
+                    fontFamily: FONT,
+                    fontSize: 35,
+                    fontWeight: 700,
+                    lineHeight: 1.25,
+                    letterSpacing: "0.7px",
+                    color: "#000",
+                    textAlign: "center",
+                    whiteSpace: "pre-line",
                 }}
             >
-                {/* 형광 밑줄 */}
-                <div
+                <span
                     style={{
-                        position: "absolute",
-                        top: 53 - 30,
-                        left: 0,
-                        width: 138,
-                        height: 19,
-                        background: "#D5F85D",
-                        zIndex: 0,
-                    }}
-                />
-                <div
-                    style={{
-                        position: "relative",
-                        zIndex: 1,
-                        fontFamily: FONT,
-                        fontSize: 35,
-                        fontWeight: 700,
-                        lineHeight: 1.25,
-                        letterSpacing: "0.7px",
-                        color: "#000",
-                        textAlign: "center",
-                        whiteSpace: "pre-line",
+                        fontWeight: 800,
+                        color: "#2A86FF",
+                        backgroundImage: "linear-gradient(transparent 60%, #D5F85D 60%)",
+                        backgroundRepeat: "no-repeat",
+                        backgroundSize: "100% 100%",
                     }}
                 >
-                    <span style={{ fontWeight: 800, color: "#2A86FF" }}>
-                        {titleBlue}
-                    </span>
-                    {titleBlack}
-                </div>
+                    {titleBlue}
+                </span>
+                {titleBlack}
             </div>
 
             {/* ══ 카드 리스트 + CTA ══ */}
@@ -319,7 +305,7 @@ export default function UpcomingModels(props) {
                         imageWidth={60}
                         imageHeight={52}
                         imageRight={-6}
-                        imageTop={4}
+
                     />
                     <DeviceCard
                         badge={card2Badge}
@@ -330,20 +316,44 @@ export default function UpcomingModels(props) {
                         imageWidth={61}
                         imageHeight={64}
                         imageRight={-6}
-                        imageTop={6}
+                        imageBottom={-10}
                     />
-                    <DeviceCard
-                        badge={card3Badge}
-                        badgeColor={card3BadgeColor}
-                        name={card3Name}
-                        date={card3Date}
-                        image={card3Image}
-                        featured
-                        imageWidth={72}
-                        imageHeight={80}
-                        imageRight={-6}
-                        imageTop={2}
-                    />
+                    <motion.div
+                        animate={{
+                            scale: [1, 1.03, 1],
+                            boxShadow: [
+                                "0 0 0px rgba(42,134,255,0)",
+                                "0 0 18px rgba(42,134,255,0.5)",
+                                "0 0 0px rgba(42,134,255,0)",
+                            ],
+                            y: [0, -3, 0],
+                        }}
+                        transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            repeatDelay: 1,
+                            ease: "easeInOut",
+                        }}
+                        style={{
+                            borderRadius: 17,
+                            width: "100%",
+                            display: "flex",
+                            justifyContent: "center",
+                        }}
+                    >
+                        <DeviceCard
+                            badge={card3Badge}
+                            badgeColor={card3BadgeColor}
+                            name={card3Name}
+                            date={card3Date}
+                            image={card3Image}
+                            featured
+                            imageWidth={72}
+                            imageHeight={80}
+                            imageRight={-6}
+    
+                        />
+                    </motion.div>
                     <DeviceCard
                         badge={card4Badge}
                         badgeColor={card4BadgeColor}
@@ -353,7 +363,7 @@ export default function UpcomingModels(props) {
                         imageWidth={53}
                         imageHeight={53}
                         imageRight={-4}
-                        imageTop={6}
+
                     />
                 </div>
 
@@ -526,6 +536,6 @@ addPropertyControls(UpcomingModels, {
     ctaLink: {
         type: ControlType.String,
         title: "CTA 링크",
-        defaultValue: "",
+        defaultValue: "/forms/preorder-alram",
     },
 })
