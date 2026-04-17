@@ -126,7 +126,7 @@ export default function ReviewCard(props) {
     return (
         <div style={{
             width: "100%",
-            backgroundColor: "#FFFFFF",
+            backgroundColor: "#F8F9FB",
             borderRadius: 14,
             padding: "16px",
             boxSizing: "border-box",
@@ -134,7 +134,6 @@ export default function ReviewCard(props) {
             flexDirection: "column",
             gap: 14,
             fontFamily: FONT,
-            boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
         }}>
             {/* 헤더: 타이틀 + 별점 + 화살표 */}
             <div style={{

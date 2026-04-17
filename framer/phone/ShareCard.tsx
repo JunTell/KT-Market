@@ -88,16 +88,6 @@ export default function ShareCard(props) {
 
         const targetUrl = toProductionUrl(shareUrl || undefined)
 
-        // ── [DEBUG v3] 카톡 전달 직전 실제 URL 강제 노출 ──
-        const confirmed = window.confirm(
-            "[v3-cache-buster] 이 URL로 카톡에 전달합니다:\n\n" +
-                targetUrl +
-                "\n\n" +
-                "※ URL이 https://ktmarket.co.kr/... 면 OK 누르세요.\n" +
-                "※ localhost면 취소 누르세요."
-        )
-        if (!confirmed) return
-
         K.Share.sendDefault({
             objectType: "feed",
             content: {

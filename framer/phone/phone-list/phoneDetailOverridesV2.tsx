@@ -11,7 +11,7 @@ import {
     getSpecialPrice,
     getInstallmentPaymentTitle as calcInstallmentPaymentTitle,
     getInstallmentPaymentDescription as calcInstallmentPaymentDescription,
-} from "https://framer.com/m/priceCalculation-xPMQRv.js@kM0zmx9phDgbNynAbwPj"
+} from "https://framer.com/m/priceCalculation-xPMQRv.js@w0xceNaZictgsUnldF5r"
 
 // 대상 모델 목록 정의 0227
 const S26_MODLE = [
@@ -2119,7 +2119,7 @@ export function withRegister(Component): ComponentType {
                             initialRegister = aiData.register
                         }
                     }
-                } catch {}
+                } catch { }
 
                 // 모델별 강제 설정 (AI 추천보다 우선)
                 if (numberPortingModels.includes(deviceModel)) {
@@ -2977,12 +2977,9 @@ export function withPlanGrid(Component): ComponentType {
         }
 
         // 디바이스 추가지원금(단독) — withOrderSheet와 동일
-        const calcPromoDiscount = (pid: string): number => {
-            const promoPlans = [
-                "ppllistobj_0863", "ppllistobj_0864", "ppllistobj_0865",
-                "ppllistobj_0850", "ppllistobj_0851", "ppllistobj_0852",
-            ]
-            return promoPlans.includes(pid) ? 50000 : 0
+        // 현재 전 요금제 0원으로 운영
+        const calcPromoDiscount = (_pid: string): number => {
+            return 0
         }
 
         const calcDiscountLabelAmount = (planPrice: number, pid: string): number => {

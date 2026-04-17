@@ -50,23 +50,11 @@ function StepCircle({
     )
 }
 
-// ── 점선 연결선 ──────────────────────────────────────────────
-function DashedLine({ done }: { done: boolean }) {
-    return (
-        <div style={{
-            flex: 1,
-            height: 2,
-            backgroundImage: `repeating-linear-gradient(
-                to right,
-                ${done ? "#0066FF" : "#D1D5DB"} 0px,
-                ${done ? "#0066FF" : "#D1D5DB"} 5px,
-                transparent 5px,
-                transparent 10px
-            )`,
-            marginBottom: 20, // 아래 레이블 공간만큼 오프셋
-        }} />
-    )
-}
+// ── 점선 연결선 (개별 도트 순차 애니메이션) ──────────────────
+const DOT_COUNT = 6
+const DOT_W = 6
+const DOT_GAP = 6
+const DOTS_WIDTH = DOT_COUNT * DOT_W + (DOT_COUNT - 1) * DOT_GAP // 66
 
 /**
  * @framerSupportedLayoutWidth any
@@ -117,6 +105,8 @@ export default function ProcessStepsCard(props) {
             <div style={{
                 display: "flex",
                 alignItems: "flex-start",
+                justifyContent: "space-between",
+                width: "100%",
                 position: "relative",
             }}>
                 {steps.map((step, i) => {
@@ -153,52 +143,49 @@ export default function ProcessStepsCard(props) {
                                 </span>
                             </div>
 
-                            {/* 점선 연결 */}
+                            {/* 점선 연결 (6개 도트, 한칸씩 순차 이동) */}
                             {!isLast && (
                                 <div style={{
                                     flex: 1,
                                     alignSelf: "flex-start",
                                     marginTop: 17,
-                                    paddingLeft: 4,
-                                    paddingRight: 4,
-                                    position: "relative",
-                                    height: 2,
-                                    overflow: "hidden",
+                                    marginLeft: 4,
+                                    marginRight: 4,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
                                 }}>
-                                    {/* 회색 점선 (배경) */}
-                                    <div style={{
-                                        position: "absolute",
-                                        inset: 0,
-                                        height: 2,
-                                        backgroundImage: `repeating-linear-gradient(
-                                            to right,
-                                            #D1D5DB 0px, #D1D5DB 5px,
-                                            transparent 5px, transparent 10px
-                                        )`,
-                                    }} />
-                                    {/* 순차 shimmer: 1→2 먼저, 2→3 이후 */}
-                                    <motion.div
-                                        animate={{ x: ["-100%", "120%"] }}
-                                        transition={{
-                                            duration: 3.5,
-                                            ease: "linear",
-                                            delay: i * 3.8,
-                                            repeat: Infinity,
-                                            repeatDelay: 3.8,
-                                        }}
-                                        style={{
-                                            position: "absolute",
-                                            left: 0,
-                                            top: 0,
-                                            width: "100%",
-                                            height: 2,
-                                            backgroundImage: `repeating-linear-gradient(
-                                                to right,
-                                                #0066FF 0px, #0066FF 5px,
-                                                transparent 5px, transparent 10px
-                                            )`,
-                                        }}
-                                    />
+                                    {Array.from({ length: DOT_COUNT }).map((_, d) => {
+                                        const lineDelay = i * (DOT_COUNT * 0.3 + 1.5)
+                                        const dotDelay = lineDelay + d * 0.3
+                                        const totalCycle = steps.length * (DOT_COUNT * 0.3 + 1.5)
+                                        return (
+                                            <motion.div
+                                                key={d}
+                                                animate={{
+                                                    backgroundColor: [
+                                                        "#D1D5DB",
+                                                        "#0066FF",
+                                                        "#D1D5DB",
+                                                    ],
+                                                }}
+                                                transition={{
+                                                    duration: 0.6,
+                                                    delay: dotDelay,
+                                                    repeat: Infinity,
+                                                    repeatDelay: totalCycle - 0.6,
+                                                    ease: "easeInOut",
+                                                }}
+                                                style={{
+                                                    width: DOT_W,
+                                                    height: 2,
+                                                    borderRadius: 1,
+                                                    backgroundColor: "#D1D5DB",
+                                                    flexShrink: 0,
+                                                }}
+                                            />
+                                        )
+                                    })}
                                 </div>
                             )}
                         </React.Fragment>

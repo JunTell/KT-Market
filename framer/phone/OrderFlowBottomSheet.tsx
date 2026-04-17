@@ -150,25 +150,6 @@ export default function OrderFlowBottomSheet(props) {
                         }}>
                             월 예상 금액
                         </span>
-                        {/* {installment > 0 && (
-                            <AnimatePresence mode="wait" initial={false}>
-                                <motion.span
-                                    key={showInterest ? "interest-on" : "interest-off"}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.4 }}
-                                    style={{
-                                        fontSize: 11, fontWeight: 400,
-                                        color: "#ADB5BD",
-                                        letterSpacing: -0.16, lineHeight: 1.4,
-                                        fontFamily: FONT,
-                                    }}
-                                >
-                                    {showInterest ? "이자 포함" : "이자 미포함"}
-                                </motion.span>
-                            </AnimatePresence>
-                        )} */}
                     </div>
                     <motion.span
                         style={{
@@ -182,6 +163,14 @@ export default function OrderFlowBottomSheet(props) {
                     >
                         {animatedPayment.toLocaleString()}원
                     </motion.span>
+                    <span style={{
+                        fontSize: 8, fontWeight: 400,
+                        color: "#ADB5BD",
+                        letterSpacing: -0.1, lineHeight: 1.3,
+                        fontFamily: FONT,
+                    }}>
+                        부가세 포함 {installment > 0 ? (showInterest ? "/ 할부이자 포함" : "/ 할부이자 미포함") : ""}
+                    </span>
                 </div>
 
                 {/* 오른쪽: 신청하기 버튼 */}

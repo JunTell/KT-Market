@@ -44,16 +44,9 @@ export function getGuaranteedReturnPrice(
     return GUARANTEED_RETURN_MODELS.includes(model) ? price / 2 : 0
 }
 
-// ─── 프로모션 할인 (디바이스/삼성 초이스 6개만 50,000원) ────────────────
-// 주의: 가전구독 초이스(0994, 0993, 0992)는 대상 아님
-const PROMO_50000_PLANS = [
-    "ppllistobj_0863",
-    "ppllistobj_0864",
-    "ppllistobj_0865",
-    "ppllistobj_0850",
-    "ppllistobj_0851",
-    "ppllistobj_0852",
-]
+// ─── 프로모션 할인 (현재 미적용) ─────────────────────────────────────────
+// 디바이스 추가지원금은 현재 전 요금제 0원으로 운영
+const PROMO_50000_PLANS: string[] = []
 
 export function calculatePromotionDiscount(planId: string): number {
     return PROMO_50000_PLANS.includes(planId) ? 50000 : 0
