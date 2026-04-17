@@ -201,7 +201,7 @@ export default function AsamoList(props: Props) {
                 // 번호이동 금액 추가지원금 일괄 삭제
                 const specialDiscount = 0
 
-                const planMonthlyDiscount = Math.floor((plan.price ?? 0) * 0.25)
+                const planMonthlyDiscount = Math.floor(((plan.price ?? 0) * 0.25) / 10) * 10
                 const imageUrls = getDeviceImageUrls(device)
 
                 return {
