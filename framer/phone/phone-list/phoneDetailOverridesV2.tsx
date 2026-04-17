@@ -11,7 +11,7 @@ import {
     getSpecialPrice,
     getInstallmentPaymentTitle as calcInstallmentPaymentTitle,
     getInstallmentPaymentDescription as calcInstallmentPaymentDescription,
-} from "https://framer.com/m/priceCalculation-xPMQRv.js@w0xceNaZictgsUnldF5r"
+} from "https://framer.com/m/priceCalculation-xPMQRv.js@Fc95CtgeS2Qhf6lnpFdA"
 
 // 대상 모델 목록 정의 0227
 const S26_MODLE = [
@@ -1444,6 +1444,20 @@ export function withPhoneDetail(Component): ComponentType {
         // ✅ 단종 팝업 상태 추가
         const [discontinuedInfo, setDiscontinuedInfo] = useState(null)
 
+        // ── Microsoft Clarity 히트맵 (/phone/ 전용) ──
+        useEffect(() => {
+            if (typeof window === "undefined") return
+            if ((window as any).clarity) return
+                ; (function (c: any, l: any, a: string, r: string, i: string) {
+                    c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) }
+                    const t = l.createElement(r)
+                    t.async = 1
+                    t.src = "https://www.clarity.ms/tag/" + i
+                    const y = l.getElementsByTagName(r)[0]
+                    y.parentNode.insertBefore(t, y)
+                })(window, document, "clarity", "script", "wcz4ygqcrm")
+        }, [])
+
         const DB = {
             DEVICES: "devices",
             DEVICE_PLANS_CHG: "device_plans_chg",
@@ -2108,6 +2122,7 @@ export function withRegister(Component): ComponentType {
                 let initialCarrier = store.carrier || store.currentCarrier
 
                 // AI 맞춤 추천 데이터가 있으면 우선 적용
+                let aiDiscount: string | null = null
                 try {
                     const aiRaw = typeof window !== "undefined"
                         ? window.sessionStorage.getItem("kt_ai_recommend")
@@ -2117,6 +2132,9 @@ export function withRegister(Component): ComponentType {
                         if (aiData.carrier && aiData.register) {
                             initialCarrier = aiData.carrier
                             initialRegister = aiData.register
+                        }
+                        if (aiData.discount) {
+                            aiDiscount = aiData.discount
                         }
                     }
                 } catch { }
@@ -2145,12 +2163,16 @@ export function withRegister(Component): ComponentType {
                 }
 
                 // 💡 DB 저장을 위해 store에 'carrier' 속성 명시적 추가
-                setStore({
+                const storeUpdate: any = {
                     register: initialRegister,
                     currentCarrier: initialCarrier, // UI 상태용
                     carrier: initialCarrier, // DB 저장용
                     ktmarketSubsidy: initialSubsidy,
-                })
+                }
+                if (aiDiscount) {
+                    storeUpdate.discount = aiDiscount
+                }
+                setStore(storeUpdate)
 
                 hasInitializedRef.current = true
             }

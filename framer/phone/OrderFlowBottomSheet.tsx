@@ -22,7 +22,7 @@ export default function OrderFlowBottomSheet(props) {
     const {
         installment = 24,
         installmentPaymentTitle = "월 할부원금 (24개월)",
-        installmentPaymentDescription = "분할 상환 수수료 5.9% 포함",
+        installmentPaymentDescription = "할부 이자 포함",
         installmentPrincipal = 0,
         installmentPayment = "0원",
         devicePrice = 0,
@@ -211,7 +211,7 @@ addPropertyControls(OrderFlowBottomSheet, {
     deviceCapacity: { type: ControlType.String, title: "용량", defaultValue: "256GB" },
     // 주문서 데이터 (preview용)
     installmentPaymentTitle: { type: ControlType.String, title: "할부 타이틀", defaultValue: "월 할부원금 (24개월)" },
-    installmentPaymentDescription: { type: ControlType.String, title: "할부 설명", defaultValue: "분할 상환 수수료 5.9% 포함" },
+    installmentPaymentDescription: { type: ControlType.String, title: "할부 설명", defaultValue: "할부 이자 포함" },
     installmentPayment: { type: ControlType.String, title: "월 할부금", defaultValue: "0원" },
     installment: { type: ControlType.Number, title: "할부", defaultValue: 24, min: 0, max: 48, step: 1 },
     devicePrice: { type: ControlType.Number, title: "출고가", defaultValue: 0 },

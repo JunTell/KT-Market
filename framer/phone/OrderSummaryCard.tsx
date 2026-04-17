@@ -864,7 +864,7 @@ export default function OrderSummaryCard(props) {
         onApplyClick,
         // OrderSheet 추가 props
         installmentPaymentTitle = "월 할부원금 (24개월)",
-        installmentPaymentDescription = "분할 상환 수수료 5.9% 포함",
+        installmentPaymentDescription = "할부 이자 포함",
         installmentPrincipal = 0,
         installmentPayment = "0원",
         devicePrice = 0,
@@ -1445,7 +1445,7 @@ addPropertyControls(OrderSummaryCard, {
     installmentPaymentDescription: {
         type: ControlType.String,
         title: "할부 설명",
-        defaultValue: "분할 상환 수수료 5.9% 포함",
+        defaultValue: "할부 이자 포함",
     },
     installmentPayment: {
         type: ControlType.String,

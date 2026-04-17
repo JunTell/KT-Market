@@ -46,7 +46,7 @@ export default function OrderSummarySheet(props) {
     const {
         installment = 24,
         installmentPaymentTitle = "월 할부금 (24개월)",
-        installmentPaymentDescription = "분할 상환 수수료 5.9% 포함",
+        installmentPaymentDescription = "할부이자 포함 기준",
         installmentPrincipal = 0,
         installmentPayment = "0원",
         installmentPaymentNoInterest = 0,
@@ -482,7 +482,7 @@ addPropertyControls(OrderSummarySheet, {
     installmentPaymentDescription: {
         type: ControlType.String,
         title: "할부 설명",
-        defaultValue: "분할 상환 수수료 5.9% 포함",
+        defaultValue: "할부이자 포함 기준",
     },
     installmentPayment: {
         type: ControlType.String,

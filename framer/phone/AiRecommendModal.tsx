@@ -83,6 +83,12 @@ const DATA_TIERS = [
     },
 ]
 
+// ─── 할인 유형 ───────────────────────────────────────────────────────
+const DISCOUNT_TYPES = [
+    { id: "공통지원금", label: "기기할인", desc: "단말기 가격을 할인받아요" },
+    { id: "선택약정할인", label: "요금할인", desc: "월 요금제를 25% 할인받아요" },
+]
+
 // ─── 유틸 ─────────────────────────────────────────────────────────────
 function saveRecommendation(data: {
     carrier: string
@@ -90,6 +96,7 @@ function saveRecommendation(data: {
     dataTier: string
     planPrice: number
     planId: string
+    discount: string
 }) {
     if (typeof window === "undefined") return
     window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data))
@@ -147,6 +154,7 @@ export default function AiRecommendModal(props) {
     const [isOpen, setIsOpen] = useState(false)
     const [carrier, setCarrier] = useState<string | null>(null)
     const [dataTier, setDataTier] = useState<string | null>(null)
+    const [discountType, setDiscountType] = useState<string | null>(null)
 
     // 자동 표시 (이전에 닫거나 이미 추천받은 적 없을 때)
     useEffect(() => {
@@ -159,20 +167,21 @@ export default function AiRecommendModal(props) {
     const activeCarrier = CARRIERS.find((c) => c.id === carrier)
     const activeTier = DATA_TIERS.find((t) => t.id === dataTier)
 
-    const canSubmit = !!carrier && !!dataTier
+    const canSubmit = !!carrier && !!dataTier && !!discountType
 
     const handleSubmit = useCallback(() => {
-        if (!activeCarrier || !activeTier) return
+        if (!activeCarrier || !activeTier || !discountType) return
         saveRecommendation({
             carrier: activeCarrier.id,
             register: activeCarrier.register,
             dataTier: activeTier.id,
             planPrice: activeTier.planPrice,
             planId: activeTier.planId,
+            discount: discountType,
         })
         setDismissed()
         setIsOpen(false)
-    }, [activeCarrier, activeTier])
+    }, [activeCarrier, activeTier, discountType])
 
     const handleClose = useCallback(() => {
         setDismissed()
@@ -313,6 +322,66 @@ export default function AiRecommendModal(props) {
                                                             </div>
                                                             {active && (
                                                                 <div style={styles.tierCheck}>
+                                                                    <CheckCircle />
+                                                                </div>
+                                                            )}
+                                                        </motion.button>
+                                                    )
+                                                })}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* ── Q3: 할인 유형 (데이터 선택 후 노출) ── */}
+                                <AnimatePresence>
+                                    {dataTier && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 16 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: 16 }}
+                                            transition={{ duration: 0.3, delay: 0.1 }}
+                                            style={styles.section}
+                                        >
+                                            <h3 style={styles.question}>어떤 할인을 받고 싶으세요?</h3>
+                                            <div style={styles.discountGrid}>
+                                                {DISCOUNT_TYPES.map((dt) => {
+                                                    const active = discountType === dt.id
+                                                    const isCheap = dt.id === "공통지원금"
+                                                    return (
+                                                        <motion.button
+                                                            key={dt.id}
+                                                            whileTap={{ scale: 0.96 }}
+                                                            onClick={() => setDiscountType(dt.id)}
+                                                            style={{
+                                                                ...styles.discountBtn,
+                                                                borderColor: active ? C.primary : C.border,
+                                                                backgroundColor: active ? C.primaryLight : C.bg,
+                                                            }}
+                                                        >
+                                                            <div style={styles.discountLabelRow}>
+                                                                <span style={{
+                                                                    fontSize: 16,
+                                                                    fontWeight: active ? 700 : 600,
+                                                                    color: active ? C.primary : C.text,
+                                                                    fontFamily: FONT,
+                                                                }}>
+                                                                    {dt.label}
+                                                                </span>
+                                                                {isCheap && (
+                                                                    <span style={styles.cheapBadge}>저렴</span>
+                                                                )}
+                                                            </div>
+                                                            <span style={{
+                                                                fontSize: 12,
+                                                                color: C.textSub,
+                                                                fontFamily: FONT,
+                                                                lineHeight: 1.4,
+                                                            }}>
+                                                                {dt.desc}
+                                                            </span>
+                                                            {active && (
+                                                                <div style={{ position: "absolute", top: 12, right: 12 }}>
                                                                     <CheckCircle />
                                                                 </div>
                                                             )}
@@ -533,6 +602,46 @@ const styles: Record<string, React.CSSProperties> = {
     },
     tierCheck: {
         flexShrink: 0,
+    },
+
+    // 할인 유형
+    discountGrid: {
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 10,
+    },
+    discountBtn: {
+        position: "relative" as const,
+        display: "flex",
+        flexDirection: "column" as const,
+        alignItems: "center",
+        gap: 6,
+        padding: "18px 12px",
+        borderRadius: 14,
+        borderWidth: 1.5,
+        borderStyle: "solid" as const,
+        cursor: "pointer",
+        transition: "all 0.15s",
+        fontFamily: FONT,
+        boxSizing: "border-box" as const,
+        WebkitTapHighlightColor: "transparent",
+        background: "none",
+    },
+    discountLabelRow: {
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+    },
+    cheapBadge: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: "#FFF",
+        backgroundColor: "#EF4444",
+        padding: "2px 7px",
+        borderRadius: 99,
+        lineHeight: 1.5,
+        fontFamily: FONT,
+        whiteSpace: "nowrap" as const,
     },
 
     // 하단 버튼
