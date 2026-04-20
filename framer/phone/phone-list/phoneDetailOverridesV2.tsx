@@ -1993,19 +1993,14 @@ export function withColorCapacity(Component): ComponentType {
 
         const handleColorChange = (color) => {
             setStore({ color })
-            if (store.stocks) {
-                const selectedStock = store.stocks?.find(
-                    (stock) => stock.colorEn === color.en
-                )
-                if (selectedStock && selectedStock.quantity <= 0) {
-                    alert("해당 색상은 현재 재고가 없습니다. 입고 알림을 신청해주세요.")
-                }
-            }
         }
 
         const handleCapacitySelect = (path: string) => {
-            window.history.pushState({}, "", `/phone/${path}`)
-            setStore({ currentModelId: path })
+            // 즉시 로딩 상태 전환 → INP 체감 개선
+            setStore({ isLoading: true, currentModelId: path })
+            requestAnimationFrame(() => {
+                window.history.pushState({}, "", `/phone/${path}`)
+            })
         }
 
         return (

@@ -12,7 +12,7 @@ import {
     Row,
     RedRow,
     useInstallmentInterest,
-} from "https://framer.com/m/OrderComponents-QLDYR7.js@CXixzf1QqqP7wVgBfUj5"
+} from "https://framer.com/m/OrderComponents-QLDYR7.js@sKK3V4EokH71sr4CS4oo"
 
 // ─── 로컬 점선 구분선 ──────────────────────────────────────────────────────
 const DashedLine = () => (

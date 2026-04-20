@@ -123,20 +123,20 @@ function setDismissed() {
 // ─── 아이콘 ───────────────────────────────────────────────────────────
 const SparkleIcon = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <path d="M12 2L13.09 8.26L18 6L14.74 10.91L21 12L14.74 13.09L18 18L13.09 15.74L12 22L10.91 15.74L6 18L9.26 13.09L3 12L9.26 10.91L6 6L10.91 8.26L12 2Z" fill="#FFD700"/>
+        <path d="M12 2L13.09 8.26L18 6L14.74 10.91L21 12L14.74 13.09L18 18L13.09 15.74L12 22L10.91 15.74L6 18L9.26 13.09L3 12L9.26 10.91L6 6L10.91 8.26L12 2Z" fill="#FFD700" />
     </svg>
 )
 
 const CloseIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M18 6L6 18M6 6L18 18"/>
+        <path d="M18 6L6 18M6 6L18 18" />
     </svg>
 )
 
 const CheckCircle = () => (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <circle cx="10" cy="10" r="10" fill={C.primary}/>
-        <path d="M6.5 10.5L9 13L14 7.5" stroke="#FFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <circle cx="10" cy="10" r="10" fill={C.primary} />
+        <path d="M6.5 10.5L9 13L14 7.5" stroke="#FFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
 )
 

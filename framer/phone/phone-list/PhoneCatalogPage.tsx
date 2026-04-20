@@ -83,6 +83,21 @@ const getModelPriority = (prod, brand = ""): number => {
     return 99
 }
 
+const PRICE_RANGES = [
+    { label: "전체", min: 0, max: Infinity },
+    { label: "~30만", min: 0, max: 300000 },
+    { label: "30~60만", min: 300000, max: 600000 },
+    { label: "60~100만", min: 600000, max: 1000000 },
+    { label: "100만~", min: 1000000, max: Infinity },
+]
+
+const SORT_OPTIONS = [
+    { label: "추천순", value: "recommended" },
+    { label: "낮은가격순", value: "price_asc" },
+    { label: "높은가격순", value: "price_desc" },
+    { label: "최신순", value: "newest" },
+]
+
 export default function PhoneListPage(props) {
     const [products, setProducts] = useState([])
     const [filteredProducts, setFilteredProducts] = useState([])
@@ -91,6 +106,8 @@ export default function PhoneListPage(props) {
     const [selectedBrand, setSelectedBrand] = useState("")
     const [selectedCategory, setSelectedCategory] = useState("")
     const [selectedSubCategory, setSelectedSubCategory] = useState("")
+    const [selectedPriceRange, setSelectedPriceRange] = useState(0)
+    const [sortBy, setSortBy] = useState("recommended")
 
     const [isClient, setIsClient] = useState(false)
     const [hideFilter, setHideFilter] = useState(false)
@@ -263,16 +280,34 @@ export default function PhoneListPage(props) {
             }
         }
 
-        // 모델 우선순위 정렬 → 동일 티어 내 출시일 최신순
-        filtered.sort((a, b) => {
-            const pa = getModelPriority(a, selectedBrand)
-            const pb = getModelPriority(b, selectedBrand)
-            if (pa !== pb) return pa - pb
-            return new Date(b.release_date).getTime() - new Date(a.release_date).getTime()
-        })
+        // 가격대 필터
+        const priceRange = PRICE_RANGES[selectedPriceRange]
+        if (priceRange && priceRange.min > 0 || priceRange.max < Infinity) {
+            filtered = filtered.filter((product) => {
+                const price = product.price ?? 0
+                return price >= priceRange.min && price < priceRange.max
+            })
+        }
+
+        // 정렬
+        if (sortBy === "price_asc") {
+            filtered.sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
+        } else if (sortBy === "price_desc") {
+            filtered.sort((a, b) => (b.price ?? 0) - (a.price ?? 0))
+        } else if (sortBy === "newest") {
+            filtered.sort((a, b) => new Date(b.release_date).getTime() - new Date(a.release_date).getTime())
+        } else {
+            // 추천순: 모델 우선순위 정렬 → 동일 티어 내 출시일 최신순
+            filtered.sort((a, b) => {
+                const pa = getModelPriority(a, selectedBrand)
+                const pb = getModelPriority(b, selectedBrand)
+                if (pa !== pb) return pa - pb
+                return new Date(b.release_date).getTime() - new Date(a.release_date).getTime()
+            })
+        }
 
         setFilteredProducts(filtered)
-    }, [selectedBrand, selectedCategory, selectedSubCategory, products])
+    }, [selectedBrand, selectedCategory, selectedSubCategory, selectedPriceRange, sortBy, products])
 
     useEffect(() => {
         fetchDevices()
@@ -281,12 +316,72 @@ export default function PhoneListPage(props) {
     return (
         <div>
             {isClient && !hideFilter && (
-                <BrandModelFilter
-                    selectedBrand={selectedBrand}
-                    setSelectedBrand={setSelectedBrand}
-                    selectedCategory={selectedCategory}
-                    setSelectedCategory={setSelectedCategory}
-                />
+                <>
+                    <BrandModelFilter
+                        selectedBrand={selectedBrand}
+                        setSelectedBrand={setSelectedBrand}
+                        selectedCategory={selectedCategory}
+                        setSelectedCategory={setSelectedCategory}
+                    />
+                    {/* 가격대 + 정렬 필터 바 */}
+                    <div style={{
+                        display: "flex", flexDirection: "column", gap: 8,
+                        padding: "8px 16px 4px",
+                        backgroundColor: "#FFFFFF",
+                        fontFamily: '"Pretendard", "Inter", sans-serif',
+                    }}>
+                        {/* 가격대 필터 */}
+                        <div style={{ display: "flex", gap: 6, overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
+                            {PRICE_RANGES.map((range, idx) => (
+                                <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => setSelectedPriceRange(idx)}
+                                    style={{
+                                        height: 32,
+                                        padding: "0 12px",
+                                        borderRadius: 16,
+                                        border: selectedPriceRange === idx ? "1.5px solid #0066FF" : "1px solid #E5E7EB",
+                                        backgroundColor: selectedPriceRange === idx ? "#ECF4FF" : "#FFFFFF",
+                                        color: selectedPriceRange === idx ? "#0066FF" : "#3F4750",
+                                        fontSize: 13,
+                                        fontWeight: selectedPriceRange === idx ? 600 : 400,
+                                        cursor: "pointer",
+                                        whiteSpace: "nowrap",
+                                        flexShrink: 0,
+                                        fontFamily: "inherit",
+                                        letterSpacing: -0.2,
+                                    }}
+                                >
+                                    {range.label}
+                                </button>
+                            ))}
+                        </div>
+                        {/* 정렬 */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
+                            {SORT_OPTIONS.map((opt) => (
+                                <button
+                                    key={opt.value}
+                                    type="button"
+                                    onClick={() => setSortBy(opt.value)}
+                                    style={{
+                                        background: "none",
+                                        border: "none",
+                                        padding: "4px 6px",
+                                        fontSize: 12,
+                                        fontWeight: sortBy === opt.value ? 700 : 400,
+                                        color: sortBy === opt.value ? "#0066FF" : "#868E96",
+                                        cursor: "pointer",
+                                        fontFamily: "inherit",
+                                        letterSpacing: -0.16,
+                                    }}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </>
             )}
             <div style={{ display: "grid", gap: "8px" }}>
                 {isVisibleMainBanner && mainBannerURL && (
