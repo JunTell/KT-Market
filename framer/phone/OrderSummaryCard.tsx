@@ -881,6 +881,14 @@ export default function OrderSummaryCard(props) {
         installmentPaymentNoInterest = 0,
         totalMonthPaymentNoInterest = 0,
         totalDeviceDiscountAmount = 0,
+        // Mobile CTA props
+        isSoldOut = false,
+        onRestockClick,
+        onConsultClick,
+        onWishClick,
+        isWished = false,
+        kakaoTalkLink = "http://pf.kakao.com/_HfItxj/chat",
+        onSaveOrderSession,
     } = props
 
     const [isMounted, setIsMounted] = useState(false)
@@ -1043,6 +1051,7 @@ export default function OrderSummaryCard(props) {
                         flexDirection: "row",
                         alignItems: "center",
                         gap: "8px",
+                        minHeight: "26.948px",
                     }}
                 >
                     {/* 배송 배지 (주말 숨김) */}
@@ -1318,6 +1327,177 @@ export default function OrderSummaryCard(props) {
                 </div>
 
                 {/* ── 신청 전 필독사항 (PreOrderNotice 컴포넌트로 분리) ── */}
+
+                {/* ── Mobile CTA 버튼 (찜 · 문의 · 신청하기) ── */}
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        marginTop: 4,
+                    }}
+                >
+                    {/* 찜 버튼 */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (typeof onWishClick === "function") onWishClick()
+                        }}
+                        aria-label={isWished ? "찜 해제" : "찜하기"}
+                        aria-pressed={isWished}
+                        style={{
+                            width: 50,
+                            height: 50,
+                            borderRadius: 12,
+                            border: isWished ? "1.5px solid #EF4444" : "1.5px solid #E5E7EB",
+                            backgroundColor: isWished ? "#FEF2F2" : "#FFFFFF",
+                            cursor: "pointer",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 2,
+                            flexShrink: 0,
+                            padding: 0,
+                            fontFamily: FONT,
+                        }}
+                    >
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill={isWished ? "#EF4444" : "none"}
+                            stroke={isWished ? "#EF4444" : "#868E96"}
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                        <span
+                            style={{
+                                fontSize: 10,
+                                fontWeight: 500,
+                                color: isWished ? "#EF4444" : "#868E96",
+                                lineHeight: 1,
+                                letterSpacing: -0.1,
+                            }}
+                        >
+                            찜
+                        </span>
+                    </button>
+
+                    {/* 문의 버튼 */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (typeof onConsultClick === "function") {
+                                onConsultClick()
+                            } else if (typeof window !== "undefined") {
+                                window.open(kakaoTalkLink, "_blank", "noopener,noreferrer")
+                            }
+                        }}
+                        aria-label="카카오톡 상담"
+                        style={{
+                            width: 50,
+                            height: 50,
+                            borderRadius: 12,
+                            border: "1.5px solid #E5E7EB",
+                            backgroundColor: "#FFFFFF",
+                            cursor: "pointer",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 2,
+                            flexShrink: 0,
+                            padding: 0,
+                            fontFamily: FONT,
+                        }}
+                    >
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#868E96"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                        <span
+                            style={{
+                                fontSize: 10,
+                                fontWeight: 500,
+                                color: "#868E96",
+                                lineHeight: 1,
+                                letterSpacing: -0.1,
+                            }}
+                        >
+                            문의
+                        </span>
+                    </button>
+
+                    {/* 신청하기 / 입고알림 버튼 */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (isSoldOut && typeof onRestockClick === "function") {
+                                onRestockClick()
+                            } else if (typeof onApplyClick === "function") {
+                                onApplyClick()
+                            } else {
+                                onSaveOrderSession?.()
+                                if (typeof window !== "undefined") {
+                                    window.location.href = "/phone/user-info"
+                                }
+                            }
+                        }}
+                        style={{
+                            flex: 1,
+                            height: 50,
+                            borderRadius: 12,
+                            border: "none",
+                            backgroundColor: isSoldOut ? "#3F4750" : "#0066FF",
+                            color: "#FFFFFF",
+                            cursor: "pointer",
+                            fontFamily: FONT,
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 2,
+                        }}
+                    >
+                        <span
+                            style={{
+                                fontSize: 17,
+                                fontWeight: 700,
+                                letterSpacing: -0.3,
+                                lineHeight: 1.2,
+                            }}
+                        >
+                            {isSoldOut ? "입고 알림" : (ctaTitle || "신청하기")}
+                        </span>
+                        {!isSoldOut && monthlyPayment > 0 && (
+                            <span
+                                style={{
+                                    fontSize: 12,
+                                    fontWeight: 400,
+                                    opacity: 0.85,
+                                    letterSpacing: -0.16,
+                                    lineHeight: 1.2,
+                                }}
+                            >
+                                월 {monthlyPayment.toLocaleString()}원
+                            </span>
+                        )}
+                    </button>
+                </div>
             </div>
 
             {/* ── 월 할부 팝업 ── */}

@@ -8,7 +8,7 @@ import {
     FONT,
     useAnimatedNumber,
     useInstallmentInterest,
-} from "https://framer.com/m/OrderComponents-QLDYR7.js@CXixzf1QqqP7wVgBfUj5"
+} from "https://framer.com/m/OrderComponents-QLDYR7.js@sKK3V4EokH71sr4CS4oo"
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────
 

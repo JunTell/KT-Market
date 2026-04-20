@@ -80,29 +80,44 @@ export function useAnimatedNumber(target: number, duration = 1000) {
 
 // ─── 토글 스위치 ──────────────────────────────────────────────────────
 export const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) => (
-    <motion.div
+    <motion.button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={checked ? "켜짐" : "꺼짐"}
         onClick={() => onChange(!checked)}
         style={{
-            width: 44, height: 26, borderRadius: 13,
-            padding: 3,
+            width: 44, height: 44, borderRadius: 13,
+            padding: "9px 0",
             display: "flex", alignItems: "center",
             cursor: "pointer", flexShrink: 0,
+            border: "none", background: "none",
         }}
-        animate={{ backgroundColor: checked ? "#0055FF" : "#D1D5DB" }}
+        animate={{}}
         initial={false}
         transition={{ duration: 0.2 }}
     >
         <motion.div
-            layout
-            transition={{ type: "spring", stiffness: 500, damping: 30 }}
             style={{
-                width: 20, height: 20, borderRadius: "50%",
-                backgroundColor: "#FFFFFF",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
-                marginLeft: checked ? "auto" : 0,
+                width: 44, height: 26, borderRadius: 13,
+                padding: 3,
+                display: "flex", alignItems: "center",
             }}
-        />
-    </motion.div>
+            animate={{ backgroundColor: checked ? "#0055FF" : "#D1D5DB" }}
+            transition={{ duration: 0.2 }}
+        >
+            <motion.div
+                layout
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                style={{
+                    width: 20, height: 20, borderRadius: "50%",
+                    backgroundColor: "#FFFFFF",
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+                    marginLeft: checked ? "auto" : 0,
+                }}
+            />
+        </motion.div>
+    </motion.button>
 )
 
 // ─── 툴팁 ─────────────────────────────────────────────────────────────

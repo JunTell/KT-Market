@@ -1,0 +1,1 @@
+- [Phone page diagnostics](project_phone_diagnostics.md) — Clarity 기반 /phone 페이지 UX/CRO/성능 진단 (2026-04-20)

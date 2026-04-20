@@ -52,7 +52,7 @@ const COLOR_BAR = 56 // 색상 서클 영역 고정 높이 (px)
 
 // 스켈레톤: 이미지 영역 + 컬러 서클 영역 (단일 컨테이너)
 const SkeletonView = ({ imageHeight }: { imageHeight: number }) => (
-    <div style={{ width: "100%", position: "relative", height: `${imageHeight + COLOR_BAR}px` }}>
+    <div style={{ width: "100%", position: "relative", height: `${imageHeight + COLOR_BAR}px`, contain: "layout" }}>
         {/* 이미지 영역 스켈레톤 */}
         <motion.div
             style={{
@@ -181,7 +181,7 @@ export default function ProductImageCarousel(props) {
     const totalHeight = imageHeight + (colors.length > 0 ? COLOR_BAR : 0)
 
     return (
-        <div style={{ width: "100%", height: `${totalHeight}px`, display: "flex", flexDirection: "column", alignItems: "center", overflow: "visible" }}>
+        <div style={{ width: "100%", height: `${totalHeight}px`, display: "flex", flexDirection: "column", alignItems: "center", overflow: "visible", contain: "layout" }}>
             {/* ── 이미지 슬라이드 영역 ── */}
             <div
                 style={{
@@ -190,6 +190,8 @@ export default function ProductImageCarousel(props) {
                     height: `${imageHeight}px`,
                     overflow: "hidden",
                     touchAction: "pan-y",
+                    aspectRatio: `${1} / ${imageHeight / 390}`,
+                    contain: "layout style",
                 }}
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
@@ -217,7 +219,10 @@ export default function ProductImageCarousel(props) {
                         >
                             <img
                                 src={url}
-                                alt={`Slide ${index}`}
+                                alt={`${activeColorLocal?.kr ?? "제품"} 이미지 ${index + 1}`}
+                                loading={index === 0 ? "eager" : "lazy"}
+                                decoding={index === 0 ? "sync" : "async"}
+                                fetchPriority={index === 0 ? "high" : undefined}
                                 style={{ maxWidth: "90%", maxHeight: "90%", objectFit: "contain", userSelect: "none" }}
                                 draggable={false}
                             />
@@ -294,9 +299,12 @@ export default function ProductImageCarousel(props) {
                     }}
                 >
                     {items.map((_, index) => (
-                        <div
+                        <button
+                            type="button"
                             key={index}
                             onClick={() => setCurrentIndex(index)}
+                            aria-label={`슬라이드 ${index + 1}`}
+                            aria-current={currentIndex === index ? "true" : undefined}
                             style={{
                                 width: currentIndex === index ? "16px" : "6px",
                                 height: "6px",
@@ -304,8 +312,19 @@ export default function ProductImageCarousel(props) {
                                 borderRadius: "9999px",
                                 cursor: "pointer",
                                 transition: "all 0.25s ease",
+                                border: "none",
+                                padding: "9px 0",
+                                background: "none",
                             }}
-                        />
+                        >
+                            <div style={{
+                                width: currentIndex === index ? "16px" : "6px",
+                                height: "6px",
+                                backgroundColor: currentIndex === index ? "#0055FF" : "rgba(0,0,0,0.2)",
+                                borderRadius: "9999px",
+                                transition: "all 0.25s ease",
+                            }} />
+                        </button>
                     ))}
                 </div>
             </div>{/* ← 이미지 슬라이드 영역 닫기 */}
@@ -327,28 +346,44 @@ export default function ProductImageCarousel(props) {
                     {colors.map((color, index) => {
                         const isActive = activeColorLocal ? activeColorLocal.code === color.code : index === 0
                         return (
-                            <motion.div
+                            <motion.button
+                                type="button"
                                 key={index}
                                 onClick={() => handleColorClick(color)}
-                                title={color.kr}
+                                aria-label={`${color.kr}${color.isSoldOut ? " 품절" : ""}${isActive ? " 선택됨" : ""}`}
+                                aria-pressed={isActive}
+                                disabled={color.isSoldOut}
                                 whileTap={color.isSoldOut ? {} : { scale: 0.88 }}
                                 style={{
                                     position: "relative",
+                                    width: "44px",
+                                    height: "44px",
+                                    borderRadius: "50%",
+                                    border: "none",
+                                    background: "none",
+                                    cursor: color.isSoldOut ? "not-allowed" : "pointer",
+                                    padding: 0,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    flexShrink: 0,
+                                }}
+                            >
+                                <div style={{
                                     width: "26px",
                                     height: "26px",
                                     borderRadius: "50%",
                                     backgroundColor: color.code || "#E5E7EB",
-                                    cursor: color.isSoldOut ? "not-allowed" : "pointer",
                                     boxShadow: isActive
                                         ? "0 0 0 2.5px #ffffff, 0 0 0 5px #0055FF"
                                         : "0 0 0 1.5px rgba(0,0,0,0.12)",
                                     opacity: color.isSoldOut ? 0.4 : 1,
                                     transition: "box-shadow 0.18s ease",
-                                    flexShrink: 0,
-                                }}
-                            >
-                                {color.isSoldOut && <SoldOutOverlay />}
-                            </motion.div>
+                                    position: "relative",
+                                }}>
+                                    {color.isSoldOut && <SoldOutOverlay />}
+                                </div>
+                            </motion.button>
                         )
                     })}
                 </div>
