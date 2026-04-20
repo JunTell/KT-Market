@@ -885,9 +885,11 @@ export default function OrderSummaryCard(props) {
         isSoldOut = false,
         onRestockClick,
         onConsultClick,
+        onPhoneClick,
         onWishClick,
         isWished = false,
         kakaoTalkLink = "http://pf.kakao.com/_HfItxj/chat",
+        kakaoIcon,
         onSaveOrderSession,
     } = props
 
@@ -1337,20 +1339,24 @@ export default function OrderSummaryCard(props) {
                         marginTop: 4,
                     }}
                 >
-                    {/* 찜 버튼 */}
+                    {/* 전화 버튼 */}
                     <button
                         type="button"
                         onClick={() => {
-                            if (typeof onWishClick === "function") onWishClick()
+                            if (typeof onPhoneClick === "function") {
+                                onPhoneClick()
+                            } else if (typeof window !== "undefined") {
+                                onSaveOrderSession?.()
+                                window.location.href = "/phone/confirm"
+                            }
                         }}
-                        aria-label={isWished ? "찜 해제" : "찜하기"}
-                        aria-pressed={isWished}
+                        aria-label="전화 상담"
                         style={{
                             width: 50,
                             height: 50,
                             borderRadius: 12,
-                            border: isWished ? "1.5px solid #EF4444" : "1.5px solid #E5E7EB",
-                            backgroundColor: isWished ? "#FEF2F2" : "#FFFFFF",
+                            border: "none",
+                            backgroundColor: "#EDEDED",
                             cursor: "pointer",
                             display: "flex",
                             flexDirection: "column",
@@ -1366,25 +1372,25 @@ export default function OrderSummaryCard(props) {
                             width="20"
                             height="20"
                             viewBox="0 0 24 24"
-                            fill={isWished ? "#EF4444" : "none"}
-                            stroke={isWished ? "#EF4444" : "#868E96"}
+                            fill="none"
+                            stroke="#24292E"
                             strokeWidth="2"
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             aria-hidden="true"
                         >
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.74a16 16 0 0 0 6.35 6.35l.97-.97a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
                         </svg>
                         <span
                             style={{
                                 fontSize: 10,
                                 fontWeight: 500,
-                                color: isWished ? "#EF4444" : "#868E96",
+                                color: "#24292E",
                                 lineHeight: 1,
                                 letterSpacing: -0.1,
                             }}
                         >
-                            찜
+                            전화
                         </span>
                     </button>
 
@@ -1403,8 +1409,8 @@ export default function OrderSummaryCard(props) {
                             width: 50,
                             height: 50,
                             borderRadius: 12,
-                            border: "1.5px solid #E5E7EB",
-                            backgroundColor: "#FFFFFF",
+                            border: "none",
+                            backgroundColor: "#FEE500",
                             cursor: "pointer",
                             display: "flex",
                             flexDirection: "column",
@@ -1416,29 +1422,19 @@ export default function OrderSummaryCard(props) {
                             fontFamily: FONT,
                         }}
                     >
-                        <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#868E96"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            aria-hidden="true"
-                        >
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                        </svg>
+                        {kakaoIcon && (
+                            <img src={kakaoIcon} width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} aria-hidden="true" />
+                        )}
                         <span
                             style={{
                                 fontSize: 10,
                                 fontWeight: 500,
-                                color: "#868E96",
+                                color: "#160300",
                                 lineHeight: 1,
                                 letterSpacing: -0.1,
                             }}
                         >
-                            문의
+                            카톡
                         </span>
                     </button>
 
@@ -1462,15 +1458,13 @@ export default function OrderSummaryCard(props) {
                             height: 50,
                             borderRadius: 12,
                             border: "none",
-                            backgroundColor: isSoldOut ? "#3F4750" : "#0066FF",
+                            backgroundColor: isSoldOut ? "#3F4750" : "#EF4444",
                             color: "#FFFFFF",
                             cursor: "pointer",
                             fontFamily: FONT,
                             display: "flex",
-                            flexDirection: "column",
                             alignItems: "center",
                             justifyContent: "center",
-                            gap: 2,
                         }}
                     >
                         <span
@@ -1483,19 +1477,6 @@ export default function OrderSummaryCard(props) {
                         >
                             {isSoldOut ? "입고 알림" : (ctaTitle || "신청하기")}
                         </span>
-                        {!isSoldOut && monthlyPayment > 0 && (
-                            <span
-                                style={{
-                                    fontSize: 12,
-                                    fontWeight: 400,
-                                    opacity: 0.85,
-                                    letterSpacing: -0.16,
-                                    lineHeight: 1.2,
-                                }}
-                            >
-                                월 {monthlyPayment.toLocaleString()}원
-                            </span>
-                        )}
                     </button>
                 </div>
             </div>
@@ -1691,5 +1672,9 @@ addPropertyControls(OrderSummaryCard, {
         type: ControlType.Number,
         title: "월 예상 금액",
         defaultValue: 0,
+    },
+    kakaoIcon: {
+        type: ControlType.Image,
+        title: "카카오 아이콘",
     },
 })

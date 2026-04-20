@@ -724,6 +724,24 @@ export function withPriceCard(Component): ComponentType {
             navigate(routeId, "")
         }
 
+        const saveOrderSession = () => {
+            const storeJson = JSON.stringify(store)
+            sessionStorage.setItem("data", storeJson)
+            localStorage.setItem("kt_data", storeJson)
+        }
+
+        const handlePhoneOrder = () => {
+            saveOrderSession()
+            const routeId = Object.entries(routes).find(
+                ([, value]) => (value as any)?.path === "/phone/confirm"
+            )?.[0]
+            if (routeId) {
+                navigate(routeId, "")
+            } else {
+                window.location.href = "/phone/confirm"
+            }
+        }
+
         return (
             <Component
                 {...props}
@@ -759,6 +777,8 @@ export function withPriceCard(Component): ComponentType {
                 totalMonthPayment={Math.round(totalMonthPayment)}
                 installmentPaymentNoInterest={installmentPaymentNoInterest}
                 totalMonthPaymentNoInterest={totalMonthPaymentNoInterest}
+                onPhoneClick={handlePhoneOrder}
+                onSaveOrderSession={saveOrderSession}
             />
         )
     }
@@ -769,7 +789,10 @@ export function withConfirmDeviceInfo(Component): ComponentType {
         const [data, setData] = useState(null)
 
         useEffect(() => {
-            const storedData = sessionStorage.getItem("data") ?? null
+            const storedData =
+                sessionStorage.getItem("data") ??
+                localStorage.getItem("kt_data") ??
+                null
             const parsedData = storedData ? JSON.parse(storedData) : null
             setData(parsedData)
         }, [])
@@ -792,7 +815,10 @@ export function withConfirmOrderSheet(Component): ComponentType {
     return (props) => {
         const [data, setData] = useState(null)
         useEffect(() => {
-            const storedData = sessionStorage.getItem("sheet") ?? null
+            const storedData =
+                sessionStorage.getItem("sheet") ??
+                localStorage.getItem("kt_sheet") ??
+                null
             const parsedData = storedData ? JSON.parse(storedData) : null
             setData(parsedData)
         }, [])
@@ -842,10 +868,11 @@ export function withConfirmTotalPaymentOrderSheet(Component): ComponentType {
     return (props) => {
         const [data, setData] = useState(null)
         useEffect(() => {
-            const storedData = sessionStorage.getItem("sheet") ?? null
-            // console.log(storedData)
+            const storedData =
+                sessionStorage.getItem("sheet") ??
+                localStorage.getItem("kt_sheet") ??
+                null
             const parsedData = storedData ? JSON.parse(storedData) : null
-            // console.log(parsedData)
             setData(parsedData)
         }, [])
 
@@ -1072,6 +1099,43 @@ export function withOrderSheet(Component): ComponentType {
         const getInstallmentPaymentTitle = (store) => {
             return calcInstallmentPaymentTitle(store.isGuaranteedReturn, store.installment)
         }
+
+        // store가 없을 때 localStorage 폴백으로 상태 복원 (confirm 페이지 등)
+        useEffect(() => {
+            if (store?.plan && store?.device) return
+            const raw = localStorage.getItem("kt_sheet")
+            if (!raw) return
+            try {
+                const saved = JSON.parse(raw)
+                if (saved.installmentPayment) setInstallmentPayment(saved.installmentPayment)
+                if (saved.installmentPaymentNoInterest !== undefined) setInstallmentPaymentNoInterest(saved.installmentPaymentNoInterest)
+                if (saved.totalMonthPaymentNoInterest !== undefined) setTotalMonthPaymentNoInterest(saved.totalMonthPaymentNoInterest)
+                if (saved.planName) setPlanName(saved.planName)
+                if (saved.benefit) setBenefit(saved.benefit)
+                if (saved.discount) setDiscount(saved.discount)
+                if (saved.devicePrice !== undefined) setDevicePrice(saved.devicePrice)
+                if (saved.ktmarketSubsidy !== undefined) setKtmarketSubsidy(saved.ktmarketSubsidy)
+                if (saved.disclosureSubsidy !== undefined) setDisclosureSubsidy(saved.disclosureSubsidy)
+                if (saved.migrationSubsidy !== undefined) setMigrationSubsidy(saved.migrationSubsidy)
+                if (saved.additionalSubsidy !== undefined) setAdditionalSubsidy(saved.additionalSubsidy)
+                if (saved.totalDeviceDiscountAmount !== undefined) setTotalDeviceDiscountAmount(saved.totalDeviceDiscountAmount)
+                if (saved.installmentPrincipal !== undefined) setInstallmentPrincipal(saved.installmentPrincipal)
+                if (saved.planPrice !== undefined) setPlanPrice(saved.planPrice)
+                if (saved.planDiscountAmount !== undefined) setPlanDiscountAmount(saved.planDiscountAmount)
+                if (saved.totalPlanDiscountAmount !== undefined) setTotalPlanDiscountAmount(saved.totalPlanDiscountAmount)
+                if (saved.totalMonthPlanPrice !== undefined) setTotalMonthPlanPrice(saved.totalMonthPlanPrice)
+                if (saved.totalMonthPayment !== undefined) setTotalMonthPayment(saved.totalMonthPayment)
+                if (saved.promotionDiscount !== undefined) setPromotionDiscount(saved.promotionDiscount)
+                if (saved.guaranteedReturnPrice !== undefined) setGuaranteedReturnPrice(saved.guaranteedReturnPrice)
+                if (saved.isGuaranteedReturn !== undefined) setIsGuaranteedReturn(saved.isGuaranteedReturn)
+                if (saved.freebie !== undefined) setFreebie(saved.freebie)
+                if (saved.monthlyPriceFreebie !== undefined) setMonthlyPriceFreebie(saved.monthlyPriceFreebie)
+                if (saved.special_price_mnp !== undefined) setSpecialPriceMnp(saved.special_price_mnp)
+                if (saved.special_price_chg !== undefined) setSpecialPriceChg(saved.special_price_chg)
+                if (saved.doubleStorageDiscount !== undefined) setDoubleStorageDiscount(saved.doubleStorageDiscount)
+                if (saved.youtubePremiumBonus !== undefined) setYoutubePremiumBonus(saved.youtubePremiumBonus)
+            } catch {}
+        }, [])
 
         useEffect(() => {
             if (!store || !store.plan || !store.device) return

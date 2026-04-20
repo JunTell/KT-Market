@@ -179,7 +179,7 @@ export default function OrderFlowBottomSheet(props) {
                     style={{
                         flex: 1, height: 54, borderRadius: 14,
                         border: "none",
-                        backgroundColor: isSoldOut ? "#3F4750" : "#0066FF",
+                        backgroundColor: isSoldOut ? "#3F4750" : "#EF4444",
                         color: "#FFFFFF",
                         fontSize: 17, fontWeight: 700,
                         letterSpacing: -0.3, lineHeight: 1,
