@@ -14,10 +14,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '로그인 필요' }, { status: 401, headers: cors })
   }
 
-  const body = await request.json()
-  const { model, register_type } = body as { model: string; register_type: 'mnp' | 'chg' }
+  let body: { model?: string; register_type?: string }
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: '잘못된 요청 형식' }, { status: 400, headers: cors })
+  }
+  const { model, register_type } = body
 
-  if (!model || !['mnp', 'chg'].includes(register_type)) {
+  if (!model || !register_type || !['mnp', 'chg'].includes(register_type)) {
     return NextResponse.json({ error: '유효하지 않은 요청' }, { status: 400, headers: cors })
   }
 
@@ -64,6 +69,9 @@ export async function DELETE(request: NextRequest) {
 
   if (!model || !register_type) {
     return NextResponse.json({ error: 'model, register_type 필요' }, { status: 400, headers: cors })
+  }
+  if (!['mnp', 'chg'].includes(register_type)) {
+    return NextResponse.json({ error: 'register_type은 mnp 또는 chg만 허용됩니다' }, { status: 400, headers: cors })
   }
 
   const admin = createSupabaseAdminClient()

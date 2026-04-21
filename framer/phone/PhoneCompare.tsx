@@ -158,6 +158,7 @@ export default function PhoneCompare(props) {
     setLoading(true)
     try {
       const res = await fetch(`${API}/api/compare/prices?models=${models.join(",")}&register=${reg}`)
+      if (!res.ok) throw new Error(`API error ${res.status}`)
       const data: DeviceInfo[] = await res.json()
       setSlots((prev) =>
         prev.map((s) => {
@@ -165,6 +166,8 @@ export default function PhoneCompare(props) {
           return data.find((d) => d.model === s.model) ?? s
         })
       )
+    } catch (err) {
+      console.error('fetchPrices error:', err)
     } finally {
       setLoading(false)
     }
@@ -228,7 +231,7 @@ export default function PhoneCompare(props) {
       return
     }
     setAlertState("loading")
-    await Promise.all(
+    await Promise.allSettled(
       filledSlots.map((d) =>
         fetch(`${API}/api/alerts/subscribe`, {
           method: "POST",
@@ -435,7 +438,7 @@ export default function PhoneCompare(props) {
             {[
               {
                 label: "월 납부금",
-                vals: slots.map((s) => s?.plans[tierIndex]?.monthly ?? 0),
+                vals: slots.map((s) => s?.plans.find((p) => p.tier === TIERS[tierIndex].key)?.monthly ?? 0),
                 fmt: (v: number) => v > 0 ? v.toLocaleString() : "-",
                 isBest: true,
               },

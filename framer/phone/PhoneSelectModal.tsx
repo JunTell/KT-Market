@@ -29,11 +29,15 @@ export default function PhoneSelectModal({ open, excludeModels, onSelect, onClos
 
   useEffect(() => {
     if (!open) return
+    setQuery("")
+    const controller = new AbortController()
     setLoading(true)
-    fetch(`${API}/api/compare/devices`)
+    fetch(`${API}/api/compare/devices`, { signal: controller.signal })
       .then((r) => r.json())
       .then((data) => setDevices(Array.isArray(data) ? data : []))
+      .catch((err) => { if (err.name !== 'AbortError') console.error('devices fetch error:', err) })
       .finally(() => setLoading(false))
+    return () => controller.abort()
   }, [open])
 
   const filtered = devices.filter(
