@@ -20,7 +20,11 @@ export async function GET(request: NextRequest) {
   const cors = getCorsHeaders(request.headers.get('origin'))
   const { searchParams } = new URL(request.url)
   const modelsParam = searchParams.get('models') ?? ''
-  const register = (searchParams.get('register') ?? 'mnp') as RegisterType
+  const registerParam = searchParams.get('register') ?? 'mnp'
+  if (!['mnp', 'chg'].includes(registerParam)) {
+    return NextResponse.json({ error: 'register는 mnp 또는 chg만 허용됩니다' }, { status: 400, headers: cors })
+  }
+  const register = registerParam as RegisterType
 
   const models = modelsParam.split(',').map((m) => m.trim()).filter(Boolean).slice(0, 3)
 
