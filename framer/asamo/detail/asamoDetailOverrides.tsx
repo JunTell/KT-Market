@@ -8,8 +8,15 @@ const supabaseAnonKey =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNyb29pb3p6Ymp3ZGFnaHFkZG51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk3NzIzNjMsImV4cCI6MjAyNTM0ODM2M30.A51d6iu60yiGWL4cka8j9-r6QLQ2skXAHiqBGaTIEcM"
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// 기본 선택 ID (69요금제 기본값)
-const DEFAULT_PLAN_UUID = "plan_69"
+// 기본 선택 ID (90요금제 - 유튜브 프리미엄 기본값)
+const DEFAULT_PLAN_UUID = "plan_90"
+
+// 유튜브 프리미엄 요금제 (추가지원금 +30,000원)
+const YOUTUBE_PLAN_PIDS = new Set([
+    "ppllistobj_0937", // 90,000원
+    "ppllistobj_0938", // 110,000원
+    "ppllistobj_0939", // 130,000원
+])
 
 // 타입 정의
 type DiscountMode = "device" | "plan"
@@ -20,18 +27,18 @@ const PRELOAD_DATA = {
     title: "iPhone 17",
     capacity: "256GB",
     originPrice: 1250000, // 실제 출고가 입력
-    // 기본 선택될 요금제 (데이터ON 비디오 플러스) 기준 지원금 예시
+    // 기본 선택될 요금제 (유튜브 프리미엄 초이스 베이직, 90,000원) 기준 지원금 예시
     defaultSubsidies: {
-        device_discount_chg_gte_110000: 450000, // 예시 값 (실제 DB 값으로 수정 필요)
-        device_discount_chg_gte_69000: 400000,
-        device_discount_mnp_gte_69000: 450000,
+        device_discount_chg_gte_110000: 450000,
+        device_discount_chg_gte_90000: 400000,
+        device_discount_mnp_gte_90000: 450000,
         // ... 필요한 만큼 추가
     },
     defaultImageUrl:
         "https://juntell.s3.ap-northeast-2.amazonaws.com/phone/iphone17/lavender/01.png",
 }
 
-// ✅ [수정됨] 요금제 메타데이터 (69요금제 분리)
+// 요금제 메타데이터 (61K / 69K x2 / 90K 유튜브 프리미엄)
 const PLAN_METADATA = [
     {
         uuid: "plan_61",
@@ -65,25 +72,16 @@ const PLAN_METADATA = [
         texts: "무제한",
         fixedPrice: 69000,
     },
+    // 90요금제 (기본값): 유튜브 프리미엄 초이스 베이직 (+3만원 추가지원금)
     {
         uuid: "plan_90",
-        dbId: "ppllistobj_0811",
-        data: "무제한",
-        name: "베이직 초이스",
-        description: "데이터 완전 무제한",
+        dbId: "ppllistobj_0937",
+        data: "완전 무제한",
+        name: "(유튜브 프리미엄) 초이스 베이직",
+        description: "유튜브 프리미엄 제공 + 공유데이터 2배 80GB",
         calls: "무제한",
-        texts: "무제한",
+        texts: "기본제공",
         fixedPrice: 90000,
-    },
-    {
-        uuid: "plan_100",
-        dbId: "ppllistobj_0769",
-        data: "무제한",
-        name: "스페셜이상",
-        description: "데이터 완전 무제한 + 멤버십 VVIP",
-        calls: "무제한",
-        texts: "무제한",
-        fixedPrice: 100000,
     },
 ]
 
@@ -584,7 +582,9 @@ function calcKTmarketSubsidy(
         if (!matchedKey)
             matchedKey = `device_discount_${registrationType}_lt_37000`
     }
-    return subsidyRow[matchedKey] ?? 0
+    const baseSubsidy = subsidyRow[matchedKey] ?? 0
+    const youtubeBonus = YOUTUBE_PLAN_PIDS.has(planId) ? 30000 : 0
+    return baseSubsidy + youtubeBonus
 }
 
 // --- Overrides ---
