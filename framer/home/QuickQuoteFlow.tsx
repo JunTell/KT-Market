@@ -59,10 +59,40 @@ interface Device {
   company: string
   category?: string
   capacities?: string[]
+  colors_en?: string[]
+  images?: Record<string, string[]>
+  capacity?: string
+  is_available?: boolean
   category_kr?: string
 }
 
 type Company = 'samsung' | 'apple' | 'kidsphone'
+
+// PhoneCatalogPage와 동일 패턴 — 이미지 URL 구성
+const S3_BASE = 'https://juntell.s3.ap-northeast-2.amazonaws.com/phone'
+function buildDeviceImageUrl(d: Device): string | null {
+  const colorKey = d.thumbnail || d.colors_en?.[0] || 'black'
+  const imageList = d.images?.[colorKey] ?? []
+  const imageKey = imageList[0]
+  if (!d.category || !imageKey) return null
+  return `${S3_BASE}/${d.category}/${colorKey}/${imageKey}.png`
+}
+
+// PhoneCatalogPage와 동일 로직 — 최저 용량 1개만 대표 카드로 노출
+function filterLowestCapacity(list: Device[]): Device[] {
+  return list.filter(
+    (d) =>
+      d.capacities && d.capacities.length > 0 && d.capacities[0] === d.capacity
+  )
+}
+
+// pet_name에서 용량 키워드 제거 ("iPhone 17 256GB" → "iPhone 17")
+function stripStorage(name: string): string {
+  return (name || '')
+    .replace(/\d+\s?(GB|TB)/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
 
 interface Props {
   apiUrl?: string
@@ -420,11 +450,14 @@ function StepModel({
     return () => controller.abort()
   }, [apiUrl])
 
+  // PhoneCatalogPage와 동일: 최저 용량 1개 대표 카드만 노출
+  const normalized = useMemo(() => filterLowestCapacity(devices), [devices])
+
   const filtered = useMemo(() => {
-    if (tab === 'samsung') return devices.filter((d) => d.company === 'samsung')
-    if (tab === 'apple') return devices.filter((d) => d.company === 'apple')
-    return devices.filter((d) => d.category === 'kidsphone')
-  }, [devices, tab])
+    if (tab === 'samsung') return normalized.filter((d) => d.company === 'samsung')
+    if (tab === 'apple') return normalized.filter((d) => d.company === 'apple')
+    return normalized.filter((d) => d.category === 'kidsphone')
+  }, [normalized, tab])
 
   return (
     <div>
@@ -474,13 +507,15 @@ function StepModel({
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           {filtered.map((d) => {
             const isSelected = selection.model === d.model
+            const imgUrl = buildDeviceImageUrl(d)
+            const displayName = stripStorage(d.pet_name)
             return (
               <button
                 key={d.model}
                 onClick={() => setSelection((s) => ({
                   ...s,
                   model: d.model,
-                  petName: d.pet_name,
+                  petName: displayName,
                   device: 'smartphone',
                   capacities: d.capacities ?? [],
                   capacity: '',
@@ -498,13 +533,29 @@ function StepModel({
                   transition: 'all 150ms ease',
                 }}
               >
-                {d.thumbnail ? (
-                  <img src={d.thumbnail} alt={d.pet_name} style={{ width: '100%', aspectRatio: '1/1', objectFit: 'contain' }} />
-                ) : (
-                  <div style={{ width: '100%', aspectRatio: '1/1', backgroundColor: COLORS.border, borderRadius: '8px' }} />
-                )}
+                <div style={{
+                  width: '100%',
+                  aspectRatio: '1/1',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                }}>
+                  {imgUrl ? (
+                    <img
+                      src={imgUrl}
+                      alt={displayName}
+                      onError={(e) => { e.currentTarget.style.display = 'none' }}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                    />
+                  ) : (
+                    <span style={{ fontSize: '24px', color: COLORS.textMuted }}>📱</span>
+                  )}
+                </div>
                 <div style={{ fontFamily: FONT, fontSize: '14px', fontWeight: 600, color: COLORS.textPrimary, letterSpacing: -0.24, textAlign: 'center' }}>
-                  {d.pet_name}
+                  {displayName}
                 </div>
               </button>
             )

@@ -2,11 +2,11 @@
 import { addPropertyControls, ControlType } from "framer"
 import React, { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import PhoneSelectModal from "https://framer.com/m/PhoneSelectModal-RfHSfS.js@zZzCtKP1mrBC8TdtA2ve"
-
+import PhoneSelectModal from "https://framer.com/m/PhoneSelectModal-RfHSfS.js@n74tcvFCFvFOtTpkXBTA"
 // ─── 상수 ────────────────────────────────────────────────
 const API = "https://kt-market-puce.vercel.app"
 const FONT = "'Apple SD Gothic Neo', -apple-system, sans-serif"
+const S3 = "https://juntell.s3.ap-northeast-2.amazonaws.com/phone"
 const SLOT_COLORS = ["#EF4444", "#3B82F6", "#10B981"] as const
 const SLOT_BG = ["#fff5f5", "#eff6ff", "#f0fdf4"] as const
 const TIERS = [
@@ -22,9 +22,33 @@ type DeviceInfo = {
   model: string
   pet_name: string
   thumbnail: string | null
+  category?: string | null
+  colors_en?: string[] | null
+  images?: Record<string, string[]> | null
   price: number
   disclosure_subsidy: number
   plans: { tier: TierKey; label: string; monthly: number }[]
+}
+
+// S3 직접 이미지 URL 구성 — thumbnail fallback
+function resolveImageUrl(d: {
+  category?: string | null
+  colors_en?: string[] | null
+  images?: Record<string, string[]> | null
+  thumbnail?: string | null
+}): string | null {
+  const category = d.category
+  const enColors = d.colors_en || []
+  const images = d.images || {}
+  if (category && enColors.length > 0) {
+    for (const color of enColors) {
+      const keys = images?.[color] || []
+      if (keys.length > 0) {
+        return `${S3}/${category}/${color}/${keys[0]}.png`
+      }
+    }
+  }
+  return d.thumbnail ?? null
 }
 
 // ─── SVG 라인 차트 ────────────────────────────────────────
@@ -253,6 +277,9 @@ export default function PhoneCompare(props) {
     model: string
     pet_name: string
     thumbnail: string | null
+    category?: string | null
+    colors_en?: string[] | null
+    images?: Record<string, string[]> | null
     price: number
     subsidy: number
   }) => {
@@ -261,6 +288,9 @@ export default function PhoneCompare(props) {
       model: device.model,
       pet_name: device.pet_name,
       thumbnail: device.thumbnail,
+      category: device.category ?? null,
+      colors_en: device.colors_en ?? [],
+      images: device.images ?? {},
       price: device.price,
       disclosure_subsidy: device.subsidy,
       plans: [],
@@ -346,8 +376,11 @@ export default function PhoneCompare(props) {
       >
         {slots.map((slot, i) =>
           slot ? (
-            <div
-              key={i}
+            <motion.div
+              key={`slot-${i}-${slot.model}`}
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "spring", damping: 16, stiffness: 240 }}
               style={{
                 borderRadius: 14,
                 border: `1.5px solid ${SLOT_COLORS[i]}`,
@@ -380,30 +413,18 @@ export default function PhoneCompare(props) {
               </button>
               <div
                 style={{
-                  width: 36,
-                  height: 44,
-                  borderRadius: 6,
+                  width: 48,
+                  height: 58,
+                  borderRadius: 8,
                   margin: "0 auto 6px",
-                  background: "#e5e7eb",
+                  background: "#fff",
                   overflow: "hidden",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                {slot.thumbnail ? (
-                  <img
-                    src={slot.thumbnail}
-                    alt={slot.pet_name}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "contain",
-                    }}
-                  />
-                ) : (
-                  <span style={{ fontSize: 18 }}>📱</span>
-                )}
+                <SlotImage device={slot} />
               </div>
               <div
                 style={{
@@ -415,10 +436,11 @@ export default function PhoneCompare(props) {
               >
                 {slot.pet_name}
               </div>
-            </div>
+            </motion.div>
           ) : (
-            <div
-              key={i}
+            <motion.div
+              key={`empty-${i}`}
+              whileTap={{ scale: 0.96 }}
               onClick={() => openModal(i)}
               style={{
                 borderRadius: 14,
@@ -441,7 +463,7 @@ export default function PhoneCompare(props) {
               <div style={{ fontSize: 10, color: "#9ca3af" }}>
                 추가
               </div>
-            </div>
+            </motion.div>
           )
         )}
       </div>
@@ -617,109 +639,141 @@ export default function PhoneCompare(props) {
         </div>
       )}
 
-      {/* 최저가 카드 */}
+      {/* 최저가 카드 — 24개월 총 절약액 강조 */}
       {winner && winnerMonthly > 0 && (
-        <div
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          key={`winner-${winner.model}-${tierIndex}`}
           style={{
             margin: "0 16px 14px",
             borderRadius: 16,
             background:
-              "linear-gradient(120deg,#fff1f1 0%,#fff 100%)",
+              "linear-gradient(135deg,#fff1f1 0%,#fff 60%,#fff5f5 100%)",
             border: "1.5px solid #fecaca",
-            padding: "14px 16px",
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
+            padding: "16px 16px 14px",
+            boxShadow: "0 4px 14px rgba(239,68,68,0.08)",
           }}
         >
-          <div style={{ flex: 1 }}>
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 3,
-                background: "#EF4444",
-                color: "#fff",
-                fontSize: 10,
-                fontWeight: 700,
-                padding: "3px 8px",
-                borderRadius: 100,
-                marginBottom: 6,
-              }}
-            >
-              🏆 {activeTier.label} 구간 최저가
-            </div>
-            <div
-              style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: "#111827",
-                marginBottom: 2,
-              }}
-            >
-              {winner.pet_name}
-            </div>
-            <div
-              style={{
-                fontSize: 24,
-                fontWeight: 800,
-                color: "#EF4444",
-                letterSpacing: -0.5,
-              }}
-            >
-              {winnerMonthly.toLocaleString()}
-              <span
-                style={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: "#6b7280",
-                }}
-              >
-                원/월
-              </span>
-            </div>
-            {savings > 0 && (
+          {/* 상단: 뱃지 + 기종 정보 */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ flex: 1 }}>
               <div
                 style={{
-                  fontSize: 11,
-                  color: "#6b7280",
-                  marginTop: 4,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 3,
+                  background: "#EF4444",
+                  color: "#fff",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  padding: "3px 8px",
+                  borderRadius: 100,
+                  marginBottom: 8,
                 }}
               >
-                비교 기종 대비 월 {savings.toLocaleString()}원
-                절약 · 24개월 총{" "}
+                🏆 {activeTier.label} 구간 최저가
+              </div>
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "#111827",
+                  marginBottom: 2,
+                }}
+              >
+                {winner.pet_name}
+              </div>
+              <div
+                style={{
+                  fontSize: 28,
+                  fontWeight: 800,
+                  color: "#EF4444",
+                  letterSpacing: -0.8,
+                  lineHeight: 1.1,
+                }}
+              >
+                {winnerMonthly.toLocaleString()}
+                <span
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: "#6b7280",
+                    marginLeft: 2,
+                  }}
+                >
+                  원/월
+                </span>
+              </div>
+            </div>
+            <div
+              style={{
+                width: 76,
+                height: 92,
+                background: "#fff",
+                borderRadius: 12,
+                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "hidden",
+                border: "1px solid #fecaca",
+              }}
+            >
+              <SlotImage device={winner} />
+            </div>
+          </div>
+
+          {/* 하단: 24개월 총 절약 강조 배지 */}
+          {savings > 0 && (
+            <div
+              style={{
+                marginTop: 12,
+                paddingTop: 12,
+                borderTop: "1px dashed #fecaca",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 8,
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "#991b1b",
+                    fontWeight: 600,
+                    marginBottom: 2,
+                  }}
+                >
+                  💸 24개월 약정 기준 총 절약
+                </div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "#6b7280",
+                  }}
+                >
+                  비교 기종 대비 월 {savings.toLocaleString()}원 절약
+                </div>
+              </div>
+              <div
+                style={{
+                  fontSize: 18,
+                  fontWeight: 800,
+                  color: "#EF4444",
+                  letterSpacing: -0.3,
+                  background: "#fff",
+                  padding: "6px 12px",
+                  borderRadius: 10,
+                  border: "1px solid #fecaca",
+                }}
+              >
                 {(savings * 24).toLocaleString()}원
               </div>
-            )}
-          </div>
-          <div
-            style={{
-              width: 52,
-              height: 64,
-              background: "#f3f4f6",
-              borderRadius: 10,
-              flexShrink: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              overflow: "hidden",
-            }}
-          >
-            {winner.thumbnail ? (
-              <img
-                src={winner.thumbnail}
-                alt={winner.pet_name}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                }}
-              />
-            ) : (
-              <span style={{ fontSize: 24 }}>📱</span>
-            )}
-          </div>
-        </div>
+            </div>
+          )}
+        </motion.div>
       )}
 
       {/* 비교표 */}
@@ -926,32 +980,131 @@ export default function PhoneCompare(props) {
         </div>
       )}
 
-      {/* 기종 없을 때 안내 */}
+      {/* 기종 없을 때 안내 — 가치 제안 강조 */}
       {filledSlots.length === 0 && (
         <div
           style={{
+            margin: "0 16px 30px",
+            background:
+              "linear-gradient(135deg, #fff5f5 0%, #fff 45%, #eff6ff 100%)",
+            borderRadius: 16,
+            border: "1px solid #f3f4f6",
+            padding: "24px 20px",
             textAlign: "center",
-            padding: "40px 20px",
-            color: "#9ca3af",
           }}
         >
-          <div style={{ fontSize: 36, marginBottom: 12 }}>📱</div>
+          <div style={{ fontSize: 40, marginBottom: 10 }}>🔍</div>
           <div
             style={{
-              fontSize: 15,
-              fontWeight: 600,
+              fontSize: 16,
+              fontWeight: 800,
+              color: "#111827",
               marginBottom: 6,
-              color: "#374151",
+              letterSpacing: -0.3,
             }}
           >
-            비교할 기종을 선택하세요
+            어떤 기종이 가장 저렴할까요?
           </div>
-          <div style={{ fontSize: 13 }}>
-            최대 3개까지 요금제별 금액을 비교할 수 있습니다
+          <div
+            style={{
+              fontSize: 13,
+              color: "#6b7280",
+              marginBottom: 16,
+              lineHeight: 1.5,
+            }}
+          >
+            최대 3개 기종을
+            <br />
+            요금제별 월 납부금으로 한번에 비교하세요
           </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: 14,
+              marginBottom: 16,
+              flexWrap: "wrap",
+            }}
+          >
+            {[
+              { icon: "💰", label: "공시지원금" },
+              { icon: "📉", label: "월 납부금" },
+              { icon: "✨", label: "24개월 절약액" },
+            ].map((item) => (
+              <div
+                key={item.label}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  fontSize: 12,
+                  color: "#374151",
+                  background: "#fff",
+                  padding: "6px 10px",
+                  borderRadius: 100,
+                  border: "1px solid #f3f4f6",
+                  fontWeight: 500,
+                }}
+              >
+                <span>{item.icon}</span>
+                {item.label}
+              </div>
+            ))}
+          </div>
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            onClick={() => openModal(0)}
+            style={{
+              background: "#111827",
+              color: "#fff",
+              border: "none",
+              borderRadius: 12,
+              padding: "11px 22px",
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: "pointer",
+              fontFamily: FONT,
+            }}
+          >
+            첫 기종 선택하기 →
+          </motion.button>
         </div>
       )}
     </div>
+  )
+}
+
+// S3 직접 URL → 실패 시 thumbnail → 이모지 순으로 폴백
+function SlotImage({
+  device,
+}: {
+  device: {
+    pet_name: string
+    thumbnail?: string | null
+    category?: string | null
+    colors_en?: string[] | null
+    images?: Record<string, string[]> | null
+  }
+}) {
+  const primary = resolveImageUrl(device)
+  const [src, setSrc] = useState<string | null>(primary)
+  useEffect(() => { setSrc(resolveImageUrl(device)) }, [device])
+
+  if (!src) return <span style={{ fontSize: 22 }}>📱</span>
+  return (
+    <img
+      src={src}
+      alt={device.pet_name}
+      onError={() => {
+        // 기본 S3 URL 실패 시 thumbnail fallback → 그래도 실패하면 null로 이모지 표시
+        if (device.thumbnail && src !== device.thumbnail) {
+          setSrc(device.thumbnail)
+        } else {
+          setSrc(null)
+        }
+      }}
+      style={{ width: "100%", height: "100%", objectFit: "contain" }}
+    />
   )
 }
 

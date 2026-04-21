@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabase
     .from('devices')
-    .select('model, pet_name, thumbnail, company, category, capacities, price, subsidy')
+    .select('model, pet_name, thumbnail, company, category, capacity, capacities, colors_en, images, price, subsidy')
     .eq('is_available', true)
     .order('priority', { ascending: true })
 
