@@ -10,6 +10,53 @@ import {
     useInstallmentInterest,
 } from "https://framer.com/m/OrderComponents-QLDYR7.js@sKK3V4EokH71sr4CS4oo"
 
+// ─── 긴급 타이머 (15분) ───────────────────────────────────────────────────────
+// 15분 = 휴대폰 구매 결정에 적합한 고려 시간 (너무 짧지 않고 충분한 긴박감)
+const TIMER_DURATION = 15 * 60 // 900초
+const TIMER_KEY = "ktmarket_urgency_timer_start"
+
+function useUrgencyTimer(): number | null {
+    const [secondsLeft, setSecondsLeft] = useState<number | null>(null)
+
+    useEffect(() => {
+        if (typeof window === "undefined") return
+
+        const stored = localStorage.getItem(TIMER_KEY)
+        const now = Date.now()
+
+        let startTime: number
+        if (stored) {
+            startTime = parseInt(stored, 10)
+        } else {
+            startTime = now
+            localStorage.setItem(TIMER_KEY, String(startTime))
+        }
+
+        const calc = () => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000)
+            return Math.max(0, TIMER_DURATION - elapsed)
+        }
+
+        setSecondsLeft(calc())
+
+        const interval = setInterval(() => {
+            const remaining = calc()
+            setSecondsLeft(remaining)
+            if (remaining === 0) clearInterval(interval)
+        }, 1000)
+
+        return () => clearInterval(interval)
+    }, [])
+
+    return secondsLeft
+}
+
+function formatTime(seconds: number): string {
+    const m = Math.floor(seconds / 60)
+    const s = seconds % 60
+    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+}
+
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────
 
 /**
@@ -58,6 +105,7 @@ export default function OrderFlowBottomSheet(props) {
 
     const [mounted, setMounted] = useState(false)
     const [showInterest] = useInstallmentInterest()
+    const secondsLeft = useUrgencyTimer()
 
     // ── 금액 변동 애니메이션 ──
     const roundedPayment = Math.round(
@@ -173,23 +221,87 @@ export default function OrderFlowBottomSheet(props) {
                     </span>
                 </div>
 
-                {/* 오른쪽: 신청하기 버튼 */}
-                <button
-                    onClick={isSoldOut ? handleRestockClick : handleFormLink}
-                    style={{
-                        flex: 1, height: 54, borderRadius: 14,
-                        border: "none",
-                        backgroundColor: isSoldOut ? "#3F4750" : "#EF4444",
-                        color: "#FFFFFF",
-                        fontSize: 17, fontWeight: 700,
-                        letterSpacing: -0.3, lineHeight: 1,
-                        cursor: "pointer", fontFamily: FONT,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        flexShrink: 0,
-                    }}
-                >
-                    {isSoldOut ? "입고 알림" : "신청하기"}
-                </button>
+                {/* 오른쪽: 신청하기 버튼 + 긴급 배지 */}
+                <div style={{ flex: 1, flexShrink: 0, position: "relative" }}>
+                    {/* 긴급 배지 — 버튼 상단 중앙에 겹침 */}
+                    {mounted && secondsLeft !== null && !isSoldOut && (
+                        <motion.div
+                            key={secondsLeft > 0 ? "timer" : "default"}
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.25 }}
+                            onClick={handleFormLink}
+                            style={{
+                                cursor: "pointer",
+                                position: "absolute",
+                                top: -14,
+                                left: 0,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 4,
+                                paddingLeft: 12,
+                                paddingRight: 12,
+                                paddingTop: 5,
+                                paddingBottom: 5,
+                                borderRadius: 100,
+                                /* 그라디언트 테두리: padding-box는 흰 배경, border-box는 그라디언트 */
+                                background: "linear-gradient(white, white) padding-box, linear-gradient(90deg, #4F7FFF 0%, #4F7FFF 100%) border-box",
+                                border: "1.5px solid transparent",
+                                whiteSpace: "nowrap",
+                                minWidth: secondsLeft > 0 ? 220 : "unset",
+                                justifyContent: "center",
+                                zIndex: 1,
+                                fontFamily: FONT,
+                            }}
+                        >
+                            {secondsLeft > 0 ? (
+                                <>
+                                    <span style={{
+                                        fontSize: 12, fontWeight: 800,
+                                        color: "#EF4444",
+                                        fontVariantNumeric: "tabular-nums",
+                                        letterSpacing: -0.3,
+                                        fontFamily: FONT,
+                                    }}>
+                                        {formatTime(secondsLeft)}
+                                    </span>
+                                    <span style={{
+                                        fontSize: 12, fontWeight: 700,
+                                        color: "#4F7FFF",
+                                        letterSpacing: -0.3,
+                                        fontFamily: FONT,
+                                    }}>
+                                        시간 내 신청 시 악세사리 3종 추가 증정
+                                    </span>
+                                </>
+                            ) : (
+                                <span style={{
+                                    fontSize: 12, fontWeight: 700,
+                                    color: "#4F7FFF",
+                                    letterSpacing: -0.3,
+                                    fontFamily: FONT,
+                                }}>
+                                    지금 주문하면 악세사리 3종 추가 증정!
+                                </span>
+                            )}
+                        </motion.div>
+                    )}
+                    <button
+                        onClick={isSoldOut ? handleRestockClick : handleFormLink}
+                        style={{
+                            width: "100%", height: 54, borderRadius: 14,
+                            border: "none",
+                            backgroundColor: isSoldOut ? "#3F4750" : "#EF4444",
+                            color: "#FFFFFF",
+                            fontSize: 17, fontWeight: 700,
+                            letterSpacing: -0.3, lineHeight: 1,
+                            cursor: "pointer", fontFamily: FONT,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                        }}
+                    >
+                        {isSoldOut ? "입고 알림" : "신청하기"}
+                    </button>
+                </div>
             </div>
         </div>
     )

@@ -3,11 +3,6 @@ import { createClient } from '@supabase/supabase-js'
 import { getCorsHeaders } from '@/src/shared/lib/cors'
 import type { NextRequest } from 'next/server'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
 type RegisterType = 'mnp' | 'chg'
 
 const TIERS = [
@@ -17,6 +12,10 @@ const TIERS = [
 ] as const
 
 export async function GET(request: NextRequest) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
   const cors = getCorsHeaders(request.headers.get('origin'))
   const { searchParams } = new URL(request.url)
   const modelsParam = searchParams.get('models') ?? ''
