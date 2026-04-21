@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
   const [devicesRes, subsidyRes] = await Promise.all([
     supabase
       .from('devices')
-      .select('model, pet_name, price, subsidy, thumbnail')
+      .select('model, pet_name, price, subsidy, thumbnail, category, colors_en, images')
       .in('model', models),
     supabase
       .from('ktmarket_subsidy')
@@ -70,6 +70,9 @@ export async function GET(request: NextRequest) {
       model: device.model,
       pet_name: device.pet_name,
       thumbnail: device.thumbnail,
+      category: device.category ?? null,
+      colors_en: device.colors_en ?? [],
+      images: device.images ?? {},
       price: device.price ?? 0,
       disclosure_subsidy: device.subsidy ?? 0,
       plans,

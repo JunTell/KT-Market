@@ -60,13 +60,19 @@ interface AsamoDeal {
 
 interface Props {
     sectionTitle: string
-    planId: string
+    /** @deprecated FIXED_PLAN_ID로 강제 고정됨 (Framer property 노출 제거) */
+    planId?: string
     userCarrier?: string
     registrationType?: RegType
 }
 
+// 고정 요금제: 유튜브 프리미엄 초이스 베이직 (90K, +3만원 추가지원금)
+// Framer 기존 인스턴스가 stale prop (ppllistobj_0747 등)을 보유해도 강제 적용
+const FIXED_PLAN_ID = "ppllistobj_0937"
+
 export default function AsamoList(props: Props) {
-    const { sectionTitle, planId } = props
+    const { sectionTitle } = props
+    const planId = FIXED_PLAN_ID
 
     const [mode, setMode] = React.useState<Mode>("device")
     const [deals, setDeals] = React.useState<AsamoDeal[]>([])
@@ -610,6 +616,13 @@ function isDevice(mode: Mode) {
     return mode === "device"
 }
 
+// 유튜브 프리미엄 요금제 (추가지원금 +30,000원)
+const YOUTUBE_PLAN_PIDS_ASAMO = new Set([
+    "ppllistobj_0937", // 90,000원
+    "ppllistobj_0938", // 110,000원
+    "ppllistobj_0939", // 130,000원
+])
+
 // 지원금 계산 로직
 function calcKTmarketSubsidy(
     planId: string,
@@ -651,9 +664,9 @@ function calcKTmarketSubsidy(
         }
     }
 
-    let subsidy = subsidyRow[matchedKey] ?? 0
-
-    return subsidy
+    const baseSubsidy = subsidyRow[matchedKey] ?? 0
+    const youtubeBonus = YOUTUBE_PLAN_PIDS_ASAMO.has(planId) ? 30000 : 0
+    return baseSubsidy + youtubeBonus
 }
 
 // --- Styles ---
@@ -738,8 +751,5 @@ addPropertyControls(AsamoList, {
         type: ControlType.String,
         defaultValue: "오늘의 공구",
     },
-    planId: {
-        type: ControlType.String,
-        defaultValue: "ppllistobj_0747",
-    },
+    // planId는 FIXED_PLAN_ID (ppllistobj_0937)로 강제 고정 — Framer property 노출 제거
 })
