@@ -1,4 +1,15 @@
 import { addPropertyControls, ControlType } from "framer"
+import {
+    Accordion,
+    AccordionItem,
+    AccordionButton,
+    AccordionPanel,
+    Box,
+    Button,
+    Stack,
+    Flex,
+} from "@chakra-ui/react"
+import { ChevronDownIcon } from "@chakra-ui/icons"
 import { createClient } from "@supabase/supabase-js"
 import React, { useEffect, useState } from "react"
 
@@ -7,269 +18,399 @@ const supabaseAnonKey =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNyb29pb3p6Ymp3ZGFnaHFkZG51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk3NzIzNjMsImV4cCI6MjAyNTM0ODM2M30.A51d6iu60yiGWL4cka8j9-r6QLQ2skXAHiqBGaTIEcM"
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-const FONT = '"Pretendard", "Inter", sans-serif'
+// 표시하지 않을 모델 목록
+const OBSOLETE_MODELS = new Set([
+    "aip16-128", "aip16-256", "aip16-512",
+    "aip16p-128", "aip16p-256", "aip16p-512",
+    "aip16pm-256", "aip16pm-512",
+    "aip16ps-128", "aip16ps-256", "aip16ps-512",
+    "aip15-512",
+    "aip15p-128", "aip15p-512",
+    "aip15pm-256", "aip15pm-512",
+    "aip15ps-128", "aip15ps-256", "aip15ps-512",
+    "aip13-128",
+    "sm-s931nk", "sm-s931nk512",
+    "sm-s721nk",
+    "sm-s928nk",
+])
 
-const brandMap: Record<string, string> = {
-    삼성: "samsung",
-    애플: "apple",
-    기타: "etc",
+// model 또는 category 어느 쪽이든 매칭되면 인식
+const matchesApple = (s: string, prefix: string) =>
+    s.startsWith(prefix)
+
+// 모델별 명시적 정렬 우선순위 (숫자 낮을수록 상단)
+const getModelPriority = (prod, brand = ""): number => {
+    const model = (prod.model ?? "").toLowerCase()
+    const cat   = (prod.category ?? "").toLowerCase()
+
+    // model / category 둘 중 하나라도 매칭되면 Apple 계열로 인식
+    const isAip = (prefix: string) =>
+        matchesApple(model, prefix) || matchesApple(cat, prefix)
+
+    // 애플 단독 선택 시: 17e → 17 → 17Pro → 17ProMax → 16e → 16 → ...
+    if (brand === "애플") {
+        if (isAip("aip17e"))  return 1
+        if (isAip("aip17pm")) return 4   // Pro Max — aip17p- 보다 먼저 체크
+        if (isAip("aip17p-")) return 3
+        if (isAip("aip17-"))  return 2
+        if (model === "aip16e" || cat === "aip16e") return 10
+        if (isAip("aip16pm")) return 13
+        if (isAip("aip16p-")) return 12
+        if (isAip("aip16-"))  return 11
+        return 99
+    }
+
+    // 전체 / 삼성: S26 → S26 Ultra → S26+ → iPhone 17 → 17e → 17Pro → 17ProMax → S25 계열 ...
+    if (model.startsWith("sm-s942")) return 1   // S26
+    if (model.startsWith("sm-s948")) return 2   // S26 Ultra
+    if (model.startsWith("sm-s947")) return 3   // S26+
+    if (isAip("aip17e"))             return 5   // iPhone 17e
+    if (isAip("aip17pm"))            return 7   // iPhone 17 Pro Max — 반드시 aip17p- 앞에
+    if (isAip("aip17p-"))            return 6   // iPhone 17 Pro
+    if (isAip("aip17-"))             return 4   // iPhone 17
+    if (model.startsWith("sm-s731")) return 10  // S25 FE
+    if (model.startsWith("sm-s928")) return 11  // S25 Ultra
+    if (model.startsWith("sm-s926")) return 12  // S25+
+    if (model.startsWith("sm-s931")) return 13  // S25
+    if (model.startsWith("sm-s937")) return 14  // S25 Edge
+    if (model.startsWith("sm-f9"))   return 20
+    if (model.startsWith("sm-f7"))   return 21
+    if (model.startsWith("sm-a"))    return 40
+    if (model === "aip16e" || cat === "aip16e") return 30
+    if (isAip("aip16pm"))            return 33
+    if (isAip("aip16p-"))            return 32
+    if (isAip("aip16-"))             return 31
+    return 99
 }
 
-const categoryMap: Record<string, string[]> = {
-    삼성: ["S 시리즈", "Z 시리즈", "A 시리즈"],
-    애플: ["아이폰 17", "아이폰 16", "아이폰 15", "아이폰 14"],
-    기타: [],
-}
+const PRICE_RANGES = [
+    { label: "전체", min: 0, max: Infinity },
+    { label: "~30만", min: 0, max: 300000 },
+    { label: "30~60만", min: 300000, max: 600000 },
+    { label: "60~100만", min: 600000, max: 1000000 },
+    { label: "100만~", min: 1000000, max: Infinity },
+]
 
-// ─── 메인 컴포넌트 ────────────────────────────────────────────────────
-export default function PhoneCatalogPage(props) {
+const SORT_OPTIONS = [
+    { label: "추천순", value: "recommended" },
+    { label: "낮은가격순", value: "price_asc" },
+    { label: "높은가격순", value: "price_desc" },
+    { label: "최신순", value: "newest" },
+]
+
+export default function PhoneListPage(props) {
     const [products, setProducts] = useState([])
     const [filteredProducts, setFilteredProducts] = useState([])
+    const [isLoading, setIsLoading] = useState(true)
 
     const [selectedBrand, setSelectedBrand] = useState("")
     const [selectedCategory, setSelectedCategory] = useState("")
     const [selectedSubCategory, setSelectedSubCategory] = useState("")
+    const [selectedPriceRange, setSelectedPriceRange] = useState(0)
+    const [sortBy, setSortBy] = useState("recommended")
 
     const [isClient, setIsClient] = useState(false)
     const [hideFilter, setHideFilter] = useState(false)
-    const [isVisiblePlayer, setIsVisiblePlayer] = useState(false)
     const [isVisibleMainBanner, setIsVisibleMainBanner] = useState(false)
     const [mainBannerURL, setMainBannerURL] = useState("")
-    const [videoURL, setVideoURL] = useState("")
+
+    const brandMap = {
+        삼성: "samsung",
+        애플: "apple",
+        기타: "etc",
+    }
 
     const handleOnClick = (product) => {
         window.location.href = `/phone/${product.model}`
     }
 
+    const filterLowestDevices = (products) => {
+        return products.filter((product) =>
+            product.capacities?.[0] === product.capacity &&
+            product.is_available === true &&
+            !OBSOLETE_MODELS.has(product.model)
+        )
+    }
+
     const fetchDevices = async () => {
+        const samsungChoicePlanId = "ppllistobj_0937"
+
         try {
             const { data: devices, error } = await supabase
                 .from("devices")
-                .select("*")
-                .eq("is_available", true)
-            if (error) throw error
+                .select(`*, device_plans_chg (model, model_price, plan_id, name, disclosure_subsidy)`)
+                .eq("device_plans_chg.plan_id", samsungChoicePlanId)
 
-            // pet_name에서 용량 표기 제거
             const storageKeywords = ["128GB", "256GB", "512GB", "1TB"]
             devices.forEach((product) => {
                 if (typeof product.pet_name === "string") {
-                    storageKeywords.forEach((kw) => {
-                        product.pet_name = product.pet_name.replace(kw, "").trim()
+                    storageKeywords.forEach((keyword) => {
+                        product.pet_name = product.pet_name.replace(keyword, "").trim()
                     })
                 }
             })
 
-            // 최저 용량 모델만 표시
-            const filtered = devices.filter(
-                (p) => p.capacities?.[0] === p.capacity
-            )
-            setProducts(filtered)
-        } catch (err) {
-            console.error("fetchDevices error:", err)
+            setProducts(filterLowestDevices(devices) ?? [])
+            if (error) throw error
+        } catch (error) {
+            console.log("Fetched Devices with Plans: ", error)
+        } finally {
+            setIsLoading(false)
         }
     }
 
-    // 초기화
     useEffect(() => {
         setIsClient(true)
 
         if (props.brand) {
             setSelectedBrand(props.brand)
         } else {
-            const params = new URLSearchParams(window.location.search)
-            const brand = params.get("brand") ?? ""
-            const category = params.get("category") ?? ""
-            const subCategory = params.get("sub-category") ?? ""
+            const queryParams = new URLSearchParams(window.location.search)
+            const brand = queryParams.get("brand")
+            const category = queryParams.get("category")
+            const subCategory = queryParams.get("sub-category")
 
             if (brand) setSelectedBrand(brand)
             if (category) setSelectedCategory(category)
             if (subCategory) setSelectedSubCategory(subCategory)
             if (brand && category) setHideFilter(true)
         }
-
-        fetchDevices()
     }, [])
 
-    // 필터링 + 비디오/배너 설정
+    // 필터링 + 배너
     useEffect(() => {
-        if (products.length === 0) return
-
         const lastPath =
             typeof window !== "undefined"
                 ? window.location.pathname.split("/").filter(Boolean).pop()
                 : ""
-        const params = new URLSearchParams(
-            typeof window !== "undefined" ? window.location.search : ""
-        )
-        const brand = params.get("brand") ?? selectedBrand
-        const category = params.get("category") ?? selectedCategory
-        const subCategory = params.get("sub-category") ?? selectedSubCategory
+        const queryParams = new URLSearchParams(window.location.search)
+        const brand = queryParams.get("brand")
+        const category = queryParams.get("category")
+        const subCategory = queryParams.get("sub-category")
 
-        // 비디오/배너 설정
+        // 특수 페이지 설정 (유튜브 제거)
         switch (lastPath) {
+            case "iphone17":
+            case "iphone16":
+            case "foldable7":
+            case "s25":
+                setHideFilter(true)
+                break
             case "apple":
-                setIsVisibleMainBanner(true)
-                setMainBannerURL(
-                    "https://framerusercontent.com/images/hQqRf9KXTIIjEexGc76ihqzSfo.jpeg?scale-down-to=1024&width=3942&height=864"
-                )
                 break
             case "phone":
-                if (brand === "애플" && category === "아이폰 17") {
-                    setIsVisibleMainBanner(true)
-                    setMainBannerURL(
-                        "https://framerusercontent.com/images/hQqRf9KXTIIjEexGc76ihqzSfo.jpeg?scale-down-to=1024&width=3942&height=864"
-                    )
-                } else if (brand === "삼성") {
-                    if (category === "Z시리즈" && subCategory === "폴더블7") {
-                        setIsVisiblePlayer(true)
-                        setVideoURL("https://www.youtube.com/embed/LhsplcD8yPg?si=z-v0B-uMJChw_E-I")
-                    } else if (category === "Z시리즈" || category === "S시리즈") {
-                        setIsVisiblePlayer(true)
-                        setVideoURL("https://www.youtube.com/embed/Q3mIdoJgO50?si=C0jPKC4holLhz3zM")
-                    }
-                } else if (!brand) {
-                    setIsVisiblePlayer(true)
-                    setVideoURL("https://www.youtube.com/embed/FGWEE5IFu8I?si=NEx_8zBeMVLlKhET")
-                }
-                break
-            case "etc":
-                setIsVisiblePlayer(true)
-                setVideoURL("https://www.youtube.com/embed/PUQfcMPfifw?si=bpGUIbDTRM17iEtY")
                 break
         }
 
-        // 필터링
-        let result = [...products]
+        let filtered = products
         let isSpecialPage = false
 
         if (lastPath === "iphone16") {
             isSpecialPage = true
-            result = result.filter((p) => p.category_kr === "아이폰 16")
-        } else if (lastPath === "iphone17") {
-            isSpecialPage = true
-            result = result.filter((p) => p.category_kr === "아이폰 17")
+            filtered = filtered.filter((product) => product.category_kr === "아이폰 16")
         } else if (lastPath === "foldable7") {
             isSpecialPage = true
-            const codes = ["sm-f966", "sm-f766", "sm-f761"]
-            result = result.filter((p) => codes.some((c) => p.category?.startsWith(c)))
+            const targetCodes = ["sm-f966", "sm-f766", "sm-f761"]
+            filtered = filtered.filter((product) =>
+                targetCodes.some((code) => product.category?.startsWith(code))
+            )
         } else if (lastPath === "s25") {
             isSpecialPage = true
-            const codes = ["sm-s931", "sm-s937", "sm-s731", "sm-s938", "sm-s942", "sm-s947", "sm-s948"]
-            result = result.filter((p) => codes.some((c) => p.category?.startsWith(c)))
+            const targetCodes = ["sm-s931", "sm-s937", "sm-s731", "sm-s938", "sm-s942", "sm-s947", "sm-s948"]
+            filtered = filtered.filter((product) =>
+                targetCodes.some((code) => product.category?.startsWith(code))
+            )
+        } else if (lastPath === "iphone17") {
+            isSpecialPage = true
+            filtered = filtered.filter((product) => product.category_kr === "아이폰 17")
         }
 
         if (!isSpecialPage) {
             if (selectedBrand) {
-                const en = brandMap[selectedBrand]
-                result = result.filter((p) => p.company === en)
+                const englishBrand = brandMap[selectedBrand]
+                filtered = filtered.filter((product) => {
+                    if (product.company === englishBrand) return true
+                    if (product.category === "aip16e") return englishBrand === "apple"
+                    return false
+                })
             }
             if (selectedCategory) {
-                result = result.filter(
-                    (p) =>
-                        p.category_kr.replace(/\s+/g, "") ===
+                filtered = filtered.filter(
+                    (product) =>
+                        product.category_kr.replace(/\s+/g, "") ===
                         selectedCategory.replace(/\s+/g, "")
                 )
             }
             if (selectedSubCategory) {
-                const subCategoryFilterMap: Record<string, string[]> = {
-                    폴더블7: ["sm-f966nk", "sm-f966nk512", "sm-f766nk", "sm-f766nk512"],
-                    폴더블6: ["sm-f956nk", "sm-f741nk"],
-                    폴더블5: ["sm-f946nk", "sm-f731nk"],
-                    S25: ["sm-s931nk", "sm-s936nk", "sm-s938nk", "sm-s937nk", "sm-s942nk", "sm-s947nk", "sm-s948nk"],
-                    S24: ["sm-s921nk", "sm-s926nk", "sm-s928nk", "sm-s721nk"],
-                }
-                const targets = subCategoryFilterMap[selectedSubCategory]
-                if (targets) {
-                    result = result.filter((p) => targets.includes(p.category))
+                if (selectedSubCategory === "폴더블7") {
+                    filtered = filtered.filter((product) =>
+                        product.category === "sm-f966nk" ||
+                        product.category === "sm-f966nk512" ||
+                        product.category === "sm-f766nk" ||
+                        product.category === "sm-f766nk512"
+                    )
+                } else if (selectedSubCategory === "폴더블6") {
+                    filtered = filtered.filter((product) =>
+                        product.category === "sm-f956nk" || product.category === "sm-f741nk"
+                    )
+                } else if (selectedSubCategory === "폴더블5") {
+                    filtered = filtered.filter((product) =>
+                        product.category === "sm-f946nk" || product.category === "sm-f731nk"
+                    )
+                } else if (selectedSubCategory === "S25") {
+                    filtered = filtered.filter((product) =>
+                        product.category === "sm-s931nk" ||
+                        product.category === "sm-s936nk" ||
+                        product.category === "sm-s938nk" ||
+                        product.category === "sm-s937nk" ||
+                        product.category === "sm-s942nk" ||
+                        product.category === "sm-s947nk" ||
+                        product.category === "sm-s948nk"
+                    )
+                } else if (selectedSubCategory === "S24") {
+                    filtered = filtered.filter((product) =>
+                        product.category === "sm-s921nk" ||
+                        product.category === "sm-s926nk" ||
+                        product.category === "sm-s928nk" ||
+                        product.category === "sm-s721nk"
+                    )
                 } else {
-                    result = result.filter((p) => p.category === selectedSubCategory)
+                    filtered = filtered.filter((product) => product.category === selectedSubCategory)
                 }
             }
         }
 
-        // 출시일 내림차순 정렬
-        result.sort(
-            (a, b) =>
-                new Date(b.release_date).getTime() -
-                new Date(a.release_date).getTime()
-        )
+        // 가격대 필터
+        const priceRange = PRICE_RANGES[selectedPriceRange]
+        if (priceRange && priceRange.min > 0 || priceRange.max < Infinity) {
+            filtered = filtered.filter((product) => {
+                const price = product.price ?? 0
+                return price >= priceRange.min && price < priceRange.max
+            })
+        }
 
-        setFilteredProducts(result)
-    }, [selectedBrand, selectedCategory, selectedSubCategory, products])
+        // 정렬
+        if (sortBy === "price_asc") {
+            filtered.sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
+        } else if (sortBy === "price_desc") {
+            filtered.sort((a, b) => (b.price ?? 0) - (a.price ?? 0))
+        } else if (sortBy === "newest") {
+            filtered.sort((a, b) => new Date(b.release_date).getTime() - new Date(a.release_date).getTime())
+        } else {
+            // 추천순: 모델 우선순위 정렬 → 동일 티어 내 출시일 최신순
+            filtered.sort((a, b) => {
+                const pa = getModelPriority(a, selectedBrand)
+                const pb = getModelPriority(b, selectedBrand)
+                if (pa !== pb) return pa - pb
+                return new Date(b.release_date).getTime() - new Date(a.release_date).getTime()
+            })
+        }
+
+        setFilteredProducts(filtered)
+    }, [selectedBrand, selectedCategory, selectedSubCategory, selectedPriceRange, sortBy, products])
+
+    useEffect(() => {
+        fetchDevices()
+    }, [])
 
     return (
-        <div style={{ fontFamily: FONT }}>
+        <div>
             {isClient && !hideFilter && (
-                <BrandModelFilter
-                    selectedBrand={selectedBrand}
-                    setSelectedBrand={(brand) => {
-                        setSelectedBrand(brand)
-                        setSelectedCategory("")
-                    }}
-                    selectedCategory={selectedCategory}
-                    setSelectedCategory={setSelectedCategory}
-                />
-            )}
-
-            {isVisibleMainBanner && mainBannerURL && (
-                <a href="/form-iphone17/stock" style={{ display: "block" }}>
-                    <img
-                        src={mainBannerURL}
-                        alt="배너"
-                        style={{ width: "100%", objectFit: "cover" }}
+                <>
+                    <BrandModelFilter
+                        selectedBrand={selectedBrand}
+                        setSelectedBrand={setSelectedBrand}
+                        selectedCategory={selectedCategory}
+                        setSelectedCategory={setSelectedCategory}
                     />
-                </a>
-            )}
-
-            {isVisiblePlayer && videoURL && (
-                <div style={{ backgroundColor: "#000", padding: "40px 0" }}>
-                    <div
-                        style={{
-                            position: "relative",
-                            width: "90%",
-                            margin: "0 auto",
-                            paddingTop: "56.25%",
-                        }}
-                    >
-                        <iframe
-                            src={videoURL + "&modestbranding=1&rel=0&showinfo=0"}
-                            title="YouTube video player"
-                            style={{
-                                position: "absolute",
-                                top: 0, left: 0,
-                                width: "100%", height: "100%",
-                                border: "none",
-                            }}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            referrerPolicy="strict-origin-when-cross-origin"
-                            allowFullScreen
-                        />
+                    {/* 가격대 + 정렬 필터 바 */}
+                    <div style={{
+                        display: "flex", flexDirection: "column", gap: 8,
+                        padding: "8px 16px 4px",
+                        backgroundColor: "#FFFFFF",
+                        fontFamily: '"Pretendard", "Inter", sans-serif',
+                    }}>
+                        {/* 가격대 필터 */}
+                        <div style={{ display: "flex", gap: 6, overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
+                            {PRICE_RANGES.map((range, idx) => (
+                                <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => setSelectedPriceRange(idx)}
+                                    style={{
+                                        height: 32,
+                                        padding: "0 12px",
+                                        borderRadius: 16,
+                                        border: selectedPriceRange === idx ? "1.5px solid #0066FF" : "1px solid #E5E7EB",
+                                        backgroundColor: selectedPriceRange === idx ? "#ECF4FF" : "#FFFFFF",
+                                        color: selectedPriceRange === idx ? "#0066FF" : "#3F4750",
+                                        fontSize: 13,
+                                        fontWeight: selectedPriceRange === idx ? 600 : 400,
+                                        cursor: "pointer",
+                                        whiteSpace: "nowrap",
+                                        flexShrink: 0,
+                                        fontFamily: "inherit",
+                                        letterSpacing: -0.2,
+                                    }}
+                                >
+                                    {range.label}
+                                </button>
+                            ))}
+                        </div>
+                        {/* 정렬 */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
+                            {SORT_OPTIONS.map((opt) => (
+                                <button
+                                    key={opt.value}
+                                    type="button"
+                                    onClick={() => setSortBy(opt.value)}
+                                    style={{
+                                        background: "none",
+                                        border: "none",
+                                        padding: "4px 6px",
+                                        fontSize: 12,
+                                        fontWeight: sortBy === opt.value ? 700 : 400,
+                                        color: sortBy === opt.value ? "#0066FF" : "#868E96",
+                                        cursor: "pointer",
+                                        fontFamily: "inherit",
+                                        letterSpacing: -0.16,
+                                    }}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                </div>
+                </>
             )}
-
-            <div>
-                {products.length === 0 ? (
-                    <SkeletonList />
-                ) : filteredProducts.length === 0 ? (
-                    <div style={{ padding: "40px 20px", textAlign: "center", color: "#9CA3AF", fontSize: 14 }}>
-                        해당 조건의 기기가 없습니다
-                    </div>
-                ) : (
-                    filteredProducts.map((product) => (
-                        <ProductCard
-                            key={product.model}
-                            product={product}
-                            onClick={() => handleOnClick(product)}
-                        />
-                    ))
+            <div style={{ display: "grid", gap: "8px" }}>
+                {isVisibleMainBanner && mainBannerURL && (
+                    <a href="/form-iphone17/stock" style={{ display: "block" }}>
+                        <img src={mainBannerURL} alt="배너" style={{ width: "100%", objectFit: "cover" }} />
+                    </a>
                 )}
+                <div>
+                    {isLoading ? (
+                        Array.from({ length: 5 }).map((_, i) => (
+                            <ProductCardSkeleton key={i} />
+                        ))
+                    ) : (
+                        filteredProducts.map((product, index) => (
+                            <ProductCard
+                                key={index}
+                                rank={index + 1}
+                                product={product}
+                                onClick={() => handleOnClick(product)}
+                            />
+                        ))
+                    )}
+                </div>
             </div>
         </div>
     )
 }
 
-addPropertyControls(PhoneCatalogPage, {
+addPropertyControls(PhoneListPage, {
     brand: {
         type: ControlType.Enum,
         title: "제조사",
@@ -288,213 +429,351 @@ addPropertyControls(PhoneCatalogPage, {
     },
 })
 
-// ─── 브랜드/모델 필터 ─────────────────────────────────────────────────
 function BrandModelFilter({ selectedBrand, setSelectedBrand, selectedCategory, setSelectedCategory }) {
     const brands = ["삼성", "애플", "기타"]
-    const categories = categoryMap[selectedBrand] ?? []
+    const categories = {
+        삼성: ["S 시리즈", "Z 시리즈", "A 시리즈"],
+        애플: ["아이폰 17", "아이폰 16", "아이폰 15", "아이폰 14"],
+        기타: ["Mi 시리즈", "A 시리즈", "Redmi 시리즈"],
+    }
+
+    const [openBrandAccordionIndex, setOpenBrandAccordionIndex] = useState<number>(-1)
+    const [openModelAccordionIndex, setOpenModelAccordionIndex] = useState<number>(-1)
+
+    const isBrandOpen = openBrandAccordionIndex === 0
+    const isModelOpen = openModelAccordionIndex === 0
 
     return (
-        <div style={{ borderBottom: "1px solid #F1F3F5" }}>
-            {/* 브랜드 탭 */}
-            <div
-                style={{
-                    display: "flex",
-                    gap: 0,
-                    borderBottom: "1px solid #F1F3F5",
-                    overflowX: "auto",
-                    scrollbarWidth: "none",
-                    padding: "0 16px",
+        <Flex width="100%">
+            <Accordion
+                allowToggle
+                index={openBrandAccordionIndex}
+                onChange={(index) => {
+                    const idx = index as number
+                    setOpenBrandAccordionIndex(idx)
+                    if (idx === 0) setOpenModelAccordionIndex(-1)
                 }}
+                flex="1"
             >
-                <button
-                    onClick={() => setSelectedBrand("")}
-                    style={tabStyle(selectedBrand === "")}
-                >
-                    전체
-                </button>
-                {brands.map((brand) => (
-                    <button
-                        key={brand}
-                        onClick={() => setSelectedBrand(brand)}
-                        style={tabStyle(selectedBrand === brand)}
+                <AccordionItem border="none" bg="white">
+                    <AccordionButton
+                        bg="white" h="40px" fontSize="12px" width="100%"
+                        border="none" padding="0px 20px"
+                        borderBottom="1px solid #F4F4F5" borderRight="1px solid #F4F4F5"
                     >
-                        {brand}
-                    </button>
-                ))}
-            </div>
+                        <Box flex="1" textAlign="left">{selectedBrand || "제조사 선택"}</Box>
+                        <ChevronDownIcon
+                            boxSize={20}
+                            transform={isBrandOpen ? "rotate(180deg)" : "rotate(0deg)"}
+                            transition="transform 0.3s ease-in-out"
+                        />
+                    </AccordionButton>
+                    <AccordionPanel pb={4}>
+                        <Stack spacing={0} width="100%">
+                            {brands.map((brand) => (
+                                <Button
+                                    key={brand}
+                                    justifyContent="flex-start" bg="white" border="none"
+                                    onClick={() => {
+                                        setSelectedBrand(brand)
+                                        setSelectedCategory("")
+                                        setOpenBrandAccordionIndex(-1)
+                                    }}
+                                    colorScheme={selectedBrand === brand ? "blue" : "gray"}
+                                    width="100%" fontSize="12px" h="40px" pl="20px"
+                                    borderBottom="1px solid #F4F4F5" borderRight="1px solid #F4F4F5"
+                                >
+                                    {brand}
+                                </Button>
+                            ))}
+                        </Stack>
+                    </AccordionPanel>
+                </AccordionItem>
+            </Accordion>
 
-            {/* 카테고리 탭 (브랜드 선택 시) */}
-            {selectedBrand && categories.length > 0 && (
-                <div
-                    style={{
-                        display: "flex",
-                        gap: 8,
-                        padding: "10px 16px",
-                        overflowX: "auto",
-                        scrollbarWidth: "none",
-                    }}
-                >
-                    <button
-                        onClick={() => setSelectedCategory("")}
-                        style={chipStyle(selectedCategory === "")}
+            <Accordion
+                allowToggle
+                index={openModelAccordionIndex}
+                onChange={(index) => {
+                    const idx = index as number
+                    setOpenModelAccordionIndex(idx)
+                    if (idx === 0) setOpenBrandAccordionIndex(-1)
+                }}
+                flex="1"
+            >
+                <AccordionItem border="none" bg="white">
+                    <AccordionButton
+                        bg="white" h="40px" fontSize="12px" width="100%"
+                        border="none" padding="0px 20px"
+                        borderBottom="1px solid #F4F4F5"
                     >
-                        전체
-                    </button>
-                    {categories.map((cat) => (
-                        <button
-                            key={cat}
-                            onClick={() => setSelectedCategory(cat)}
-                            style={chipStyle(selectedCategory === cat)}
-                        >
-                            {cat}
-                        </button>
-                    ))}
-                </div>
-            )}
-        </div>
+                        <Box flex="1" textAlign="left">{selectedCategory || "모델 선택"}</Box>
+                        <ChevronDownIcon
+                            boxSize={20}
+                            transform={isModelOpen ? "rotate(180deg)" : "rotate(0deg)"}
+                            transition="transform 0.3s ease-in-out"
+                        />
+                    </AccordionButton>
+                    <AccordionPanel pb={4}>
+                        <Stack spacing={0} width="100%">
+                            {!selectedBrand && (
+                                <Button
+                                    justifyContent="flex-start" bg="white" border="none"
+                                    colorScheme="gray" width="100%" fontSize="12px"
+                                    h="40px" pl="20px"
+                                    borderBottom="1px solid #F4F4F5" borderRight="1px solid #F4F4F5"
+                                >
+                                    제조사를 먼저 선택해주세요
+                                </Button>
+                            )}
+                            {selectedBrand && categories[selectedBrand].map((model) => (
+                                <Button
+                                    key={model}
+                                    justifyContent="flex-start" bg="white" border="none"
+                                    onClick={() => {
+                                        setSelectedCategory(model)
+                                        setOpenModelAccordionIndex(-1)
+                                    }}
+                                    colorScheme={selectedCategory === model ? "blue" : "gray"}
+                                    width="100%" fontSize="12px" h="40px" pl="20px"
+                                    borderBottom="1px solid #F4F4F5" borderRight="1px solid #F4F4F5"
+                                >
+                                    {model}
+                                </Button>
+                            ))}
+                        </Stack>
+                    </AccordionPanel>
+                </AccordionItem>
+            </Accordion>
+        </Flex>
     )
 }
 
-const tabStyle = (isActive: boolean): React.CSSProperties => ({
-    flexShrink: 0,
-    background: "none",
-    border: "none",
-    borderBottom: isActive ? "2px solid #111827" : "2px solid transparent",
-    padding: "12px 16px",
-    fontSize: 14,
-    fontWeight: isActive ? 700 : 400,
-    color: isActive ? "#111827" : "#9CA3AF",
-    cursor: "pointer",
-    fontFamily: FONT,
-    transition: "color 0.15s",
-    marginBottom: -1,
-})
+function ProductCardSkeleton() {
+    return (
+        <>
+            <style>{`
+                @keyframes kt-shimmer {
+                    0% { background-position: -400px 0; }
+                    100% { background-position: 400px 0; }
+                }
+                .kt-skeleton {
+                    background: linear-gradient(90deg, #F4F5F7 25%, #EAECEF 50%, #F4F5F7 75%);
+                    background-size: 800px 100%;
+                    animation: kt-shimmer 1.4s infinite linear;
+                    border-radius: 8px;
+                }
+            `}</style>
+            <div style={{
+                display: "flex", alignItems: "center",
+                gap: "clamp(10px, 2.5vw, 16px)",
+                padding: "16px clamp(12px, 3vw, 20px)",
+                backgroundColor: "white", borderBottom: "1px solid #F4F4F5",
+                width: "100%", boxSizing: "border-box",
+            }}>
+                <div className="kt-skeleton" style={{
+                    width: "clamp(88px, 22vw, 110px)", height: "clamp(88px, 22vw, 110px)",
+                    minWidth: "clamp(88px, 22vw, 110px)", borderRadius: "14px", flexShrink: 0,
+                }} />
+                <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <div className="kt-skeleton" style={{ width: "55%", height: "14px" }} />
+                    <div className="kt-skeleton" style={{ width: "70%", height: "24px", marginTop: "2px" }} />
+                    <div className="kt-skeleton" style={{ width: "20%", height: "26px", borderRadius: "8px", marginTop: "2px" }} />
+                </div>
+                <div className="kt-skeleton" style={{ flexShrink: 0, width: "72px", height: "38px", borderRadius: "12px" }} />
+            </div>
+        </>
+    )
+}
 
-const chipStyle = (isActive: boolean): React.CSSProperties => ({
-    flexShrink: 0,
-    background: isActive ? "#111827" : "#F3F4F6",
-    border: "none",
-    borderRadius: 999,
-    padding: "6px 14px",
-    fontSize: 13,
-    fontWeight: isActive ? 600 : 400,
-    color: isActive ? "#FFFFFF" : "#374151",
-    cursor: "pointer",
-    fontFamily: FONT,
-    transition: "background 0.15s, color 0.15s",
-})
+function ProductCard({ product, onClick, rank }) {
+    const isIPhone16e = product.category === "aip16e"
+    const [ktmarketSubsidies, setKtmarketSubsidies] = useState(null)
 
-// ─── 상품 카드 ────────────────────────────────────────────────────────
-function ProductCard({ product, onClick }) {
-    const imageURL = (() => {
+    useEffect(() => {
+        const fetchSubsidy = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from("ktmarket_subsidy").select("*").eq("model", product.model)
+                if (error) throw error
+                setKtmarketSubsidies(data[0])
+            } catch (err) { console.error(err) }
+        }
+        fetchSubsidy()
+    }, [product.model])
+
+    const calcPrice = () => {
+        if (isIPhone16e) return "0"
+        if (!ktmarketSubsidies) return product.price.toLocaleString()
+        const ktmarketSubsidy = calcKTmarketSubsidy(product, ktmarketSubsidies)
+        const disclosure_subsidy = product.device_plans_chg?.[0]?.disclosure_subsidy ?? 0
+        const discountPrice = product.price - disclosure_subsidy - ktmarketSubsidy
+        return (discountPrice < 0 ? 0 : discountPrice).toLocaleString()
+    }
+
+    const buildImageUrl = (category: string, color: string, imageKey: string) =>
+        `https://juntell.s3.ap-northeast-2.amazonaws.com/phone/${category}/${color}/${imageKey}.png`
+
+    const imageURL = (product) => {
         const colorKey = product.thumbnail || product.colors_en?.[0] || "black"
         const imageList = product.images?.[colorKey] ?? []
-        if (imageList.length === 0) return ""
-        return `https://juntell.s3.ap-northeast-2.amazonaws.com/phone/${product.category}/${colorKey}/${imageList[0]}.png`
-    })()
+        const imageKey = imageList.length > 0 ? imageList[0] : null
+        if (!imageKey) return "https://example.com/default-image.png"
+        return buildImageUrl(product.category, colorKey, imageKey)
+    }
+
+    const calcDiscountRate = () => {
+        const originalPrice = isIPhone16e ? 990000 : product.price
+        if (!originalPrice || originalPrice === 0) return 0
+        const finalPrice = parseInt(calcPrice().replace(/,/g, ""), 10)
+        const rate = Math.round(((originalPrice - finalPrice) / originalPrice) * 100)
+        return rate > 0 ? rate : 0
+    }
+
+    const discountRate = calcDiscountRate()
 
     return (
         <div
-            onClick={onClick}
             style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 16,
-                padding: "18px 20px",
+                display: "flex", alignItems: "center",
+                gap: "clamp(10px, 2.5vw, 16px)",
+                padding: "16px clamp(12px, 3vw, 20px)",
+                backgroundColor: "white", cursor: "pointer",
                 borderBottom: "1px solid #F4F4F5",
-                backgroundColor: "#FFFFFF",
-                cursor: "pointer",
-                fontFamily: FONT,
+                width: "100%", boxSizing: "border-box", overflow: "hidden",
             }}
+            onClick={onClick}
         >
             {/* 이미지 */}
-            <div
-                style={{
-                    width: 100,
-                    height: 100,
-                    flexShrink: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
-            >
-                {imageURL ? (
-                    <img
-                        src={imageURL}
-                        alt={product.pet_name}
-                        style={{ width: "100%", height: "100%", objectFit: "contain" }}
-                    />
-                ) : (
-                    <div style={{ width: "100%", height: "100%", backgroundColor: "#F3F4F6", borderRadius: 8 }} />
-                )}
+            <div style={{
+                width: "clamp(88px, 22vw, 110px)", height: "clamp(88px, 22vw, 110px)",
+                minWidth: "clamp(88px, 22vw, 110px)", borderRadius: "14px",
+                backgroundColor: "#F4F5F7",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                overflow: "hidden", flexShrink: 0,
+            }}>
+                <img
+                    src={imageURL(product)} alt={product.colors_en?.[0]}
+                    style={{
+                        width: "clamp(70px, 18vw, 90px)",
+                        height: "clamp(70px, 18vw, 90px)",
+                        objectFit: "contain",
+                    }}
+                />
             </div>
 
-            {/* 정보 */}
-            <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#111827", lineHeight: 1.3 }}>
+            {/* 텍스트 */}
+            <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "4px" }}>
+                <span style={{
+                    fontSize: "clamp(12px, 3.2vw, 14px)",
+                    fontFamily: "Pretendard Medium, sans-serif",
+                    color: "#868E96",
+                    letterSpacing: -0.24,
+                    lineHeight: 1.4,
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                }}>
                     {product.pet_name}
-                </div>
-                <div style={{ fontSize: 12, color: "#9CA3AF" }}>
-                    {product.category_kr}
-                </div>
-
-                {/* 색상 도트 */}
-                {Array.isArray(product.colors_code) && product.colors_code.length > 0 && (
-                    <div style={{ display: "flex", gap: 6, marginTop: 2 }}>
-                        {product.colors_code.slice(0, 6).map((code, i) => (
-                            <div
-                                key={i}
-                                style={{
-                                    width: 10,
-                                    height: 10,
-                                    borderRadius: "50%",
-                                    backgroundColor: code,
-                                    boxShadow: "0 0 0 1px rgba(0,0,0,0.1)",
-                                    flexShrink: 0,
-                                }}
-                            />
-                        ))}
+                </span>
+                <span style={{
+                    fontSize: "clamp(18px, 5vw, 22px)",
+                    fontFamily: "Pretendard Bold, sans-serif",
+                    fontWeight: 700, color: "#24292E", letterSpacing: "-0.5px",
+                }}>
+                    {calcPrice()}원
+                </span>
+                {discountRate > 0 && (
+                    <div style={{
+                        display: "inline-flex", alignItems: "center", gap: "4px",
+                        backgroundColor: "#FEE2E2", borderRadius: "8px",
+                        padding: "4px 8px", width: "fit-content", marginTop: "2px",
+                    }}>
+                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                            <path d="M5 8L0 0H10L5 8Z" fill="#EF4444" />
+                        </svg>
+                        <span style={{
+                            fontSize: "clamp(11px, 3vw, 13px)",
+                            fontFamily: "Pretendard Bold, sans-serif",
+                            fontWeight: 700, color: "#EF4444",
+                            letterSpacing: -0.24,
+                            lineHeight: 1.5,
+                        }}>
+                            {discountRate}%
+                        </span>
                     </div>
                 )}
             </div>
 
-            {/* 화살표 */}
-            <svg
-                width={20} height={20}
-                viewBox="0 0 24 24" fill="none"
-                stroke="#D1D5DB" strokeWidth={2}
-                strokeLinecap="round" strokeLinejoin="round"
-                style={{ flexShrink: 0 }}
-            >
-                <polyline points="9 18 15 12 9 6" />
-            </svg>
+            {/* 보러가기 버튼 */}
+            <div style={{
+
+                flexShrink: 0,
+
+                padding: "9px clamp(10px, 3vw, 16px)",
+
+                borderRadius: "12px",
+
+                backgroundColor: "#EFF6FF", color: "#3B82F6",
+
+                fontSize: "clamp(12px, 3.2vw, 14px)",
+
+                fontFamily: "Pretendard Medium, sans-serif",
+
+                fontWeight: 600, textAlign: "center", whiteSpace: "nowrap",
+                letterSpacing: -0.24, lineHeight: 1.4,
+
+            }}>
+
+                보러가기
+
+            </div>
         </div>
     )
 }
 
-// ─── 스켈레톤 ─────────────────────────────────────────────────────────
-function SkeletonList() {
-    return (
-        <>
-            {[0, 1, 2, 3, 4].map((i) => (
-                <div
-                    key={i}
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 16,
-                        padding: "18px 20px",
-                        borderBottom: "1px solid #F4F4F5",
-                    }}
-                >
-                    <div style={{ width: 100, height: 100, borderRadius: 8, backgroundColor: "#E5E7EB", flexShrink: 0 }} />
-                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-                        <div style={{ width: "60%", height: 16, borderRadius: 6, backgroundColor: "#E5E7EB" }} />
-                        <div style={{ width: "40%", height: 12, borderRadius: 6, backgroundColor: "#E5E7EB" }} />
-                        <div style={{ width: "30%", height: 10, borderRadius: 6, backgroundColor: "#E5E7EB" }} />
-                    </div>
-                </div>
-            ))}
-        </>
-    )
+const YOUTUBE_PLAN_PIDS_CATALOG = new Set([
+    "ppllistobj_0937",
+    "ppllistobj_0938",
+    "ppllistobj_0939",
+])
+
+function calcKTmarketSubsidy(product, ktmarketSubsidies): number {
+    const discount = "device"
+    const register = "chg"
+    const planPrice = 90000
+    const planId = "ppllistobj_0937"
+
+    if (planPrice <= 0) return 0
+    if (!ktmarketSubsidies || typeof ktmarketSubsidies !== "object") return 0
+
+    const forceTierByPlanId: Record<string, number> = {
+        ppllistobj_0893: 61000,
+        ppllistobj_0778: 61000,
+        ppllistobj_0844: 61000,
+        ppllistobj_0845: 37000,
+        ppllistobj_0535: 37000,
+        ppllistobj_0765: 37000,
+        ppllistobj_0775: 37000,
+    }
+
+    const forcedTier = forceTierByPlanId[planId]
+    const priceTiers = [110000, 100000, 90000, 61000, 37000]
+    let matchedKey = ""
+
+    if (forcedTier) {
+        matchedKey = `${discount}_discount_${register}_gte_${forcedTier}`
+    } else {
+        for (const tier of priceTiers) {
+            if (planPrice >= tier) {
+                matchedKey = `${discount}_discount_${register}_gte_${tier}`
+                break
+            }
+        }
+        if (!matchedKey) {
+            matchedKey = `${discount}_discount_${register}_lt_37000`
+        }
+    }
+
+    const value = ktmarketSubsidies[matchedKey] ?? 0
+    const youtubeBonus = YOUTUBE_PLAN_PIDS_CATALOG.has(planId) ? 30000 : 0
+    return value + youtubeBonus
 }

@@ -83,9 +83,11 @@ function InstallmentBtn({
                     border: isActive ? "1.5px solid #0066FF" : "1.5px solid #E5E7EB",
                     borderRadius: 10,
                     backgroundColor: isActive ? "#ECF4FF" : "#FFFFFF",
-                    color: isActive ? "#0066FF" : "#9CA3AF",
+                    color: isActive ? "#0066FF" : "#868E96",
                     fontSize: 15,
                     fontWeight: isActive ? 700 : 400,
+                    letterSpacing: -0.3,
+                    lineHeight: 1.4,
                     cursor: "pointer",
                     fontFamily: FONT,
                     boxSizing: "border-box",
@@ -122,7 +124,7 @@ export default function InstallmentSelectorSection(props) {
     return (
         <div style={wrapperStyle}>
             {/* 타이틀 */}
-            <span style={{ fontSize: 17, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+            <span style={{ fontSize: 17, fontWeight: 700, color: "#24292E", fontFamily: FONT, letterSpacing: -0.34, lineHeight: 1.4 }}>
                 {title}
             </span>
 
@@ -162,7 +164,7 @@ export default function InstallmentSelectorSection(props) {
                                     border: "1.5px solid #E5E7EB",
                                     borderRadius: 10,
                                     backgroundColor: "#FFFFFF",
-                                    color: "#9CA3AF",
+                                    color: "#868E96",
                                     fontSize: 26,
                                     fontWeight: 300,
                                     cursor: "pointer",
@@ -213,7 +215,7 @@ export default function InstallmentSelectorSection(props) {
                                     border: "1.5px solid #E5E7EB",
                                     borderRadius: 10,
                                     backgroundColor: "#FFFFFF",
-                                    color: "#9CA3AF",
+                                    color: "#868E96",
                                     fontSize: 26,
                                     fontWeight: 300,
                                     cursor: "pointer",
@@ -246,9 +248,9 @@ export default function InstallmentSelectorSection(props) {
                             <circle cx="7" cy="7" r="6.5" stroke="#9CA3AF" />
                             <text x="7" y="11" textAnchor="middle" fontSize="9" fill="#9CA3AF" fontWeight="600">i</text>
                         </svg>
-                        <span style={{ fontSize: 12, color: "#6B7280" }}>
+                        <span style={{ fontSize: 12, color: "#868E96", lineHeight: 1.6, letterSpacing: -0.24 }}>
                             일시불 선택 시 개통 후 당월 내 114 또는 KT매장에서 고객님이{" "}
-                            <strong style={{ fontWeight: 700, color: "#6B7280" }}>직접 결제</strong>해야 합니다.
+                            <strong style={{ fontWeight: 700, color: "#868E96" }}>직접 결제</strong>해야 합니다.
                         </span>
                     </motion.div>
                 )}

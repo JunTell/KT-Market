@@ -5,6 +5,12 @@ import { addPropertyControls, ControlType } from "framer"
 import React, { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence, useDragControls } from "framer-motion"
 import { createPortal } from "react-dom"
+import { createClient } from "@supabase/supabase-js"
+
+const supabase = createClient(
+    "https://crooiozzbjwdaghqddnu.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNyb29pb3p6Ymp3ZGFnaHFkZG51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk3NzIzNjMsImV4cCI6MjAyNTM0ODM2M30.A51d6iu60yiGWL4cka8j9-r6QLQ2skXAHiqBGaTIEcM"
+)
 import {
     FONT,
     useAnimatedNumber,
@@ -248,12 +254,24 @@ function OrderSheetContent({
                 }}
             >
                 <span
-                    style={{ fontSize: 15, fontWeight: 500, color: "#374151" }}
+                    style={{
+                        fontSize: 15,
+                        fontWeight: 500,
+                        color: "#3F4750",
+                        letterSpacing: -0.3,
+                        lineHeight: 1.4,
+                    }}
                 >
                     월 예상 금액
                 </span>
                 <span
-                    style={{ fontSize: 20, fontWeight: 700, color: "#0055FF" }}
+                    style={{
+                        fontSize: 20,
+                        fontWeight: 700,
+                        color: "#0055FF",
+                        letterSpacing: -0.4,
+                        lineHeight: 1.3,
+                    }}
                 >
                     {displayTotalMonthPayment.toLocaleString()}원
                 </span>
@@ -355,8 +373,10 @@ function OrderSheetModal({
                             style={{
                                 fontSize: 16,
                                 fontWeight: 700,
-                                color: "#111827",
+                                color: "#24292E",
                                 fontFamily: FONT,
+                                letterSpacing: -0.3,
+                                lineHeight: 1.5,
                             }}
                         >
                             최종 주문서
@@ -371,8 +391,11 @@ function OrderSheetModal({
                             <span
                                 style={{
                                     fontSize: 12,
-                                    color: "#6B7280",
+                                    color: "#868E96",
                                     fontFamily: FONT,
+                                    letterSpacing: -0.24,
+                                    lineHeight: 1.5,
+                                    wordBreak: "keep-all",
                                 }}
                             >
                                 할부이자 표시
@@ -525,8 +548,10 @@ function MonthlyPopup({
                         style={{
                             fontSize: "18px",
                             fontWeight: 700,
-                            color: "#111827",
+                            color: "#24292E",
                             margin: 0,
+                            letterSpacing: -0.36,
+                            lineHeight: 1.3,
                         }}
                     >
                         월 납부금액 안내
@@ -541,8 +566,11 @@ function MonthlyPopup({
                         <span
                             style={{
                                 fontSize: 12,
-                                color: "#6B7280",
+                                color: "#868E96",
                                 fontFamily: FONT,
+                                letterSpacing: -0.24,
+                                lineHeight: 1.5,
+                                wordBreak: "keep-all",
                             }}
                         >
                             할부이자 표시
@@ -564,6 +592,8 @@ function MonthlyPopup({
                             backgroundColor: isYakjeong ? "#F5F3FF" : "#EFF6FF",
                             padding: "3px 8px",
                             borderRadius: "6px",
+                            letterSpacing: -0.24,
+                            lineHeight: 1.5,
                         }}
                     >
                         {isYakjeong ? "선택약정할인 (25%)" : "공통지원금"}
@@ -585,10 +615,24 @@ function MonthlyPopup({
                             alignItems: "center",
                         }}
                     >
-                        <span style={{ fontSize: "14px", color: "#6B7280" }}>
+                        <span
+                            style={{
+                                fontSize: "14px",
+                                color: "#868E96",
+                                letterSpacing: -0.24,
+                                lineHeight: 1.4,
+                            }}
+                        >
                             할부원금
                         </span>
-                        <span style={{ fontSize: "14px", color: "#111827" }}>
+                        <span
+                            style={{
+                                fontSize: "14px",
+                                color: "#24292E",
+                                letterSpacing: -0.24,
+                                lineHeight: 1.4,
+                            }}
+                        >
                             {finalPrice.toLocaleString()}원
                         </span>
                     </div>
@@ -607,7 +651,12 @@ function MonthlyPopup({
                             }}
                         >
                             <span
-                                style={{ fontSize: "14px", color: "#6B7280" }}
+                                style={{
+                                    fontSize: "14px",
+                                    color: "#868E96",
+                                    letterSpacing: -0.24,
+                                    lineHeight: 1.4,
+                                }}
                             >
                                 {installmentLabel}
                             </span>
@@ -615,7 +664,9 @@ function MonthlyPopup({
                                 <span
                                     style={{
                                         fontSize: "11px",
-                                        color: "#9CA3AF",
+                                        color: "#868E96",
+                                        letterSpacing: -0.16,
+                                        lineHeight: 1.4,
                                     }}
                                 >
                                     {interestLabel}
@@ -626,7 +677,9 @@ function MonthlyPopup({
                             style={{
                                 fontSize: "14px",
                                 fontWeight: 700,
-                                color: "#111827",
+                                color: "#24292E",
+                                letterSpacing: -0.24,
+                                lineHeight: 1.4,
                             }}
                         >
                             {displayMonthlyPayment.toLocaleString()}원
@@ -639,10 +692,24 @@ function MonthlyPopup({
                             alignItems: "center",
                         }}
                     >
-                        <span style={{ fontSize: "14px", color: "#6B7280" }}>
+                        <span
+                            style={{
+                                fontSize: "14px",
+                                color: "#868E96",
+                                letterSpacing: -0.24,
+                                lineHeight: 1.4,
+                            }}
+                        >
                             월 요금제
                         </span>
-                        <span style={{ fontSize: "14px", color: "#111827" }}>
+                        <span
+                            style={{
+                                fontSize: "14px",
+                                color: "#24292E",
+                                letterSpacing: -0.24,
+                                lineHeight: 1.4,
+                            }}
+                        >
                             {planPrice.toLocaleString()}원
                         </span>
                     </div>
@@ -655,7 +722,12 @@ function MonthlyPopup({
                             }}
                         >
                             <span
-                                style={{ fontSize: "14px", color: "#7C3AED" }}
+                                style={{
+                                    fontSize: "14px",
+                                    color: "#7C3AED",
+                                    letterSpacing: -0.24,
+                                    lineHeight: 1.4,
+                                }}
                             >
                                 └ 선택약정 25% 할인
                             </span>
@@ -664,6 +736,8 @@ function MonthlyPopup({
                                     fontSize: "14px",
                                     fontWeight: 600,
                                     color: "#7C3AED",
+                                    letterSpacing: -0.24,
+                                    lineHeight: 1.4,
                                 }}
                             >
                                 -{planDiscountAmount.toLocaleString()}원
@@ -674,10 +748,13 @@ function MonthlyPopup({
                         <div
                             style={{
                                 fontSize: "12px",
-                                color: "#9CA3AF",
+                                color: "#868E96",
                                 backgroundColor: "#F9FAFB",
                                 borderRadius: "8px",
                                 padding: "8px 10px",
+                                letterSpacing: -0.24,
+                                lineHeight: 1.5,
+                                wordBreak: "keep-all",
                             }}
                         >
                             공통지원금 선택 시 요금제 별도 할인 없음
@@ -706,7 +783,9 @@ function MonthlyPopup({
                             style={{
                                 fontSize: "15px",
                                 fontWeight: 600,
-                                color: "#111827",
+                                color: "#24292E",
+                                letterSpacing: -0.3,
+                                lineHeight: 1.4,
                             }}
                         >
                             월 예상 납부금
@@ -714,8 +793,10 @@ function MonthlyPopup({
                         <div
                             style={{
                                 fontSize: "11px",
-                                color: "#9CA3AF",
+                                color: "#868E96",
                                 marginTop: "2px",
+                                letterSpacing: -0.16,
+                                lineHeight: 1.4,
                             }}
                         >
                             부가세 포함, 결합할인 미적용 기준 · {interestLabel}
@@ -726,6 +807,8 @@ function MonthlyPopup({
                             fontSize: "20px",
                             fontWeight: 800,
                             color: "#0055FF",
+                            letterSpacing: -0.4,
+                            lineHeight: 1.3,
                         }}
                     >
                         {totalMonthly.toLocaleString()}원
@@ -745,6 +828,8 @@ function MonthlyPopup({
                         fontWeight: 600,
                         cursor: "pointer",
                         fontFamily: '"Pretendard", "Inter", sans-serif',
+                        letterSpacing: -0.3,
+                        lineHeight: 1.4,
                     }}
                 >
                     확인
@@ -779,7 +864,7 @@ export default function OrderSummaryCard(props) {
         onApplyClick,
         // OrderSheet 추가 props
         installmentPaymentTitle = "월 할부원금 (24개월)",
-        installmentPaymentDescription = "분할 상환 수수료 5.9% 포함",
+        installmentPaymentDescription = "할부 이자 포함",
         installmentPrincipal = 0,
         installmentPayment = "0원",
         devicePrice = 0,
@@ -796,6 +881,16 @@ export default function OrderSummaryCard(props) {
         installmentPaymentNoInterest = 0,
         totalMonthPaymentNoInterest = 0,
         totalDeviceDiscountAmount = 0,
+        // Mobile CTA props
+        isSoldOut = false,
+        onRestockClick,
+        onConsultClick,
+        onPhoneClick,
+        onWishClick,
+        isWished = false,
+        kakaoTalkLink = "http://pf.kakao.com/_HfItxj/chat",
+        kakaoIcon,
+        onSaveOrderSession,
     } = props
 
     const [isMounted, setIsMounted] = useState(false)
@@ -805,16 +900,98 @@ export default function OrderSummaryCard(props) {
     const prevFinalPrice = useRef(finalPrice)
     const [direction, setDirection] = useState<"up" | "down" | null>(null)
     const [isBefore3PM, setIsBefore3PM] = useState(true)
+    const [isWeekend, setIsWeekend] = useState(false)
+    const [viewerCount, setViewerCount] = useState(0)
+    // 마운트 시 1회 고정 — 10~19 랜덤 베이스
+    const randomViewerBase = useRef(Math.floor(Math.random() * 10) + 10)
+
+    const HOLIDAYS = new Set([
+        // 2026년
+        "2026-01-01", // 신정
+        "2026-01-28", // 설날 연휴
+        "2026-01-29", // 설날
+        "2026-01-30", // 설날 연휴
+        "2026-03-01", // 삼일절
+        "2026-05-05", // 어린이날
+        "2026-05-25", // 부처님오신날
+        "2026-06-06", // 현충일
+        "2026-08-15", // 광복절
+        "2026-09-24", // 추석 연휴
+        "2026-09-25", // 추석
+        "2026-09-26", // 추석 연휴
+        "2026-10-03", // 개천절
+        "2026-10-09", // 한글날
+        "2026-12-25", // 성탄절
+        // 2027년
+        "2027-01-01", // 신정
+        "2027-02-17", // 설날 연휴
+        "2027-02-18", // 설날
+        "2027-02-19", // 설날 연휴
+        "2027-03-01", // 삼일절
+        "2027-05-05", // 어린이날
+        "2027-05-13", // 부처님오신날
+        "2027-06-06", // 현충일
+        "2027-08-15", // 광복절
+        "2027-10-03", // 개천절
+        "2027-10-04", // 추석 연휴
+        "2027-10-05", // 추석
+        "2027-10-06", // 추석 연휴
+        "2027-10-09", // 한글날
+        "2027-12-25", // 성탄절
+    ])
 
     useEffect(() => {
         setIsMounted(true)
         const checkTime = () => {
             const now = new Date()
+            const day = now.getDay() // 0: 일요일, 6: 토요일
+            const today = now.toISOString().slice(0, 10) // "2026-04-14"
+            setIsWeekend(day === 0 || day === 6 || HOLIDAYS.has(today))
             setIsBefore3PM(now.getHours() < 15)
         }
         checkTime()
         const timer = setInterval(checkTime, 60000)
         return () => clearInterval(timer)
+    }, [])
+
+    useEffect(() => {
+        // 페이지별 독립 채널: URL 경로 마지막 세그먼트를 채널명에 포함
+        const pagePath =
+            typeof window !== "undefined"
+                ? window.location.pathname
+                    .replace(/\//g, "-")
+                    .replace(/^-|-$/g, "") || "home"
+                : "home"
+        const channelName = `ktmarket-viewers-${pagePath}`
+        const sessionId = Math.random().toString(36).slice(2, 10)
+
+        const channel = supabase.channel(channelName)
+
+        channel
+            .on("presence", { event: "sync" }, () => {
+                const state = channel.presenceState()
+                setViewerCount(Object.keys(state).length)
+            })
+            .on("presence", { event: "join" }, () => {
+                const state = channel.presenceState()
+                setViewerCount(Object.keys(state).length)
+            })
+            .on("presence", { event: "leave" }, () => {
+                const state = channel.presenceState()
+                setViewerCount(Object.keys(state).length)
+            })
+            .subscribe(async (status) => {
+                if (status === "SUBSCRIBED") {
+                    await channel.track({
+                        session_id: sessionId,
+                        joined_at: Date.now(),
+                    })
+                }
+            })
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
     }, [])
 
     useEffect(() => {
@@ -829,11 +1006,12 @@ export default function OrderSummaryCard(props) {
 
     const animatedPrice = useAnimatedNumber(finalPrice, 1000)
 
-    const discountMan = totalDeviceDiscountAmount > 0
-        ? Math.round(totalDeviceDiscountAmount / 10000)
-        : (originPrice > 0 && originPrice > finalPrice)
-            ? Math.round((originPrice - finalPrice) / 10000)
-            : 0
+    const discountMan =
+        totalDeviceDiscountAmount > 0
+            ? Math.round(totalDeviceDiscountAmount / 10000)
+            : originPrice > 0 && originPrice > finalPrice
+                ? Math.round((originPrice - finalPrice) / 10000)
+                : 0
 
     if (!isMounted) return <div style={{ width: "100%", height: "120px" }} />
 
@@ -868,61 +1046,130 @@ export default function OrderSummaryCard(props) {
     return (
         <>
             <div style={wrapperStyle}>
-                {/* ── 배송 배지 ── */}
+                {/* ── 배송 배지 + 실시간 조회자 수 (flex row) ── */}
                 <div
                     style={{
-                        display: "inline-flex",
+                        display: "flex",
+                        flexDirection: "row",
                         alignItems: "center",
-                        gap: "5px",
-                        border: "1.5px solid #0066FF",
-                        borderRadius: "8px",
-                        padding: "5px 10px",
-                        alignSelf: "flex-start",
-                        fontFamily: FONT,
+                        gap: "8px",
+                        minHeight: "26.948px",
                     }}
                 >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <rect
-                            x="1"
-                            y="3"
-                            width="15"
-                            height="13"
-                            rx="1"
-                            stroke="#0066FF"
-                            strokeWidth="1.8"
-                        />
-                        <path
-                            d="M16 8h4l3 4v4h-7V8z"
-                            stroke="#0066FF"
-                            strokeWidth="1.8"
-                            strokeLinejoin="round"
-                        />
-                        <circle
-                            cx="5.5"
-                            cy="18.5"
-                            r="2"
-                            stroke="#0066FF"
-                            strokeWidth="1.8"
-                        />
-                        <circle
-                            cx="18.5"
-                            cy="18.5"
-                            r="2"
-                            stroke="#0066FF"
-                            strokeWidth="1.8"
-                        />
-                    </svg>
-                    <span
+                    {/* 배송 배지 (주말 숨김) */}
+                    {!isWeekend && (
+                        <div
+                            style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4.9px",
+                                height: "26.948px",
+                                padding: "2.945px 10px",
+                                backgroundColor: "#EFF6FF",
+                                borderRadius: "6.737px",
+                                fontFamily: FONT,
+                            }}
+                        >
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                            >
+                                <rect
+                                    x="1"
+                                    y="3"
+                                    width="15"
+                                    height="13"
+                                    rx="1"
+                                    stroke="#3B82F6"
+                                    strokeWidth="1.8"
+                                />
+                                <path
+                                    d="M16 8h4l3 4v4h-7V8z"
+                                    stroke="#3B82F6"
+                                    strokeWidth="1.8"
+                                    strokeLinejoin="round"
+                                />
+                                <circle
+                                    cx="5.5"
+                                    cy="18.5"
+                                    r="2"
+                                    stroke="#3B82F6"
+                                    strokeWidth="1.8"
+                                />
+                                <circle
+                                    cx="18.5"
+                                    cy="18.5"
+                                    r="2"
+                                    stroke="#3B82F6"
+                                    strokeWidth="1.8"
+                                />
+                            </svg>
+                            <span
+                                style={{
+                                    fontSize: "12px",
+                                    fontWeight: 700,
+                                    color: "#3B82F6",
+                                    letterSpacing: -0.24,
+                                    lineHeight: 1.5,
+                                    wordBreak: "keep-all",
+                                }}
+                            >
+                                {isBefore3PM
+                                    ? "오후 3시 전 주문시 당일 출발"
+                                    : "내일 출발"}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* 실시간 조회자 수 */}
+                    <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
                         style={{
-                            fontSize: "12px",
-                            fontWeight: 600,
-                            color: "#0066FF",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4.9px",
+                            height: "26.948px",
+                            padding: "2.945px 10px",
+                            backgroundColor: "#FEF2F2",
+                            borderRadius: "6.737px",
+                            fontFamily: FONT,
                         }}
                     >
-                        {isBefore3PM
-                            ? "오후 3시 전 주문시 당일 출발"
-                            : "내일 출발"}
-                    </span>
+                        <motion.div
+                            animate={{ opacity: [1, 0.3, 1] }}
+                            transition={{
+                                duration: 1.5,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                            }}
+                            style={{
+                                width: "7px",
+                                height: "7px",
+                                borderRadius: "50%",
+                                backgroundColor: "#EF4444",
+                                flexShrink: 0,
+                            }}
+                        />
+                        <span
+                            style={{
+                                fontSize: "12px",
+                                fontWeight: 700,
+                                color: "#EF4444",
+                                letterSpacing: -0.24,
+                                lineHeight: 1.5,
+                                fontFamily: FONT,
+                            }}
+                        >
+                            현재{" "}
+                            {randomViewerBase.current +
+                                Math.max(0, viewerCount - 1)}
+                            명이 보는 중
+                        </span>
+                    </motion.div>
                 </div>
 
                 {/* ── 기기명 + 가격 행 ── */}
@@ -937,9 +1184,11 @@ export default function OrderSummaryCard(props) {
                         <span
                             style={{
                                 fontSize: "14px",
-                                fontWeight: 500,
-                                color: "#6B7280",
+                                fontWeight: 700,
+                                color: "#24292E",
                                 fontFamily: FONT,
+                                letterSpacing: -0.24,
+                                lineHeight: 1.4,
                             }}
                         >
                             {devicePetName}
@@ -958,15 +1207,26 @@ export default function OrderSummaryCard(props) {
                             style={{
                                 display: "flex",
                                 alignItems: "baseline",
-                                gap: "3px",
+                                gap: "4px",
                             }}
                         >
+                            <span
+                                style={{
+                                    fontSize: "14px",
+                                    color: "#0066FF",
+                                    fontWeight: 600,
+                                    letterSpacing: -0.24,
+                                    lineHeight: 1.4,
+                                }}
+                            >
+                                최저가
+                            </span>
                             <motion.span
                                 key={animatedPrice}
                                 style={{
-                                    fontSize: "32px",
+                                    fontSize: "28px",
                                     fontWeight: 800,
-                                    color: "#111827",
+                                    color: "#24292E",
                                     letterSpacing: "-1px",
                                     fontVariantNumeric: "tabular-nums",
                                     fontFamily: FONT,
@@ -978,8 +1238,10 @@ export default function OrderSummaryCard(props) {
                                 style={{
                                     fontSize: "22px",
                                     fontWeight: 700,
-                                    color: "#111827",
+                                    color: "#24292E",
                                     fontFamily: FONT,
+                                    letterSpacing: -0.44,
+                                    lineHeight: 1.2,
                                 }}
                             >
                                 원
@@ -997,11 +1259,13 @@ export default function OrderSummaryCard(props) {
                                 border: "none",
                                 cursor: "pointer",
                                 padding: "4px 0 4px 8px",
-                                color: "#6B7280",
+                                color: "#868E96",
                                 fontSize: "15px",
                                 fontWeight: 500,
                                 fontFamily: FONT,
                                 flexShrink: 0,
+                                letterSpacing: -0.3,
+                                lineHeight: 1.4,
                             }}
                         >
                             월 납부금 확인
@@ -1020,64 +1284,200 @@ export default function OrderSummaryCard(props) {
                         </button>
                     </div>
 
-                    {/* ── 할인 배지 ── */}
+                    {/* ── 출고가 + 할인 인라인 문장 ── */}
                     {discountMan > 0 && (
-                        <div
+                        <p
                             style={{
-                                display: "inline-flex",
-                                alignSelf: "flex-start",
-                                backgroundColor: "#FEE2E2",
-                                borderRadius: 999,
-                                padding: "5px 12px",
+                                margin: 0,
+                                display: "flex",
+                                alignItems: "baseline",
+                                gap: "4px",
+                                flexWrap: "wrap",
                             }}
                         >
                             <span
                                 style={{
-                                    fontSize: 14,
+                                    fontSize: 13,
+                                    fontWeight: 400,
+                                    color: "#868E96",
+                                    fontFamily: FONT,
+                                    letterSpacing: -0.24,
+                                    lineHeight: 1.5,
+                                }}
+                            >
+                                출고가{" "}
+                                {(originPrice > 0
+                                    ? originPrice
+                                    : devicePrice
+                                ).toLocaleString()}
+                                원에서
+                            </span>
+                            <span
+                                style={{
+                                    fontSize: 13,
                                     fontWeight: 700,
                                     color: "#EF4444",
                                     fontFamily: FONT,
+                                    letterSpacing: -0.24,
+                                    lineHeight: 1.5,
                                 }}
                             >
                                 {discountMan}만원 할인
                             </span>
-                        </div>
+                        </p>
                     )}
                 </div>
 
-                {/* ── 신청 전 필독사항 ── */}
+                {/* ── 신청 전 필독사항 (PreOrderNotice 컴포넌트로 분리) ── */}
+
+                {/* ── Mobile CTA 버튼 (찜 · 문의 · 신청하기) ── */}
                 <div
                     style={{
-                        backgroundColor: "#F9FAFB",
-                        borderRadius: 12,
-                        padding: "14px ",
-                        boxSizing: "border-box" as const,
                         display: "flex",
-                        flexDirection: "column" as const,
-                        gap: 6,
+                        alignItems: "center",
+                        gap: 8,
+                        marginTop: 4,
                     }}
                 >
-                    <span
+                    {/* 전화 버튼 */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (typeof onPhoneClick === "function") {
+                                onPhoneClick()
+                            } else if (typeof window !== "undefined") {
+                                onSaveOrderSession?.()
+                                window.location.href = "/phone/confirm"
+                            }
+                        }}
+                        aria-label="전화 상담"
                         style={{
-                            fontSize: 15,
-                            fontWeight: 700,
-                            color: "#0066FF",
+                            width: 50,
+                            height: 50,
+                            borderRadius: 12,
+                            border: "none",
+                            backgroundColor: "#EDEDED",
+                            cursor: "pointer",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 2,
+                            flexShrink: 0,
+                            padding: 0,
                             fontFamily: FONT,
                         }}
                     >
-                        신청 전 필독사항
-                    </span>
-                    <span
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#24292E"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.74a16 16 0 0 0 6.35 6.35l.97-.97a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                        </svg>
+                        <span
+                            style={{
+                                fontSize: 10,
+                                fontWeight: 500,
+                                color: "#24292E",
+                                lineHeight: 1,
+                                letterSpacing: -0.1,
+                            }}
+                        >
+                            전화
+                        </span>
+                    </button>
+
+                    {/* 문의 버튼 */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (typeof onConsultClick === "function") {
+                                onConsultClick()
+                            } else if (typeof window !== "undefined") {
+                                window.open(kakaoTalkLink, "_blank", "noopener,noreferrer")
+                            }
+                        }}
+                        aria-label="카카오톡 상담"
                         style={{
-                            fontSize: 12,
-                            color: "#374151",
-                            lineHeight: 1.4,
+                            width: 50,
+                            height: 50,
+                            borderRadius: 12,
+                            border: "none",
+                            backgroundColor: "#FEE500",
+                            cursor: "pointer",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 2,
+                            flexShrink: 0,
+                            padding: 0,
                             fontFamily: FONT,
                         }}
                     >
-                        최종신청 내역에는 KT마켓지원금이 제외된 금액이 보여요.
-                        {"\n"}실제 개통 시 할인 금액이 반영되니 안심하세요.
-                    </span>
+                        {kakaoIcon && (
+                            <img src={kakaoIcon} width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} aria-hidden="true" />
+                        )}
+                        <span
+                            style={{
+                                fontSize: 10,
+                                fontWeight: 500,
+                                color: "#160300",
+                                lineHeight: 1,
+                                letterSpacing: -0.1,
+                            }}
+                        >
+                            카톡
+                        </span>
+                    </button>
+
+                    {/* 신청하기 / 입고알림 버튼 */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (isSoldOut && typeof onRestockClick === "function") {
+                                onRestockClick()
+                            } else if (typeof onApplyClick === "function") {
+                                onApplyClick()
+                            } else {
+                                onSaveOrderSession?.()
+                                if (typeof window !== "undefined") {
+                                    window.location.href = "/phone/user-info"
+                                }
+                            }
+                        }}
+                        style={{
+                            flex: 1,
+                            height: 50,
+                            borderRadius: 12,
+                            border: "none",
+                            backgroundColor: isSoldOut ? "#3F4750" : "#EF4444",
+                            color: "#FFFFFF",
+                            cursor: "pointer",
+                            fontFamily: FONT,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                        }}
+                    >
+                        <span
+                            style={{
+                                fontSize: 17,
+                                fontWeight: 700,
+                                letterSpacing: -0.3,
+                                lineHeight: 1.2,
+                            }}
+                        >
+                            {isSoldOut ? "입고 알림" : (ctaTitle || "신청하기")}
+                        </span>
+                    </button>
                 </div>
             </div>
 
@@ -1206,7 +1606,7 @@ addPropertyControls(OrderSummaryCard, {
     installmentPaymentDescription: {
         type: ControlType.String,
         title: "할부 설명",
-        defaultValue: "분할 상환 수수료 5.9% 포함",
+        defaultValue: "할부 이자 포함",
     },
     installmentPayment: {
         type: ControlType.String,
@@ -1272,5 +1672,9 @@ addPropertyControls(OrderSummaryCard, {
         type: ControlType.Number,
         title: "월 예상 금액",
         defaultValue: 0,
+    },
+    kakaoIcon: {
+        type: ControlType.Image,
+        title: "카카오 아이콘",
     },
 })

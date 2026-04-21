@@ -80,29 +80,44 @@ export function useAnimatedNumber(target: number, duration = 1000) {
 
 // ─── 토글 스위치 ──────────────────────────────────────────────────────
 export const ToggleSwitch = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) => (
-    <motion.div
+    <motion.button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={checked ? "켜짐" : "꺼짐"}
         onClick={() => onChange(!checked)}
         style={{
-            width: 44, height: 26, borderRadius: 13,
-            padding: 3,
+            width: 44, height: 44, borderRadius: 13,
+            padding: "9px 0",
             display: "flex", alignItems: "center",
             cursor: "pointer", flexShrink: 0,
+            border: "none", background: "none",
         }}
-        animate={{ backgroundColor: checked ? "#0055FF" : "#D1D5DB" }}
+        animate={{}}
         initial={false}
         transition={{ duration: 0.2 }}
     >
         <motion.div
-            layout
-            transition={{ type: "spring", stiffness: 500, damping: 30 }}
             style={{
-                width: 20, height: 20, borderRadius: "50%",
-                backgroundColor: "#FFFFFF",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
-                marginLeft: checked ? "auto" : 0,
+                width: 44, height: 26, borderRadius: 13,
+                padding: 3,
+                display: "flex", alignItems: "center",
             }}
-        />
-    </motion.div>
+            animate={{ backgroundColor: checked ? "#0055FF" : "#D1D5DB" }}
+            transition={{ duration: 0.2 }}
+        >
+            <motion.div
+                layout
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                style={{
+                    width: 20, height: 20, borderRadius: "50%",
+                    backgroundColor: "#FFFFFF",
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+                    marginLeft: checked ? "auto" : 0,
+                }}
+            />
+        </motion.div>
+    </motion.button>
 )
 
 // ─── 툴팁 ─────────────────────────────────────────────────────────────
@@ -132,6 +147,8 @@ export const Tooltip = ({ text, children, zIndex = 10100 }: { text: string; chil
                             backgroundColor: "#1F2937",
                             color: "#FFFFFF",
                             fontSize: 11,
+                            letterSpacing: -0.16,
+                            lineHeight: 1.4,
                             padding: "6px 10px",
                             borderRadius: 6,
                             whiteSpace: "nowrap",
@@ -174,19 +191,19 @@ export const Dashed = () => (
 // ─── 일반 행 ─────────────────────────────────────────────────────────
 export const Row = ({
     label, value, bold = false, large = false,
-    labelColor = "#374151", valueColor = "#111827", tooltip,
+    labelColor = "#3F4750", valueColor = "#24292E", tooltip,
 }: {
     label: string; value: string; bold?: boolean; large?: boolean
     labelColor?: string; valueColor?: string; tooltip?: string
 }) => (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            <span style={{ fontSize: large ? 15 : 14, fontWeight: bold ? 700 : 400, color: labelColor }}>
+            <span style={{ fontSize: large ? 15 : 14, fontWeight: bold ? 700 : 400, color: labelColor, letterSpacing: -0.3, lineHeight: 1.4 }}>
                 {label}
             </span>
             {tooltip && <Tooltip text={tooltip}><QuestionIcon /></Tooltip>}
         </div>
-        <span style={{ fontSize: large ? 17 : 14, fontWeight: bold ? 700 : 500, color: valueColor }}>
+        <span style={{ fontSize: large ? 17 : 14, fontWeight: bold ? 700 : 500, color: valueColor, letterSpacing: -0.34, lineHeight: 1.4 }}>
             {value}
         </span>
     </div>
@@ -196,10 +213,10 @@ export const Row = ({
 export const RedRow = ({ label, value, tooltip }: { label: string; value: string; tooltip?: string }) => (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: "#EF4444" }}>{label}</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#EF4444", letterSpacing: -0.24, lineHeight: 1.4 }}>{label}</span>
             {tooltip && <Tooltip text={tooltip}><QuestionIcon /></Tooltip>}
         </div>
-        <span style={{ fontSize: 14, fontWeight: 800, color: "#EF4444" }}>{value}</span>
+        <span style={{ fontSize: 14, fontWeight: 800, color: "#EF4444", letterSpacing: -0.24, lineHeight: 1.4 }}>{value}</span>
     </div>
 )
 
@@ -219,11 +236,11 @@ export const Card = ({ children, marginBottom = 0 }: { children: React.ReactNode
 export const SectionHeader = ({ label, value, description }: { label: string; value?: string; description?: string }) => (
     <div style={{ marginBottom: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>{label}</span>
-            {value && <span style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>{value}</span>}
+            <span style={{ fontSize: 15, fontWeight: 700, color: "#24292E", letterSpacing: -0.3, lineHeight: 1.4 }}>{label}</span>
+            {value && <span style={{ fontSize: 15, fontWeight: 700, color: "#24292E", letterSpacing: -0.3, lineHeight: 1.4 }}>{value}</span>}
         </div>
         {description && (
-            <span style={{ fontSize: 12, color: "#9CA3AF", display: "block", marginTop: 2 }}>
+            <span style={{ fontSize: 12, color: "#868E96", display: "block", marginTop: 2, letterSpacing: -0.24, lineHeight: 1.5 }}>
                 {description}
             </span>
         )}

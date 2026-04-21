@@ -67,7 +67,7 @@ const redTitleStyle: React.CSSProperties = {
 const mainTextStyle: React.CSSProperties = {
     fontSize: "15px",
     fontWeight: "600",
-    color: "#111827",
+    color: "#24292E",
     lineHeight: "1.4",
     letterSpacing: "-0.5px",
     wordBreak: "keep-all",
@@ -77,7 +77,7 @@ const mainTextStyle: React.CSSProperties = {
 const subTextStyle: React.CSSProperties = {
     fontSize: "13px",
     fontWeight: "500",
-    color: "#4E5968",
+    color: "#3F4750",
     lineHeight: "1.5",
     letterSpacing: "-0.3px",
     wordBreak: "keep-all",

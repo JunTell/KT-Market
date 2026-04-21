@@ -1,0 +1,87 @@
+<h2>기능 1: 휴대폰 비교 — 어디에 위치할까요?</h2>
+<p class="subtitle">비교 기능이 사이트 내 어느 위치에 있어야 가장 자연스러울지 선택해주세요.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>독립 페이지 <code style="font-size:12px;background:#f0f0f0;padding:2px 6px;border-radius:4px">/phone/compare</code></h3>
+      <p>메인 네비게이션에 "비교하기" 메뉴 추가. 사용자가 어느 폰 페이지에서도 "비교에 추가" 버튼을 누르면 이 페이지로 이동해서 최대 3개 기종을 나란히 비교.</p>
+      <div class="mockup" style="margin-top:12px">
+        <div class="mockup-header">미리보기</div>
+        <div class="mockup-body" style="background:#f8f9fa;padding:16px;font-family:sans-serif">
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <div style="flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;text-align:center">
+              <div style="width:40px;height:50px;background:#e5e7eb;border-radius:6px;margin:0 auto 6px"></div>
+              <div style="font-size:11px;font-weight:700">갤S26</div>
+              <div style="font-size:10px;color:#6b7280">월 89,000원</div>
+            </div>
+            <div style="flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;text-align:center">
+              <div style="width:40px;height:50px;background:#e5e7eb;border-radius:6px;margin:0 auto 6px"></div>
+              <div style="font-size:11px;font-weight:700">아이폰17</div>
+              <div style="font-size:10px;color:#6b7280">월 94,000원</div>
+            </div>
+            <div style="flex:1;background:#fff;border:2px dashed #d1d5db;border-radius:10px;padding:12px;text-align:center;color:#9ca3af">
+              <div style="font-size:20px;margin-bottom:4px">+</div>
+              <div style="font-size:10px">추가하기</div>
+            </div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px">
+            <div style="display:flex;gap:4px;align-items:flex-end;height:60px">
+              <div style="flex:1;background:#EF4444;border-radius:4px 4px 0 0;height:70%"></div>
+              <div style="flex:1;background:#3B82F6;border-radius:4px 4px 0 0;height:85%"></div>
+              <div style="flex:1;background:#e5e7eb;border-radius:4px 4px 0 0;height:40%;border:2px dashed #d1d5db"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>각 폰 상세 페이지 하단 섹션</h3>
+      <p>현재 보고 있는 폰 상세 페이지 하단에 "다른 기종과 비교" 섹션 삽입. 현재 폰 + 최대 2개 추가 선택해 인라인 비교.</p>
+      <div class="mockup" style="margin-top:12px">
+        <div class="mockup-header">미리보기 (상세 페이지 하단)</div>
+        <div class="mockup-body" style="background:#f8f9fa;padding:16px;font-family:sans-serif">
+          <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:8px">다른 기종과 비교하기</div>
+          <div style="display:flex;gap:6px;margin-bottom:10px">
+            <div style="flex:1;background:#EF4444;color:#fff;border-radius:8px;padding:8px;text-align:center;font-size:10px;font-weight:700">갤S26 ✓</div>
+            <div style="flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:8px;text-align:center;font-size:10px;color:#6b7280">+ 기종 추가</div>
+            <div style="flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:8px;text-align:center;font-size:10px;color:#6b7280">+ 기종 추가</div>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:8px">
+            <div style="display:flex;gap:4px;align-items:flex-end;height:40px">
+              <div style="flex:1;background:#EF4444;border-radius:3px 3px 0 0;height:80%"></div>
+              <div style="flex:1;background:#e5e7eb;border-radius:3px 3px 0 0;height:40%;border:1px dashed #d1d5db"></div>
+              <div style="flex:1;background:#e5e7eb;border-radius:3px 3px 0 0;height:40%;border:1px dashed #d1d5db"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>플로팅 비교 바 + 독립 페이지</h3>
+      <p>각 폰 리스트/상세 페이지에서 "비교에 담기" 클릭 시 하단에 플로팅 비교 바 표시 (최대 3개). "비교하기" 버튼 누르면 비교 전용 페이지로 이동. 쇼핑몰처럼 자연스러운 UX.</p>
+      <div class="mockup" style="margin-top:12px">
+        <div class="mockup-header">미리보기 (플로팅 바)</div>
+        <div class="mockup-body" style="background:#f8f9fa;padding:12px;font-family:sans-serif">
+          <div style="background:#1f2937;border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:8px">
+            <div style="display:flex;gap:6px;flex:1">
+              <div style="background:#374151;border-radius:6px;padding:4px 8px;font-size:10px;color:#fff">갤S26 ✕</div>
+              <div style="background:#374151;border-radius:6px;padding:4px 8px;font-size:10px;color:#fff">아이폰17 ✕</div>
+              <div style="background:#374151;border-radius:6px;padding:4px 8px;font-size:10px;color:#6b7280;border:1px dashed #4b5563">+1</div>
+            </div>
+            <div style="background:#EF4444;border-radius:8px;padding:5px 10px;font-size:10px;color:#fff;font-weight:700;white-space:nowrap">비교하기</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

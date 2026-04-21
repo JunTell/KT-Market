@@ -115,7 +115,7 @@
   --color-material-dimmed: #23272E;
   --color-material-scroll: #9CA3AF;
 
-  /* Shadows - moyoplan.com 미니멀 스타일 */
+  /* Shadows - 미니멀 스타일 */
   --shadow-normal: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-strong: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-heavy: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
@@ -432,7 +432,7 @@ body {
     box-shadow: var(--shadow-heavy);
   }
 
-  /* Hover Effects - moyoplan.com 스타일 */
+  /* Hover Effects - 스타일 */
   .hover-lift {
     transition: transform var(--transition-base), box-shadow var(--transition-base);
   }

@@ -51,7 +51,7 @@ function SelectionModal({ isOpen, onClose, onConfirm }) {
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                         <path
                             d="M18 6L6 18M6 6L18 18"
-                            stroke="#191F28"
+                            stroke="#24292E"
                             strokeWidth="1.5"
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -64,11 +64,13 @@ function SelectionModal({ isOpen, onClose, onConfirm }) {
                     style={{
                         fontSize: "22px",
                         fontWeight: "700",
-                        color: "#191F28",
+                        color: "#24292E",
                         marginTop: "20px",
                         marginBottom: "24px",
                         textAlign: "left",
                         flexShrink: 0,
+                        letterSpacing: -0.44,
+                        lineHeight: 1.2,
                     }}
                 >
                     함께 하면 더 좋아요
@@ -116,6 +118,7 @@ function SelectionModal({ isOpen, onClose, onConfirm }) {
                             color: "#3B72F2",
                             fontWeight: "600",
                             lineHeight: "1.5",
+                            letterSpacing: -0.24,
                             margin: 0,
                             wordBreak: "keep-all",
                         }}
@@ -138,6 +141,8 @@ function SelectionModal({ isOpen, onClose, onConfirm }) {
                         borderRadius: "12px",
                         fontSize: "17px",
                         fontWeight: "600",
+                        letterSpacing: -0.34,
+                        lineHeight: 1.4,
                         cursor: "pointer",
                         boxShadow: "0 4px 12px rgba(68, 109, 246, 0.2)",
                         marginTop: "auto",

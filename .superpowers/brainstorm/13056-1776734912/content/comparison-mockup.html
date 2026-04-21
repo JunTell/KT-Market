@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>휴대폰 비교 — 목업</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, 'Apple SD Gothic Neo', sans-serif; background: #f5f6f8; min-height: 100vh; }
+
+  .page { max-width: 430px; margin: 0 auto; background: #fff; min-height: 100vh; }
+
+  /* 헤더 */
+  .header { padding: 16px; border-bottom: 1px solid #f1f3f5; display: flex; align-items: center; gap: 10px; }
+  .header-back { font-size: 18px; color: #374151; cursor: pointer; }
+  .header-title { font-size: 17px; font-weight: 700; color: #111827; }
+
+  /* 선택된 폰 칩 */
+  .phone-chips { padding: 14px 16px 10px; display: flex; gap: 8px; overflow-x: auto; }
+  .phone-chip { display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 100px; font-size: 12px; font-weight: 600; white-space: nowrap; border: 1.5px solid; cursor: pointer; }
+  .chip-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .chip-remove { color: #9ca3af; margin-left: 2px; font-size: 11px; }
+  .chip-add { border-color: #d1d5db; color: #6b7280; background: #fff; }
+
+  /* 가입유형 탭 */
+  .tabs { display: flex; padding: 0 16px; gap: 0; border-bottom: 1px solid #e5e7eb; }
+  .tab { flex: 1; text-align: center; padding: 10px 0; font-size: 13px; font-weight: 600; color: #9ca3af; border-bottom: 2px solid transparent; cursor: pointer; }
+  .tab.active { color: #111827; border-bottom-color: #EF4444; }
+
+  /* 그래프 카드 */
+  .chart-card { margin: 14px 16px; background: #fff; border-radius: 16px; border: 1px solid #e5e7eb; padding: 16px; }
+  .chart-label { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+  .chart-title { font-size: 15px; font-weight: 700; color: #111827; margin-bottom: 14px; }
+  .chart-wrap { position: relative; height: 220px; }
+
+  /* 범례 */
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #374151; font-weight: 500; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* 요금제 슬라이더 힌트 */
+  .plan-hint { margin: 0 16px 14px; background: #f8f9fa; border-radius: 12px; padding: 12px 14px; }
+  .plan-hint-label { font-size: 11px; color: #6b7280; margin-bottom: 6px; }
+  .plan-tiers { display: flex; gap: 4px; }
+  .plan-tier { flex: 1; text-align: center; padding: 5px 2px; background: #fff; border-radius: 6px; font-size: 9px; color: #6b7280; border: 1px solid #e5e7eb; }
+  .plan-tier.active { background: #EF4444; color: #fff; border-color: #EF4444; font-weight: 700; }
+
+  /* 최저가 카드 */
+  .winner-card { margin: 0 16px 14px; border-radius: 14px; background: linear-gradient(135deg, #fff5f5, #fff); border: 1.5px solid #fecaca; padding: 14px; }
+  .winner-badge { display: inline-flex; align-items: center; gap: 4px; background: #EF4444; color: #fff; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 100px; margin-bottom: 8px; }
+  .winner-name { font-size: 14px; font-weight: 700; color: #111827; }
+  .winner-price { font-size: 22px; font-weight: 800; color: #EF4444; letter-spacing: -0.5px; }
+  .winner-sub { font-size: 11px; color: #6b7280; margin-top: 2px; }
+
+  /* 비교표 */
+  .compare-table { margin: 0 16px 20px; border-radius: 14px; border: 1px solid #e5e7eb; overflow: hidden; }
+  .compare-row { display: flex; align-items: center; padding: 10px 14px; border-bottom: 1px solid #f3f4f6; font-size: 12px; }
+  .compare-row:last-child { border-bottom: none; }
+  .compare-row-label { color: #6b7280; width: 80px; flex-shrink: 0; }
+  .compare-values { display: flex; flex: 1; gap: 6px; }
+  .compare-val { flex: 1; text-align: center; font-weight: 600; color: #111827; }
+  .compare-val.best { color: #EF4444; }
+
+  /* 알림 신청 */
+  .alert-banner { margin: 0 16px 30px; background: #eff6ff; border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 10px; }
+  .alert-icon { font-size: 20px; }
+  .alert-text { flex: 1; }
+  .alert-text strong { font-size: 13px; color: #1d4ed8; display: block; margin-bottom: 2px; }
+  .alert-text span { font-size: 11px; color: #3b82f6; }
+  .alert-btn { background: #1d4ed8; color: #fff; border: none; border-radius: 8px; padding: 7px 12px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- 헤더 -->
+  <div class="header">
+    <span class="header-back">←</span>
+    <span class="header-title">기종 비교</span>
+  </div>
+
+  <!-- 선택된 폰 칩 -->
+  <div class="phone-chips">
+    <div class="phone-chip" style="border-color:#EF4444;color:#EF4444;background:#fff5f5">
+      <span class="chip-dot" style="background:#EF4444"></span>
+      갤럭시 S26
+      <span class="chip-remove">✕</span>
+    </div>
+    <div class="phone-chip" style="border-color:#3B82F6;color:#3B82F6;background:#eff6ff">
+      <span class="chip-dot" style="background:#3B82F6"></span>
+      아이폰 17
+      <span class="chip-remove">✕</span>
+    </div>
+    <div class="phone-chip" style="border-color:#10B981;color:#10B981;background:#f0fdf4">
+      <span class="chip-dot" style="background:#10B981"></span>
+      갤S25 FE
+      <span class="chip-remove">✕</span>
+    </div>
+    <div class="phone-chip chip-add">+ 추가</div>
+  </div>
+
+  <!-- 가입유형 탭 -->
+  <div class="tabs">
+    <div class="tab">신규가입</div>
+    <div class="tab active">번호이동</div>
+    <div class="tab">기기변경</div>
+  </div>
+
+  <!-- 요금제 구간 -->
+  <div class="plan-hint" style="margin-top:14px">
+    <div class="plan-hint-label">요금제 구간별 월 납부금액 비교</div>
+    <div class="plan-tiers">
+      <div class="plan-tier">3.7만↑</div>
+      <div class="plan-tier">6.1만↑</div>
+      <div class="plan-tier">9만↑</div>
+      <div class="plan-tier active">10만↑</div>
+      <div class="plan-tier">11만↑</div>
+    </div>
+  </div>
+
+  <!-- 라인 차트 -->
+  <div class="chart-card">
+    <div class="chart-label">요금제 구간 → 월 납부금액</div>
+    <div class="chart-title">요금제별 최종 월 납부금액</div>
+    <div class="chart-wrap">
+      <canvas id="myChart"></canvas>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#EF4444"></span>갤럭시 S26 (번이)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#3B82F6"></span>아이폰 17 (번이)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#10B981"></span>갤S25 FE (번이)</div>
+    </div>
+  </div>
+
+  <!-- 최저가 -->
+  <div class="winner-card">
+    <div class="winner-badge">🏆 10만원↑ 구간 최저가</div>
+    <div class="winner-name">갤럭시 S25 FE</div>
+    <div class="winner-price">89,000원<span style="font-size:14px;font-weight:500;color:#6b7280">/월</span></div>
+    <div class="winner-sub">갤럭시 S26 대비 월 12,000원 절약 · 24개월 기준 총 288,000원</div>
+  </div>
+
+  <!-- 비교표 -->
+  <div class="compare-table">
+    <div class="compare-row" style="background:#f9fafb;font-weight:700;font-size:11px;color:#374151">
+      <div class="compare-row-label"></div>
+      <div class="compare-values">
+        <div class="compare-val" style="color:#EF4444">갤S26</div>
+        <div class="compare-val" style="color:#3B82F6">아이폰17</div>
+        <div class="compare-val" style="color:#10B981">갤S25FE</div>
+      </div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-row-label">월 납부금</div>
+      <div class="compare-values">
+        <div class="compare-val">101,000</div>
+        <div class="compare-val">107,000</div>
+        <div class="compare-val best">89,000</div>
+      </div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-row-label">공시지원금</div>
+      <div class="compare-values">
+        <div class="compare-val">256,000</div>
+        <div class="compare-val">200,000</div>
+        <div class="compare-val best">310,000</div>
+      </div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-row-label">출고가</div>
+      <div class="compare-values">
+        <div class="compare-val">1,559,800</div>
+        <div class="compare-val">1,250,000</div>
+        <div class="compare-val">899,800</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 가격 알림 배너 -->
+  <div class="alert-banner">
+    <span class="alert-icon">🔔</span>
+    <div class="alert-text">
+      <strong>가격 인하 시 알림받기</strong>
+      <span>공시지원금 변경 시 카카오톡으로 즉시 알림</span>
+    </div>
+    <button class="alert-btn">알림 신청</button>
+  </div>
+
+</div>
+
+<script>
+const ctx = document.getElementById('myChart').getContext('2d');
+const labels = ['3.7만↑', '6.1만↑', '9만↑', '10만↑', '11만↑'];
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      {
+        label: '갤럭시 S26',
+        data: [148000, 128000, 112000, 101000, 95000],
+        borderColor: '#EF4444',
+        backgroundColor: 'rgba(239,68,68,0.08)',
+        borderWidth: 2.5,
+        pointRadius: 4,
+        pointBackgroundColor: '#EF4444',
+        tension: 0.35,
+        fill: false,
+      },
+      {
+        label: '아이폰 17',
+        data: [155000, 138000, 120000, 107000, 99000],
+        borderColor: '#3B82F6',
+        backgroundColor: 'rgba(59,130,246,0.08)',
+        borderWidth: 2.5,
+        pointRadius: 4,
+        pointBackgroundColor: '#3B82F6',
+        tension: 0.35,
+        fill: false,
+      },
+      {
+        label: '갤S25 FE',
+        data: [118000, 105000, 96000, 89000, 84000],
+        borderColor: '#10B981',
+        backgroundColor: 'rgba(16,185,129,0.08)',
+        borderWidth: 2.5,
+        pointRadius: 4,
+        pointBackgroundColor: '#10B981',
+        tension: 0.35,
+        fill: false,
+      },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()}원/월`
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { font: { size: 10 }, color: '#9ca3af' }
+      },
+      y: {
+        grid: { color: '#f3f4f6' },
+        ticks: {
+          font: { size: 10 },
+          color: '#9ca3af',
+          callback: v => (v/10000) + '만'
+        }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>

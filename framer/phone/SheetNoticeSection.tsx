@@ -53,9 +53,11 @@ export function SheetNoticeSection(props) {
                     style={{
                         fontSize: "14px",
                         fontWeight: "700",
-                        color: "#4E5968",
+                        color: "#3F4750",
                         textAlign: "left",
-                        lineHeight: "1.4",
+                        lineHeight: "1.5",
+                        letterSpacing: "-0.3px",
+                        wordBreak: "keep-all",
                         fontFamily: FONT,
                     }}
                 >
@@ -65,9 +67,11 @@ export function SheetNoticeSection(props) {
                     style={{
                         fontSize: "12px",
                         fontWeight: "400",
-                        color: "#9CA3AF",
+                        color: "#868E96",
                         textAlign: "left",
-                        lineHeight: "1.5",
+                        lineHeight: "1.6",
+                        letterSpacing: "-0.24px",
+                        wordBreak: "keep-all",
                         whiteSpace: "pre-line",
                         fontFamily: FONT,
                     }}

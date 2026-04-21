@@ -56,7 +56,7 @@ export default function BenefitCategoryTabs(props) {
                             onClick={() => handleClick(tab.key, tab.sectionId)}
                             style={{
                                 ...tabButtonStyle,
-                                color: isActive ? "#111827" : "#9CA3AF",
+                                color: isActive ? "#24292E" : "#868E96",
                                 borderBottomColor: isActive ? "#0055FF" : "transparent",
                                 fontWeight: isActive ? 700 : 500,
                             }}
@@ -98,7 +98,8 @@ const tabButtonStyle: React.CSSProperties = {
     padding: "0 12px 14px",
     margin: 0,
     fontSize: 15,
-    lineHeight: 1.2,
+    letterSpacing: -0.3,
+    lineHeight: 1.4,
     cursor: "pointer",
     borderBottom: "2px solid transparent",
     transition: "color 0.2s ease, border-color 0.2s ease",

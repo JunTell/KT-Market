@@ -1,6 +1,8 @@
 
 import React from 'react';
 
+export const dynamic = 'force-dynamic'
+
 export default function DesignSystemPage() {
     return (
         <div className="p-8 space-y-12 bg-white min-h-screen text-label-900">
