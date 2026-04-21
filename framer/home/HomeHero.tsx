@@ -23,7 +23,7 @@ export default function HomeHero({
 }: Props) {
   const handleCta = useCallback(() => {
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('ktmarket:open-quick-quote'))
+      window.location.href = '/quick-quote'
     }
   }, [])
 
