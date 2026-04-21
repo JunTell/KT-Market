@@ -34,6 +34,19 @@ const PLAN_69_VARIANTS = {
     },
 }
 
+// 유튜브 프리미엄 요금제 (추가지원금 +30,000원)
+const YOUTUBE_PLAN_UUIDS_ORDER = new Set(["plan_90"])
+const YOUTUBE_BONUS_ORDER = 30000
+
+interface PriceBreakdown {
+    originPrice: number
+    disclosureSubsidy: number
+    ktmarketDiscount: number
+    finalDevicePrice: number
+    selectedPlanId: string
+    mode: string
+}
+
 export default function OrderUserForm(props: Props) {
     const [isEditing, setIsEditing] = useState(false)
     const [isResultPage, setIsResultPage] = useState(false)
@@ -59,6 +72,9 @@ export default function OrderUserForm(props: Props) {
         name: props.planName,
         data: props.planData,
     })
+
+    const [priceBreakdown, setPriceBreakdown] =
+        useState<PriceBreakdown | null>(null)
 
     const [touched, setTouched] = useState({
         userName: false,
@@ -116,8 +132,11 @@ export default function OrderUserForm(props: Props) {
     }, [inlineError])
 
     useEffect(() => {
-        let name = props.planName || PLAN_69_VARIANTS.video.name
-        let data = props.planData || PLAN_69_VARIANTS.video.description
+        // 기본값: props.planName (OrderSheetOverrides에서 PLAN_DETAILS 기반 주입)
+        // 69K는 plan_69 / plan_69_v 변형이 있어 세션 데이터로 분기
+        let name = props.planName || "(유튜브 프리미엄) 초이스 베이직"
+        let data =
+            props.planData || "완전 무제한 + 공유데이터 2배 80GB"
         if (typeof window !== "undefined") {
             try {
                 const sessionData = sessionStorage.getItem("asamoDeal")
@@ -130,6 +149,32 @@ export default function OrderUserForm(props: Props) {
                     } else if (pId === "plan_69") {
                         name = PLAN_69_VARIANTS.video.name
                         data = PLAN_69_VARIANTS.video.description
+                    }
+
+                    const originPrice = Number(parsed.originPrice ?? 0)
+                    const disclosureSubsidy = Number(
+                        parsed.disclosureSubsidy ?? 0
+                    )
+                    const ktmarketDiscount = Number(
+                        parsed.ktmarketDiscount ??
+                            parsed.currentKtMarketDiscount ??
+                            0
+                    )
+                    const finalDevicePrice = Number(
+                        parsed.finalDevicePrice ?? 0
+                    )
+                    if (originPrice > 0) {
+                        setPriceBreakdown({
+                            originPrice,
+                            disclosureSubsidy,
+                            ktmarketDiscount,
+                            finalDevicePrice,
+                            selectedPlanId: pId || "",
+                            mode:
+                                parsed.mode ||
+                                parsed.discountType ||
+                                "device",
+                        })
                     }
                 }
             } catch (e) {
@@ -169,7 +214,9 @@ export default function OrderUserForm(props: Props) {
             setIsEditing(false)
             setIsInitialEntry(false)
         } else {
-            setInlineError("이름, 생년월일, 연락처를 모두 올바르게 입력해주세요.")
+            setInlineError(
+                "이름, 생년월일, 연락처를 모두 올바르게 입력해주세요."
+            )
         }
     }, [isUserInfoComplete])
 
@@ -208,7 +255,9 @@ export default function OrderUserForm(props: Props) {
             }
         } catch (e: any) {
             console.error(e)
-            setModalError("처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+            setModalError(
+                "처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+            )
         } finally {
             setIsLoading(false)
             isProcessing.current = false
@@ -383,6 +432,7 @@ export default function OrderUserForm(props: Props) {
                 <InfoRow label="데이터" value={displayPlan.data} />
                 <InfoRow label="월 금액" value={props.planPrice} />
             </div>
+            {priceBreakdown && <PriceBreakdownSection data={priceBreakdown} />}
             <div style={warningBoxStyle}>
                 <div style={warningIconStyle}>i</div>
                 <div style={warningTextStyle}>
@@ -395,9 +445,7 @@ export default function OrderUserForm(props: Props) {
                     </div>
                 </div>
             </div>
-            {inlineError && (
-                <div style={inlineErrorStyle}>{inlineError}</div>
-            )}
+            {inlineError && <div style={inlineErrorStyle}>{inlineError}</div>}
             {!isResultPage && (
                 <div style={bottomContainerStyle}>
                     <div style={termsSectionStyle}>
@@ -644,6 +692,88 @@ const InfoRow = ({
     </div>
 )
 
+const PriceBreakdownSection = ({ data }: { data: PriceBreakdown }) => {
+    const format = (n: number) => new Intl.NumberFormat("ko-KR").format(n)
+    const isYoutubePlan = YOUTUBE_PLAN_UUIDS_ORDER.has(data.selectedPlanId)
+    const youtubeBonus = isYoutubePlan ? YOUTUBE_BONUS_ORDER : 0
+    const baseMarketSubsidy = Math.max(0, data.ktmarketDiscount - youtubeBonus)
+    const isDeviceMode = data.mode === "device"
+
+    return (
+        <div style={{ marginTop: "20px" }}>
+            <div style={priceBreakdownContainerStyle}>
+                <div style={priceRowStyle}>
+                    <span style={priceLabelStyle}>출시 가격</span>
+                    <span style={priceValueStyle}>
+                        {format(data.originPrice)}원
+                    </span>
+                </div>
+
+                {isDeviceMode && data.disclosureSubsidy > 0 && (
+                    <div style={priceRowStyle}>
+                        <span style={priceLabelStyle}>공통지원금 (KT)</span>
+                        <span
+                            style={{ ...priceValueStyle, color: "#3B82F6" }}
+                        >
+                            -{format(data.disclosureSubsidy)}원
+                        </span>
+                    </div>
+                )}
+
+                <div style={priceRowStyle}>
+                    <span
+                        style={{
+                            ...priceLabelStyle,
+                            color: "#3B82F6",
+                            fontWeight: 600,
+                        }}
+                    >
+                        아사모 추가지원금
+                    </span>
+                    <span style={{ ...priceValueStyle, color: "#3B82F6" }}>
+                        -{format(baseMarketSubsidy)}원
+                    </span>
+                </div>
+
+                {isYoutubePlan && (
+                    <div style={priceRowStyle}>
+                        <span
+                            style={{
+                                ...priceLabelStyle,
+                                color: "#3B82F6",
+                                fontWeight: 600,
+                            }}
+                        >
+                            유튜브 프리미엄 추가지원금
+                        </span>
+                        <span
+                            style={{ ...priceValueStyle, color: "#3B82F6" }}
+                        >
+                            -{format(youtubeBonus)}원
+                        </span>
+                    </div>
+                )}
+
+                <div
+                    style={{
+                        ...priceRowStyle,
+                        marginTop: "8px",
+                        paddingTop: "12px",
+                        borderTop: "1px solid #E5E7EB",
+                    }}
+                >
+                    <span style={priceFinalLabelStyle}>
+                        최종 구매가(체감가)
+                    </span>
+                    <span style={priceFinalValueStyle}>
+                        {format(data.finalDevicePrice)}원
+                    </span>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 const InputGroup = ({
     label,
     value,
@@ -821,6 +951,39 @@ const inputStyle: React.CSSProperties = {
     outline: "none",
     boxSizing: "border-box",
 }
+const priceBreakdownContainerStyle: React.CSSProperties = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "14px",
+    padding: "20px",
+    backgroundColor: "#F9FAFB",
+    borderRadius: "12px",
+}
+const priceRowStyle: React.CSSProperties = {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+}
+const priceLabelStyle: React.CSSProperties = {
+    fontSize: "15px",
+    color: "#4B5563",
+    fontWeight: 400,
+}
+const priceValueStyle: React.CSSProperties = {
+    fontSize: "16px",
+    color: "#1d1d1f",
+    fontWeight: 500,
+}
+const priceFinalLabelStyle: React.CSSProperties = {
+    fontSize: "18px",
+    color: "#1d1d1f",
+    fontWeight: 600,
+}
+const priceFinalValueStyle: React.CSSProperties = {
+    fontSize: "22px",
+    color: "#1d1d1f",
+    fontWeight: 700,
+}
 const bottomContainerStyle: React.CSSProperties = {
     paddingTop: "40px",
     marginTop: "auto",
@@ -988,17 +1151,17 @@ addPropertyControls(OrderUserForm, {
     },
     planName: {
         type: ControlType.String,
-        defaultValue: "기존 데이터ON 비디오",
+        defaultValue: "(유튜브 프리미엄) 초이스 베이직",
         title: "요금제명",
     },
     planData: {
         type: ControlType.String,
-        defaultValue: "데이터 110GB + 다쓰면 최대 5Mbps",
+        defaultValue: "유튜브 프리미엄 제공 + 공유데이터 2배 80GB",
         title: "데이터",
     },
     planPrice: {
         type: ControlType.String,
-        defaultValue: "69,000원",
+        defaultValue: "90,000원",
         title: "요금",
     },
 })
