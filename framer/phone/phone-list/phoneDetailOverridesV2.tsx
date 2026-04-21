@@ -11,7 +11,7 @@ import {
     getSpecialPrice,
     getInstallmentPaymentTitle as calcInstallmentPaymentTitle,
     getInstallmentPaymentDescription as calcInstallmentPaymentDescription,
-} from "https://framer.com/m/priceCalculation-xPMQRv.js@kM0zmx9phDgbNynAbwPj"
+} from "https://framer.com/m/priceCalculation-xPMQRv.js@Fc95CtgeS2Qhf6lnpFdA"
 
 // 대상 모델 목록 정의 0227
 const S26_MODLE = [
@@ -724,6 +724,24 @@ export function withPriceCard(Component): ComponentType {
             navigate(routeId, "")
         }
 
+        const saveOrderSession = () => {
+            const storeJson = JSON.stringify(store)
+            sessionStorage.setItem("data", storeJson)
+            localStorage.setItem("kt_data", storeJson)
+        }
+
+        const handlePhoneOrder = () => {
+            saveOrderSession()
+            const routeId = Object.entries(routes).find(
+                ([, value]) => (value as any)?.path === "/phone/confirm"
+            )?.[0]
+            if (routeId) {
+                navigate(routeId, "")
+            } else {
+                window.location.href = "/phone/confirm"
+            }
+        }
+
         return (
             <Component
                 {...props}
@@ -759,6 +777,8 @@ export function withPriceCard(Component): ComponentType {
                 totalMonthPayment={Math.round(totalMonthPayment)}
                 installmentPaymentNoInterest={installmentPaymentNoInterest}
                 totalMonthPaymentNoInterest={totalMonthPaymentNoInterest}
+                onPhoneClick={handlePhoneOrder}
+                onSaveOrderSession={saveOrderSession}
             />
         )
     }
@@ -769,7 +789,10 @@ export function withConfirmDeviceInfo(Component): ComponentType {
         const [data, setData] = useState(null)
 
         useEffect(() => {
-            const storedData = sessionStorage.getItem("data") ?? null
+            const storedData =
+                sessionStorage.getItem("data") ??
+                localStorage.getItem("kt_data") ??
+                null
             const parsedData = storedData ? JSON.parse(storedData) : null
             setData(parsedData)
         }, [])
@@ -792,7 +815,10 @@ export function withConfirmOrderSheet(Component): ComponentType {
     return (props) => {
         const [data, setData] = useState(null)
         useEffect(() => {
-            const storedData = sessionStorage.getItem("sheet") ?? null
+            const storedData =
+                sessionStorage.getItem("sheet") ??
+                localStorage.getItem("kt_sheet") ??
+                null
             const parsedData = storedData ? JSON.parse(storedData) : null
             setData(parsedData)
         }, [])
@@ -842,10 +868,11 @@ export function withConfirmTotalPaymentOrderSheet(Component): ComponentType {
     return (props) => {
         const [data, setData] = useState(null)
         useEffect(() => {
-            const storedData = sessionStorage.getItem("sheet") ?? null
-            // console.log(storedData)
+            const storedData =
+                sessionStorage.getItem("sheet") ??
+                localStorage.getItem("kt_sheet") ??
+                null
             const parsedData = storedData ? JSON.parse(storedData) : null
-            // console.log(parsedData)
             setData(parsedData)
         }, [])
 
@@ -1072,6 +1099,43 @@ export function withOrderSheet(Component): ComponentType {
         const getInstallmentPaymentTitle = (store) => {
             return calcInstallmentPaymentTitle(store.isGuaranteedReturn, store.installment)
         }
+
+        // store가 없을 때 localStorage 폴백으로 상태 복원 (confirm 페이지 등)
+        useEffect(() => {
+            if (store?.plan && store?.device) return
+            const raw = localStorage.getItem("kt_sheet")
+            if (!raw) return
+            try {
+                const saved = JSON.parse(raw)
+                if (saved.installmentPayment) setInstallmentPayment(saved.installmentPayment)
+                if (saved.installmentPaymentNoInterest !== undefined) setInstallmentPaymentNoInterest(saved.installmentPaymentNoInterest)
+                if (saved.totalMonthPaymentNoInterest !== undefined) setTotalMonthPaymentNoInterest(saved.totalMonthPaymentNoInterest)
+                if (saved.planName) setPlanName(saved.planName)
+                if (saved.benefit) setBenefit(saved.benefit)
+                if (saved.discount) setDiscount(saved.discount)
+                if (saved.devicePrice !== undefined) setDevicePrice(saved.devicePrice)
+                if (saved.ktmarketSubsidy !== undefined) setKtmarketSubsidy(saved.ktmarketSubsidy)
+                if (saved.disclosureSubsidy !== undefined) setDisclosureSubsidy(saved.disclosureSubsidy)
+                if (saved.migrationSubsidy !== undefined) setMigrationSubsidy(saved.migrationSubsidy)
+                if (saved.additionalSubsidy !== undefined) setAdditionalSubsidy(saved.additionalSubsidy)
+                if (saved.totalDeviceDiscountAmount !== undefined) setTotalDeviceDiscountAmount(saved.totalDeviceDiscountAmount)
+                if (saved.installmentPrincipal !== undefined) setInstallmentPrincipal(saved.installmentPrincipal)
+                if (saved.planPrice !== undefined) setPlanPrice(saved.planPrice)
+                if (saved.planDiscountAmount !== undefined) setPlanDiscountAmount(saved.planDiscountAmount)
+                if (saved.totalPlanDiscountAmount !== undefined) setTotalPlanDiscountAmount(saved.totalPlanDiscountAmount)
+                if (saved.totalMonthPlanPrice !== undefined) setTotalMonthPlanPrice(saved.totalMonthPlanPrice)
+                if (saved.totalMonthPayment !== undefined) setTotalMonthPayment(saved.totalMonthPayment)
+                if (saved.promotionDiscount !== undefined) setPromotionDiscount(saved.promotionDiscount)
+                if (saved.guaranteedReturnPrice !== undefined) setGuaranteedReturnPrice(saved.guaranteedReturnPrice)
+                if (saved.isGuaranteedReturn !== undefined) setIsGuaranteedReturn(saved.isGuaranteedReturn)
+                if (saved.freebie !== undefined) setFreebie(saved.freebie)
+                if (saved.monthlyPriceFreebie !== undefined) setMonthlyPriceFreebie(saved.monthlyPriceFreebie)
+                if (saved.special_price_mnp !== undefined) setSpecialPriceMnp(saved.special_price_mnp)
+                if (saved.special_price_chg !== undefined) setSpecialPriceChg(saved.special_price_chg)
+                if (saved.doubleStorageDiscount !== undefined) setDoubleStorageDiscount(saved.doubleStorageDiscount)
+                if (saved.youtubePremiumBonus !== undefined) setYoutubePremiumBonus(saved.youtubePremiumBonus)
+            } catch {}
+        }, [])
 
         useEffect(() => {
             if (!store || !store.plan || !store.device) return
@@ -1443,6 +1507,20 @@ export function withPhoneDetail(Component): ComponentType {
 
         // ✅ 단종 팝업 상태 추가
         const [discontinuedInfo, setDiscontinuedInfo] = useState(null)
+
+        // ── Microsoft Clarity 히트맵 (/phone/ 전용) ──
+        useEffect(() => {
+            if (typeof window === "undefined") return
+            if ((window as any).clarity) return
+                ; (function (c: any, l: any, a: string, r: string, i: string) {
+                    c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) }
+                    const t = l.createElement(r)
+                    t.async = 1
+                    t.src = "https://www.clarity.ms/tag/" + i
+                    const y = l.getElementsByTagName(r)[0]
+                    y.parentNode.insertBefore(t, y)
+                })(window, document, "clarity", "script", "wcz4ygqcrm")
+        }, [])
 
         const DB = {
             DEVICES: "devices",
@@ -1836,7 +1914,7 @@ export function withPhoneDetail(Component): ComponentType {
                                     fontSize: "22px",
                                     fontWeight: 800,
                                     marginBottom: "16px",
-                                    color: "#191F28",
+                                    color: "#24292E",
                                     letterSpacing: "-0.5px",
                                 }}
                             >
@@ -1857,7 +1935,7 @@ export function withPhoneDetail(Component): ComponentType {
                                 style={{
                                     fontSize: "15px",
                                     lineHeight: 1.6,
-                                    color: "#4E5968",
+                                    color: "#3F4750",
                                     marginBottom: "32px",
                                     whiteSpace: "pre-line",
                                     wordBreak: "keep-all",
@@ -1878,6 +1956,8 @@ export function withPhoneDetail(Component): ComponentType {
                                     borderRadius: "999px",
                                     fontSize: "16px",
                                     fontWeight: 700,
+                                    letterSpacing: -0.3,
+                                    lineHeight: 1.5,
                                     cursor: "pointer",
                                     transition: "background-color 0.2s",
                                 }}
@@ -1977,19 +2057,14 @@ export function withColorCapacity(Component): ComponentType {
 
         const handleColorChange = (color) => {
             setStore({ color })
-            if (store.stocks) {
-                const selectedStock = store.stocks?.find(
-                    (stock) => stock.colorEn === color.en
-                )
-                if (selectedStock && selectedStock.quantity <= 0) {
-                    alert("해당 색상은 현재 재고가 없습니다. 입고 알림을 신청해주세요.")
-                }
-            }
         }
 
         const handleCapacitySelect = (path: string) => {
-            window.history.pushState({}, "", `/phone/${path}`)
-            setStore({ currentModelId: path })
+            // 즉시 로딩 상태 전환 → INP 체감 개선
+            setStore({ isLoading: true, currentModelId: path })
+            requestAnimationFrame(() => {
+                window.history.pushState({}, "", `/phone/${path}`)
+            })
         }
 
         return (
@@ -2105,6 +2180,25 @@ export function withRegister(Component): ComponentType {
                 let initialRegister = store.register
                 let initialCarrier = store.carrier || store.currentCarrier
 
+                // AI 맞춤 추천 데이터가 있으면 우선 적용
+                let aiDiscount: string | null = null
+                try {
+                    const aiRaw = typeof window !== "undefined"
+                        ? window.sessionStorage.getItem("kt_ai_recommend")
+                        : null
+                    if (aiRaw) {
+                        const aiData = JSON.parse(aiRaw)
+                        if (aiData.carrier && aiData.register) {
+                            initialCarrier = aiData.carrier
+                            initialRegister = aiData.register
+                        }
+                        if (aiData.discount) {
+                            aiDiscount = aiData.discount
+                        }
+                    }
+                } catch { }
+
+                // 모델별 강제 설정 (AI 추천보다 우선)
                 if (numberPortingModels.includes(deviceModel)) {
                     initialRegister = "번호이동"
                     initialCarrier = "SKT"
@@ -2128,12 +2222,16 @@ export function withRegister(Component): ComponentType {
                 }
 
                 // 💡 DB 저장을 위해 store에 'carrier' 속성 명시적 추가
-                setStore({
+                const storeUpdate: any = {
                     register: initialRegister,
                     currentCarrier: initialCarrier, // UI 상태용
                     carrier: initialCarrier, // DB 저장용
                     ktmarketSubsidy: initialSubsidy,
-                })
+                }
+                if (aiDiscount) {
+                    storeUpdate.discount = aiDiscount
+                }
+                setStore(storeUpdate)
 
                 hasInitializedRef.current = true
             }
@@ -2960,12 +3058,9 @@ export function withPlanGrid(Component): ComponentType {
         }
 
         // 디바이스 추가지원금(단독) — withOrderSheet와 동일
-        const calcPromoDiscount = (pid: string): number => {
-            const promoPlans = [
-                "ppllistobj_0863", "ppllistobj_0864", "ppllistobj_0865",
-                "ppllistobj_0850", "ppllistobj_0851", "ppllistobj_0852",
-            ]
-            return promoPlans.includes(pid) ? 50000 : 0
+        // 현재 전 요금제 0원으로 운영
+        const calcPromoDiscount = (_pid: string): number => {
+            return 0
         }
 
         const calcDiscountLabelAmount = (planPrice: number, pid: string): number => {

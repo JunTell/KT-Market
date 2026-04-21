@@ -1467,22 +1467,24 @@ const FreebieSlider = ({
                                     {
                                         fontSize: 12,
                                         fontWeight: 500,
-                                        color: "#374151",
+                                        color: "#3F4750",
                                         lineHeight: 1.3,
                                         overflow: "hidden",
                                         textOverflow: "ellipsis",
                                         display: "-webkit-box",
                                         WebkitLineClamp: 2,
                                         WebkitBoxOrient: "vertical",
+                                        letterSpacing: -0.24,
+                                        wordBreak: "keep-all",
                                     } as React.CSSProperties
                                 }
                             >
                                 {f.title}
                             </span>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: "#24292E", letterSpacing: -0.24, lineHeight: 1.5 }}>
                                 월 {(f.monthly_price ?? 0).toLocaleString()}원
                             </span>
-                            <span style={{ fontSize: 10, color: "#9CA3AF" }}>
+                            <span style={{ fontSize: 10, color: "#868E96" }}>
                                 할부 수수료 별도
                             </span>
                         </div>
@@ -1603,7 +1605,9 @@ const PlanCard = ({
                         style={{
                             fontSize: 17,
                             fontWeight: 700,
-                            color: "#111827",
+                            color: "#24292E",
+                            letterSpacing: -0.34,
+                            lineHeight: 1.4,
                         }}
                     >
                         {plan.title}
@@ -1613,8 +1617,10 @@ const PlanCard = ({
                             style={{
                                 fontSize: 13,
                                 fontWeight: 500,
-                                color: "#6B7280",
+                                color: "#868E96",
                                 marginTop: 2,
+                                letterSpacing: -0.24,
+                                lineHeight: 1.5,
                             }}
                         >
                             {subtitle}
@@ -1630,7 +1636,9 @@ const PlanCard = ({
                         style={{
                             fontSize: 13,
                             fontWeight: 600,
-                            color: "#374151",
+                            color: "#3F4750",
+                            letterSpacing: -0.24,
+                            lineHeight: 1.5,
                         }}
                     >
                         할인 제품 안내
@@ -1658,7 +1666,7 @@ const PlanCard = ({
                             onFreebieSelect={onFreebieSelect}
                         />
                     ) : (
-                        <span style={{ fontSize: 13, color: "#9CA3AF" }}>
+                        <span style={{ fontSize: 13, color: "#868E96", letterSpacing: -0.24, lineHeight: 1.5, wordBreak: "keep-all" }}>
                             해당 요금제에 적용 가능한 할인 제품이 없습니다.
                         </span>
                     )}
@@ -1676,8 +1684,8 @@ const PlanCard = ({
                     paddingTop: 10,
                 }}>
                     <YoutubePremiumIcon />
-                    <span style={{ fontSize: 13, color: "#374151" }}>
-                        <span style={{ color: "#9CA3AF", fontWeight: 500 }}>기본제공 혜택</span>
+                    <span style={{ fontSize: 13, color: "#3F4750", letterSpacing: -0.24, lineHeight: 1.5 }}>
+                        <span style={{ color: "#868E96", fontWeight: 500 }}>기본제공 혜택</span>
                         {"  "}
                         <span style={{ fontWeight: 700 }}>유튜브 프리미엄 라이트</span>
                     </span>
@@ -1699,6 +1707,8 @@ const PlanCard = ({
                             fontSize: 13,
                             color: "#0055FF",
                             fontWeight: 600,
+                            letterSpacing: -0.24,
+                            lineHeight: 1.5,
                         }}
                     >
                         {discountLabel}
@@ -1714,8 +1724,10 @@ const PlanCard = ({
                         <span
                             style={{
                                 fontSize: 12,
-                                color: "#9CA3AF",
+                                color: "#868E96",
                                 textDecoration: "line-through",
+                                letterSpacing: -0.24,
+                                lineHeight: 1.5,
                             }}
                         >
                             {plan.price.toLocaleString()}원
@@ -1724,7 +1736,9 @@ const PlanCard = ({
                             style={{
                                 fontSize: 18,
                                 fontWeight: 700,
-                                color: "#374151",
+                                color: "#3F4750",
+                                letterSpacing: -0.36,
+                                lineHeight: 1.3,
                             }}
                         >
                             월 {Math.floor(plan.price * 0.75).toLocaleString()}원
@@ -1745,6 +1759,8 @@ const PlanCard = ({
                             fontSize: 13,
                             color: "#0055FF",
                             fontWeight: 600,
+                            letterSpacing: -0.24,
+                            lineHeight: 1.5,
                         }}
                     >
                         {discountLabel}
@@ -1753,7 +1769,9 @@ const PlanCard = ({
                         style={{
                             fontSize: 18,
                             fontWeight: 700,
-                            color: "#111827",
+                            color: "#24292E",
+                            letterSpacing: -0.36,
+                            lineHeight: 1.3,
                         }}
                     >
                         월 {plan.price.toLocaleString()}원
@@ -1826,8 +1844,10 @@ const SelectableCard = ({
                     style={{
                         fontSize: 15,
                         fontWeight: 600,
-                        color: "#374151",
+                        color: "#3F4750",
                         flex: 1,
+                        letterSpacing: -0.3,
+                        lineHeight: 1.4,
                     }}
                 >
                     직접 선택할래요
@@ -1889,7 +1909,9 @@ const SelectableCard = ({
                         style={{
                             fontSize: 17,
                             fontWeight: 700,
-                            color: "#111827",
+                            color: "#24292E",
+                            letterSpacing: -0.34,
+                            lineHeight: 1.4,
                         }}
                     >
                         {plan.title}
@@ -1899,15 +1921,17 @@ const SelectableCard = ({
                             style={{
                                 fontSize: 13,
                                 fontWeight: 500,
-                                color: "#6B7280",
+                                color: "#868E96",
                                 marginTop: 2,
+                                letterSpacing: -0.24,
+                                lineHeight: 1.5,
                             }}
                         >
                             {subtitle}
                         </div>
                     )}
                 </div>
-                <span style={{ fontSize: 18, color: "#9CA3AF", flexShrink: 0 }}>
+                <span style={{ fontSize: 18, color: "#868E96", flexShrink: 0, letterSpacing: -0.36, lineHeight: 1.3 }}>
                     ›
                 </span>
             </div>
@@ -1919,7 +1943,9 @@ const SelectableCard = ({
                         style={{
                             fontSize: 13,
                             fontWeight: 600,
-                            color: "#374151",
+                            color: "#3F4750",
+                            letterSpacing: -0.24,
+                            lineHeight: 1.5,
                         }}
                     >
                         할인 제품 안내
@@ -1947,12 +1973,30 @@ const SelectableCard = ({
                             onFreebieSelect={onFreebieSelect}
                         />
                     ) : (
-                        <span style={{ fontSize: 13, color: "#9CA3AF" }}>
+                        <span style={{ fontSize: 13, color: "#868E96", letterSpacing: -0.24, lineHeight: 1.5, wordBreak: "keep-all" }}>
                             해당 요금제에 적용 가능한 할인 제품이 없습니다.
                         </span>
                     )}
 
                 </>
+            )}
+
+            {/* YouTube 프리미엄 기본 혜택 뱃지 */}
+            {YOUTUBE_PLAN_PIDS.has(plan.pid) && (
+                <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    borderTop: "1px solid #E5E7EB",
+                    paddingTop: 10,
+                }}>
+                    <YoutubePremiumIcon />
+                    <span style={{ fontSize: 13, color: "#3F4750", letterSpacing: -0.24, lineHeight: 1.5 }}>
+                        <span style={{ color: "#868E96", fontWeight: 500 }}>기본제공 혜택</span>
+                        {"  "}
+                        <span style={{ fontWeight: 700 }}>유튜브 프리미엄 라이트</span>
+                    </span>
+                </div>
             )}
 
             {/* 하단: 할인라벨 + 월 요금 */}
@@ -1970,6 +2014,8 @@ const SelectableCard = ({
                             fontSize: 13,
                             color: "#0055FF",
                             fontWeight: 600,
+                            letterSpacing: -0.24,
+                            lineHeight: 1.5,
                         }}
                     >
                         {discountLabel}
@@ -1985,8 +2031,10 @@ const SelectableCard = ({
                         <span
                             style={{
                                 fontSize: 12,
-                                color: "#9CA3AF",
+                                color: "#868E96",
                                 textDecoration: "line-through",
+                                letterSpacing: -0.24,
+                                lineHeight: 1.5,
                             }}
                         >
                             {plan.price.toLocaleString()}원
@@ -1995,7 +2043,9 @@ const SelectableCard = ({
                             style={{
                                 fontSize: 18,
                                 fontWeight: 700,
-                                color: "#374151",
+                                color: "#3F4750",
+                                letterSpacing: -0.36,
+                                lineHeight: 1.3,
                             }}
                         >
                             월 {Math.floor(plan.price * 0.75).toLocaleString()}원
@@ -2016,6 +2066,8 @@ const SelectableCard = ({
                             fontSize: 13,
                             color: "#0055FF",
                             fontWeight: 600,
+                            letterSpacing: -0.24,
+                            lineHeight: 1.5,
                         }}
                     >
                         {discountLabel}
@@ -2024,7 +2076,9 @@ const SelectableCard = ({
                         style={{
                             fontSize: 18,
                             fontWeight: 700,
-                            color: "#111827",
+                            color: "#24292E",
+                            letterSpacing: -0.36,
+                            lineHeight: 1.3,
                         }}
                     >
                         월 {plan.price.toLocaleString()}원
@@ -2090,8 +2144,10 @@ const PopupPlanCard = ({
                     style={{
                         fontSize: 13,
                         fontWeight: 600,
-                        color: "#374151",
+                        color: "#3F4750",
                         marginBottom: 1,
+                        letterSpacing: -0.24,
+                        lineHeight: 1.5,
                     }}
                 >
                     {plan.title}
@@ -2100,8 +2156,10 @@ const PopupPlanCard = ({
                     style={{
                         fontSize: 17,
                         fontWeight: 700,
-                        color: "#111827",
+                        color: "#24292E",
                         marginBottom: 4,
+                        letterSpacing: -0.34,
+                        lineHeight: 1.4,
                     }}
                 >
                     월 {plan.price.toLocaleString()}원
@@ -2110,9 +2168,11 @@ const PopupPlanCard = ({
                     <div
                         style={{
                             fontSize: 11,
-                            color: "#9CA3AF",
+                            color: "#868E96",
                             marginBottom: 8,
                             lineHeight: 1.4,
+                            letterSpacing: -0.16,
+                            wordBreak: "keep-all",
                         }}
                     >
                         {plan.description}
@@ -2128,41 +2188,41 @@ const PopupPlanCard = ({
                     }}
                 >
                     {plan.data && (
-                        <div style={{ display: "flex", gap: 6, fontSize: 12 }}>
-                            <span style={{ color: "#9CA3AF", minWidth: 60 }}>
+                        <div style={{ display: "flex", gap: 6, fontSize: 12, letterSpacing: -0.24, lineHeight: 1.5 }}>
+                            <span style={{ color: "#868E96", minWidth: 60 }}>
                                 데이터
                             </span>
-                            <span style={{ color: "#374151", fontWeight: 500 }}>
+                            <span style={{ color: "#3F4750", fontWeight: 500 }}>
                                 {plan.data}
                             </span>
                         </div>
                     )}
                     {plan.tethering && (
-                        <div style={{ display: "flex", gap: 6, fontSize: 12 }}>
-                            <span style={{ color: "#9CA3AF", minWidth: 60 }}>
+                        <div style={{ display: "flex", gap: 6, fontSize: 12, letterSpacing: -0.24, lineHeight: 1.5 }}>
+                            <span style={{ color: "#868E96", minWidth: 60 }}>
                                 테더링
                             </span>
-                            <span style={{ color: "#374151", fontWeight: 500 }}>
+                            <span style={{ color: "#3F4750", fontWeight: 500 }}>
                                 {plan.tethering}
                             </span>
                         </div>
                     )}
                     {plan.roaming && (
-                        <div style={{ display: "flex", gap: 6, fontSize: 12 }}>
-                            <span style={{ color: "#9CA3AF", minWidth: 60 }}>
+                        <div style={{ display: "flex", gap: 6, fontSize: 12, letterSpacing: -0.24, lineHeight: 1.5 }}>
+                            <span style={{ color: "#868E96", minWidth: 60 }}>
                                 로밍
                             </span>
-                            <span style={{ color: "#374151", fontWeight: 500 }}>
+                            <span style={{ color: "#3F4750", fontWeight: 500 }}>
                                 {plan.roaming}
                             </span>
                         </div>
                     )}
                     {plan.voiceText && (
-                        <div style={{ display: "flex", gap: 6, fontSize: 12 }}>
-                            <span style={{ color: "#9CA3AF", minWidth: 60 }}>
+                        <div style={{ display: "flex", gap: 6, fontSize: 12, letterSpacing: -0.24, lineHeight: 1.5 }}>
+                            <span style={{ color: "#868E96", minWidth: 60 }}>
                                 음성/문자
                             </span>
-                            <span style={{ color: "#374151", fontWeight: 500 }}>
+                            <span style={{ color: "#3F4750", fontWeight: 500 }}>
                                 {plan.voiceText}
                             </span>
                         </div>
@@ -2178,8 +2238,8 @@ const PopupPlanCard = ({
                             marginTop: 4,
                         }}>
                             <YoutubePremiumIcon />
-                            <span style={{ fontSize: 12, color: "#374151" }}>
-                                <span style={{ color: "#9CA3AF", fontWeight: 500 }}>기본제공 혜택</span>
+                            <span style={{ fontSize: 12, color: "#3F4750", letterSpacing: -0.24, lineHeight: 1.5 }}>
+                                <span style={{ color: "#868E96", fontWeight: 500 }}>기본제공 혜택</span>
                                 {"  "}
                                 <span style={{ fontWeight: 700 }}>유튜브 프리미엄 라이트</span>
                             </span>
@@ -2316,8 +2376,8 @@ export default function PlanBenefitSelector(props) {
         return man > 0 ? `${man}만원 할인` : `${amt.toLocaleString()}원 할인`
     }
 
-    // 추천 요금제: 탭 무관하게 5G 심플 110GB (2번째 고정 요금제) 고정
-    const recommendedPid = "ppllistobj_0808"
+    // 최다 뱃지: 유튜브 프리미엄 초이스 베이직 (1번째 고정 요금제)
+    const recommendedPid = "ppllistobj_0937"
 
     // 스켈레톤
     if (isLoading) {
@@ -2355,8 +2415,10 @@ export default function PlanBenefitSelector(props) {
                 style={{
                     fontSize: 17,
                     fontWeight: 700,
-                    color: "#111827",
+                    color: "#24292E",
                     fontFamily: '"Pretendard","Inter",sans-serif',
+                    letterSpacing: -0.34,
+                    lineHeight: 1.4,
                 }}
             >
                 할인 방법
@@ -2390,7 +2452,7 @@ export default function PlanBenefitSelector(props) {
                                         ? "#FFFFFF"
                                         : "transparent",
                                 color:
-                                    activeTab === tab ? "#111827" : "#9CA3AF",
+                                    activeTab === tab ? "#24292E" : "#868E96",
                                 fontSize: 15,
                                 fontWeight: activeTab === tab ? 700 : 400,
                                 cursor: "pointer",
@@ -2407,32 +2469,11 @@ export default function PlanBenefitSelector(props) {
                                 fontFamily: '"Pretendard","Inter",sans-serif',
                                 position: "relative",
                                 zIndex: 0,
+                                letterSpacing: -0.3,
+                                lineHeight: 1.4,
                             }}
                         >
                             {tab}
-                            {props.cheaperTab === tab && (
-                                <span
-                                    style={{
-                                        position: "absolute",
-                                        top: -10,
-                                        right: 8,
-                                        zIndex: 2,
-                                        padding: "2px 7px",
-                                        borderRadius: 999,
-                                        backgroundColor: "#0055FF",
-                                        color: "#FFFFFF",
-                                        fontSize: 10,
-                                        fontWeight: 700,
-                                        lineHeight: 1.2,
-                                        boxShadow: "0 4px 10px rgba(0,85,255,0.18)",
-                                        whiteSpace: "nowrap",
-                                        pointerEvents: "none",
-                                        fontFamily: '"Pretendard","Inter",sans-serif',
-                                    }}
-                                >
-                                    추천
-                                </span>
-                            )}
                         </button>
                     ))}
                 </div>
@@ -2445,13 +2486,13 @@ export default function PlanBenefitSelector(props) {
                         fill="none"
                         style={{ flexShrink: 0 }}
                     >
-                        <circle cx="7" cy="7" r="6.5" stroke="#9CA3AF" />
+                        <circle cx="7" cy="7" r="6.5" stroke="#868E96" />
                         <text
                             x="7"
                             y="11"
                             textAnchor="middle"
                             fontSize="9"
-                            fill="#9CA3AF"
+                            fill="#868E96"
                             fontWeight="600"
                         >
                             i
@@ -2460,8 +2501,11 @@ export default function PlanBenefitSelector(props) {
                     <span
                         style={{
                             fontSize: 12,
-                            color: "#6B7280",
+                            color: "#868E96",
                             fontFamily: '"Pretendard","Inter",sans-serif',
+                            letterSpacing: -0.24,
+                            lineHeight: 1.5,
+                            wordBreak: "keep-all",
                         }}
                     >
                         {activeTab === "기기 할인"
@@ -2477,8 +2521,10 @@ export default function PlanBenefitSelector(props) {
                     style={{
                         fontSize: 16,
                         fontWeight: 700,
-                        color: "#111827",
+                        color: "#24292E",
                         fontFamily: '"Pretendard","Inter",sans-serif',
+                        letterSpacing: -0.3,
+                        lineHeight: 1.5,
                     }}
                 >
                     요금제
@@ -2493,6 +2539,8 @@ export default function PlanBenefitSelector(props) {
                             borderRadius: 20,
                             padding: "3px 8px",
                             fontFamily: '"Pretendard","Inter",sans-serif',
+                            letterSpacing: -0.24,
+                            lineHeight: 1.5,
                         }}
                     >
                         25% 할인
@@ -2578,13 +2626,13 @@ export default function PlanBenefitSelector(props) {
                     fill="none"
                     style={{ flexShrink: 0 }}
                 >
-                    <circle cx="7" cy="7" r="6.5" stroke="#9CA3AF" />
+                    <circle cx="7" cy="7" r="6.5" stroke="#868E96" />
                     <text
                         x="7"
                         y="11"
                         textAnchor="middle"
                         fontSize="9"
-                        fill="#9CA3AF"
+                        fill="#868E96"
                         fontWeight="600"
                     >
                         i
@@ -2593,8 +2641,11 @@ export default function PlanBenefitSelector(props) {
                 <span
                     style={{
                         fontSize: 12,
-                        color: "#6B7280",
+                        color: "#868E96",
                         fontFamily: '"Pretendard","Inter",sans-serif',
+                        letterSpacing: -0.24,
+                        lineHeight: 1.5,
+                        wordBreak: "keep-all",
                     }}
                 >
                     최소 6개월간 요금제를 유지해주세요
@@ -2702,8 +2753,8 @@ export default function PlanBenefitSelector(props) {
                                                 backgroundColor: "transparent",
                                                 color:
                                                     popupTab === t
-                                                        ? "#111827"
-                                                        : "#9CA3AF",
+                                                        ? "#24292E"
+                                                        : "#868E96",
                                                 fontSize: 15,
                                                 fontWeight:
                                                     popupTab === t ? 700 : 400,
@@ -2715,6 +2766,8 @@ export default function PlanBenefitSelector(props) {
                                                 marginBottom: -2,
                                                 fontFamily:
                                                     '"Pretendard","Inter",sans-serif',
+                                                letterSpacing: -0.3,
+                                                lineHeight: 1.4,
                                             }}
                                         >
                                             {t}
@@ -2736,7 +2789,7 @@ export default function PlanBenefitSelector(props) {
                                             top: "50%",
                                             transform: "translateY(-50%)",
                                             fontSize: 16,
-                                            color: "#9CA3AF",
+                                            color: "#868E96",
                                         }}
                                     >
                                         🔍
@@ -2756,11 +2809,13 @@ export default function PlanBenefitSelector(props) {
                                             border: "1.5px solid #E5E7EB",
                                             borderRadius: 8,
                                             fontSize: 13,
-                                            color: "#111827",
+                                            color: "#24292E",
                                             outline: "none",
                                             boxSizing: "border-box",
                                             fontFamily:
                                                 '"Pretendard","Inter",sans-serif',
+                                            letterSpacing: -0.24,
+                                            lineHeight: 1.5,
                                         }}
                                     />
                                 </div>
@@ -2789,18 +2844,20 @@ export default function PlanBenefitSelector(props) {
                                                 border: "1px solid #E5E7EB",
                                                 backgroundColor:
                                                     popupCategory === cat
-                                                        ? "#111827"
+                                                        ? "#24292E"
                                                         : "#F9FAFB",
                                                 color:
                                                     popupCategory === cat
                                                         ? "#FFFFFF"
-                                                        : "#374151",
+                                                        : "#3F4750",
                                                 fontSize: 12,
                                                 fontWeight: 500,
                                                 cursor: "pointer",
                                                 whiteSpace: "nowrap",
                                                 fontFamily:
                                                     '"Pretendard","Inter",sans-serif',
+                                                letterSpacing: -0.24,
+                                                lineHeight: 1.5,
                                             }}
                                         >
                                             {cat}
@@ -2812,8 +2869,10 @@ export default function PlanBenefitSelector(props) {
                                 <div
                                     style={{
                                         fontSize: 12,
-                                        color: "#9CA3AF",
+                                        color: "#868E96",
                                         paddingBottom: 8,
+                                        letterSpacing: -0.24,
+                                        lineHeight: 1.5,
                                     }}
                                 >
                                     {filteredPlans.length}개의 요금제
@@ -2833,9 +2892,11 @@ export default function PlanBenefitSelector(props) {
                                     <div
                                         style={{
                                             textAlign: "center",
-                                            color: "#9CA3AF",
+                                            color: "#868E96",
                                             fontSize: 14,
                                             padding: "32px 0",
+                                            letterSpacing: -0.24,
+                                            lineHeight: 1.4,
                                         }}
                                     >
                                         검색 결과가 없습니다
@@ -2873,7 +2934,7 @@ export default function PlanBenefitSelector(props) {
                                             : "#E5E7EB",
                                         color: customPlan
                                             ? "#FFFFFF"
-                                            : "#9CA3AF",
+                                            : "#868E96",
                                         border: "none",
                                         borderRadius: 12,
                                         fontSize: 16,
@@ -2883,6 +2944,8 @@ export default function PlanBenefitSelector(props) {
                                             : "default",
                                         fontFamily:
                                             '"Pretendard","Inter",sans-serif',
+                                        letterSpacing: -0.3,
+                                        lineHeight: 1.5,
                                     }}
                                 >
                                     {customPlan
@@ -2916,7 +2979,7 @@ const stepBadge: React.CSSProperties = {
     width: 24,
     height: 24,
     borderRadius: 6,
-    backgroundColor: "#111827",
+    backgroundColor: "#24292E",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -2926,6 +2989,8 @@ const stepText: React.CSSProperties = {
     fontSize: 13,
     fontWeight: 700,
     color: "#FFFFFF",
+    letterSpacing: -0.24,
+    lineHeight: 1.5,
 }
 
 // ─── Framer 컨트롤 ────────────────────────────────────────────────────

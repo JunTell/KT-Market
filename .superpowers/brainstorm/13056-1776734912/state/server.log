@@ -1,0 +1,5 @@
+{"type":"server-started","port":59119,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:59119","screen_dir":"/Users/mike/Documents/GitHub/KT-Market/.superpowers/brainstorm/13056-1776734912/content","state_dir":"/Users/mike/Documents/GitHub/KT-Market/.superpowers/brainstorm/13056-1776734912/state"}
+{"type":"screen-added","file":"/Users/mike/Documents/GitHub/KT-Market/.superpowers/brainstorm/13056-1776734912/content/feature1-location.html"}
+{"type":"screen-added","file":"/Users/mike/Documents/GitHub/KT-Market/.superpowers/brainstorm/13056-1776734912/content/comparison-mockup.html"}
+{"type":"screen-added","file":"/Users/mike/Documents/GitHub/KT-Market/.superpowers/brainstorm/13056-1776734912/content/comparison-v2.html"}
+{"type":"server-stopped","reason":"idle timeout"}

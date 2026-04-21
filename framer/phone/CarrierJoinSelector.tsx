@@ -43,7 +43,7 @@ const CARRIERS = [
     {
         id: "알뜰폰",
         label: "알뜰폰",
-        labelColor: "#374151",
+        labelColor: "#3F4750",
         fontWeight: 700,
         fontSize: 15,
         letterSpacing: "0",
@@ -116,7 +116,7 @@ export default function CarrierJoinSelector(props) {
         ? [...CARRIERS, {
             id: "신규가입",
             label: "신규",
-            labelColor: "#111827",
+            labelColor: "#24292E",
             fontWeight: 700,
             fontSize: 14,
             letterSpacing: "0",
@@ -136,7 +136,7 @@ export default function CarrierJoinSelector(props) {
     return (
         <div style={wrapperStyle}>
             {/* 타이틀 */}
-            <span style={{ fontSize: 17, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+            <span style={{ fontSize: 17, fontWeight: 700, color: "#24292E", fontFamily: FONT, letterSpacing: -0.34, lineHeight: 1.4 }}>
                 {title}
             </span>
 
@@ -185,7 +185,7 @@ export default function CarrierJoinSelector(props) {
                                 <span style={{
                                     fontSize: scaledFontSize,
                                     fontWeight: c.fontWeight,
-                                    color: isActive ? c.labelColor : "#9CA3AF",
+                                    color: isActive ? c.labelColor : "#868E96",
                                     letterSpacing: c.letterSpacing,
                                     lineHeight: 1,
                                     fontFamily: FONT,
@@ -213,11 +213,11 @@ export default function CarrierJoinSelector(props) {
                     transition={{ duration: 0.18 }}
                     style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: FONT, marginTop: -4 }}
                 >
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "#374151", whiteSpace: "nowrap" }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "#3F4750", letterSpacing: -0.24, lineHeight: 1.5, whiteSpace: "nowrap" }}>
                         {activeCarrier.joinType}
                     </span>
-                    <span style={{ fontSize: 12, color: "#9CA3AF", flexShrink: 0 }}>|</span>
-                    <span style={{ fontSize: 12, color: "#9CA3AF", lineHeight: 1.5, flex: 1 }}>
+                    <span style={{ fontSize: 12, color: "#868E96", flexShrink: 0 }}>|</span>
+                    <span style={{ fontSize: 12, color: "#868E96", lineHeight: 1.5, letterSpacing: -0.24, flex: 1 }}>
                         {activeCarrier.description}
                     </span>
                 </motion.div>

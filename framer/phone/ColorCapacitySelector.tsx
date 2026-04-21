@@ -15,6 +15,7 @@ interface Color {
     code: string
     isSoldOut: boolean
     urls: string[]
+    price?: number
 }
 
 interface Capacity {
@@ -49,6 +50,7 @@ export default function ColorCapacitySelector(props) {
         onCapacitySelect,
         isLoading = false,
         title = "용량 및 색상",
+        finalPrice = 0,
     } = props
 
     const [showModal, setShowModal] = useState(false)
@@ -112,12 +114,15 @@ export default function ColorCapacitySelector(props) {
         <>
             <div style={wrapperStyle}>
                 {/* 섹션 타이틀 */}
-                <span style={{ fontSize: 17, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
+                <span style={{ fontSize: 17, fontWeight: 700, color: "#24292E", fontFamily: FONT, letterSpacing: -0.34, lineHeight: 1.4 }}>
                     {title}
                 </span>
 
                 {/* 요약 카드 */}
-                <motion.div
+                <motion.button
+                    type="button"
+                    aria-label="용량 및 색상 선택"
+                    aria-haspopup="dialog"
                     onClick={() => setShowModal(true)}
                     whileTap={{ scale: 0.985 }}
                     style={{
@@ -128,6 +133,7 @@ export default function ColorCapacitySelector(props) {
                         display: "flex", alignItems: "center",
                         padding: "0 16px", gap: 14,
                         boxSizing: "border-box", cursor: "pointer",
+                        fontFamily: FONT, textAlign: "left",
                     }}
                 >
                     {/* 기기 이미지 */}
@@ -135,6 +141,8 @@ export default function ColorCapacitySelector(props) {
                         <img
                             src={activeColor.urls[0]}
                             alt={activeColor.kr}
+                            loading="lazy"
+                            decoding="async"
                             style={{ width: 48, height: 48, objectFit: "contain", flexShrink: 0 }}
                         />
                     ) : (
@@ -144,22 +152,35 @@ export default function ColorCapacitySelector(props) {
                         }} />
                     )}
 
-                    {/* 색상명 + 용량 */}
-                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
-                        <span style={{ fontSize: 17, fontWeight: 700, color: "#111827", fontFamily: FONT }}>
-                            {activeColor?.kr ?? "색상 선택"}
-                        </span>
-                        <span style={{ fontSize: 15, color: "#9CA3AF", fontFamily: FONT }}>
-                            {activeCapacity?.capacity ?? ""}
-                        </span>
+                    {/* 색상명 + 용량 + 가격 */}
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ fontSize: 17, fontWeight: 700, color: "#24292E", fontFamily: FONT, letterSpacing: -0.34, lineHeight: 1.4 }}>
+                                {activeColor?.kr ?? "색상 선택"}
+                            </span>
+                            {activeColor?.isSoldOut && (
+                                <span style={{ fontSize: 11, fontWeight: 600, color: "#EF4444", letterSpacing: -0.16, lineHeight: 1.4 }}>품절</span>
+                            )}
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ fontSize: 15, color: "#868E96", fontFamily: FONT, letterSpacing: -0.3, lineHeight: 1.4 }}>
+                                {activeCapacity?.capacity ?? ""}
+                            </span>
+                            {finalPrice > 0 && (
+                                <span style={{ fontSize: 13, fontWeight: 600, color: "#0066FF", fontFamily: FONT, letterSpacing: -0.24, lineHeight: 1.4 }}>
+                                    {finalPrice.toLocaleString()}원
+                                </span>
+                            )}
+                        </div>
                     </div>
 
                     {/* 화살표 */}
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                        aria-hidden="true">
                         <polyline points="6 9 12 15 18 9" />
                     </svg>
-                </motion.div>
+                </motion.button>
             </div>
 
             {/* ── 바텀시트 모달 ── */}
@@ -237,8 +258,9 @@ export default function ColorCapacitySelector(props) {
                                                         borderRadius: 7,
                                                         backgroundColor: isActive ? "#FFFFFF" : "transparent",
                                                         boxShadow: isActive ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
-                                                        color: isActive ? "#111827" : "#9CA3AF",
+                                                        color: isActive ? "#24292E" : "#868E96",
                                                         fontSize: 14, fontWeight: isActive ? 700 : 400,
+                                                        letterSpacing: -0.24, lineHeight: 1.4,
                                                         cursor: "pointer", fontFamily: FONT,
                                                     }}
                                                 >
@@ -259,8 +281,12 @@ export default function ColorCapacitySelector(props) {
                                 {colors.map((color, index) => {
                                     const isActive = activeColor?.en === color.en
                                     return (
-                                        <motion.div
+                                        <motion.button
+                                            type="button"
                                             key={index}
+                                            aria-label={`${color.kr}${color.isSoldOut ? " 품절" : ""}`}
+                                            aria-pressed={isActive}
+                                            disabled={color.isSoldOut}
                                             onClick={() => !color.isSoldOut && handleColorSelect(color)}
                                             whileTap={color.isSoldOut ? {} : { scale: 0.98 }}
                                             style={{
@@ -272,6 +298,8 @@ export default function ColorCapacitySelector(props) {
                                                 cursor: color.isSoldOut ? "not-allowed" : "pointer",
                                                 opacity: color.isSoldOut ? 0.45 : 1,
                                                 boxSizing: "border-box",
+                                                width: "100%", textAlign: "left",
+                                                fontFamily: FONT,
                                             }}
                                         >
                                             {/* 라디오 */}
@@ -291,6 +319,8 @@ export default function ColorCapacitySelector(props) {
                                                 <img
                                                     src={color.urls[0]}
                                                     alt={color.kr}
+                                                    loading="lazy"
+                                                    decoding="async"
                                                     style={{ width: 60, height: 60, objectFit: "contain", flexShrink: 0 }}
                                                 />
                                             ) : (
@@ -300,21 +330,41 @@ export default function ColorCapacitySelector(props) {
                                                 }} />
                                             )}
 
-                                            {/* 색상명 */}
-                                            <div style={{ flex: 1 }}>
-                                                <span style={{
-                                                    fontSize: 17,
-                                                    fontWeight: isActive ? 700 : 400,
-                                                    color: isActive ? "#111827" : "#374151",
-                                                    fontFamily: FONT,
-                                                }}>
-                                                    {color.kr}
-                                                </span>
-                                                {color.isSoldOut && (
-                                                    <span style={{ fontSize: 12, color: "#9CA3AF", marginLeft: 6 }}>품절</span>
+                                            {/* 색상명 + 가격 */}
+                                            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+                                                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                                    <span style={{
+                                                        fontSize: 17,
+                                                        fontWeight: isActive ? 700 : 400,
+                                                        color: isActive ? "#24292E" : "#3F4750",
+                                                        fontFamily: FONT,
+                                                        letterSpacing: -0.34,
+                                                        lineHeight: 1.4,
+                                                    }}>
+                                                        {color.kr}
+                                                    </span>
+                                                    {color.isSoldOut && (
+                                                        <span style={{
+                                                            fontSize: 11, fontWeight: 600, color: "#EF4444",
+                                                            backgroundColor: "#FEF2F2", padding: "1px 6px",
+                                                            borderRadius: 4, letterSpacing: -0.16, lineHeight: 1.5,
+                                                        }}>품절</span>
+                                                    )}
+                                                </div>
+                                                {color.price != null && color.price > 0 && (
+                                                    <span style={{
+                                                        fontSize: 13,
+                                                        fontWeight: isActive ? 600 : 400,
+                                                        color: isActive ? "#0066FF" : "#868E96",
+                                                        fontFamily: FONT,
+                                                        letterSpacing: -0.24,
+                                                        lineHeight: 1.4,
+                                                    }}>
+                                                        {color.price.toLocaleString()}원
+                                                    </span>
                                                 )}
                                             </div>
-                                        </motion.div>
+                                        </motion.button>
                                     )
                                 })}
                             </div>
@@ -339,6 +389,7 @@ addPropertyControls(ColorCapacitySelector, {
     isLoading: { type: ControlType.Boolean, title: "Loading", defaultValue: false },
     title: { type: ControlType.String, title: "Title", defaultValue: "용량 및 색상" },
     currentModelId: { type: ControlType.String, title: "Current Model ID" },
+    finalPrice: { type: ControlType.Number, title: "최저가 (원)", defaultValue: 0 },
     capacities: {
         type: ControlType.Array,
         title: "Capacities",

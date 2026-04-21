@@ -120,8 +120,10 @@ const titleStyle: React.CSSProperties = {
     fontSize: "13px",
     fontWeight: "bold",
     fontFamily: '"Pretendard", "Inter", sans-serif',
-    color: "#191F28",
+    color: "#24292E",
     margin: 0,
+    letterSpacing: -0.24,
+    lineHeight: 1.5,
 }
 
 const listStyle: React.CSSProperties = {
@@ -149,8 +151,9 @@ const bulletStyle: React.CSSProperties = {
 
 const descStyle: React.CSSProperties = {
     fontSize: "11px",
-    color: "#4E5968",
+    color: "#3F4750",
     lineHeight: "1.4",
+    letterSpacing: -0.16,
     margin: 0,
     wordBreak: "keep-all",
 }

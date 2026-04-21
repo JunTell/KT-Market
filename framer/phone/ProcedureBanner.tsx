@@ -39,8 +39,10 @@ const wrapperStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
     fontSize: "14px",
     fontWeight: "800",
-    color: "#191F28",
+    color: "#24292E",
     flexShrink: 0,
+    letterSpacing: -0.24,
+    lineHeight: 1.4,
 }
 
 const flowStyle: React.CSSProperties = {
@@ -48,6 +50,7 @@ const flowStyle: React.CSSProperties = {
     fontWeight: "500",
     color: "#333D4B",
     letterSpacing: "-0.3px",
+    lineHeight: 1.4,
 }
 
 addPropertyControls(ProcedureBanner, {})

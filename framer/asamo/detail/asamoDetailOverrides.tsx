@@ -362,7 +362,7 @@ async function fetchAndApplyFromDB(
         const dbData = dbPlans?.find((p) => p.plan_id === meta.dbId)
         const planPrice = meta.fixedPrice || (dbData ? dbData.price : 0)
 
-        // 마켓지원금 계산 (5만원 추가 포함)
+        // 마켓지원금 계산
         let marketSubsidy = calcKTmarketSubsidy(
             meta.dbId,
             planPrice,
@@ -517,9 +517,8 @@ function calculatePriceAndDiscount(
 
     const planMonthlyDiscount = Math.floor((planPrice * 0.25) / 10) * 10
 
-    // 특가 할인 로직
-    const isSpecial = modelCode ? isIphone17Series(modelCode) : false
-    const specialDiscount = isSpecial && registrationType === "mnp" ? 50000 : 0
+    // 번호이동 금액 추가지원금 일괄 삭제
+    const specialDiscount = 0
 
     // 총 기기 할인액
     const totalDeviceDiscount =
@@ -715,7 +714,7 @@ export function withPlanSelector(Component): ComponentType {
         const parts = store.model.split("-")
         const modelCode =
             parts.length >= 2 ? `${parts[0]}-${parts[1]}` : store.model
-        const isSpecial = isIphone17Series(modelCode)
+        const isSpecial = false
 
         return (
             <Component
