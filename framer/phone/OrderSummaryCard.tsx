@@ -1258,7 +1258,7 @@ export default function OrderSummaryCard(props) {
                                 background: "none",
                                 border: "none",
                                 cursor: "pointer",
-                                padding: "4px 0 4px 8px",
+                                padding: "12px 0 12px 8px",
                                 color: "#868E96",
                                 fontSize: "15px",
                                 fontWeight: 500,
