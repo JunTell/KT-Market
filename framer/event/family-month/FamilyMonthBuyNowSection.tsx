@@ -407,6 +407,26 @@ export default function FamilyMonthBuyNowSection(props) {
                 ...style,
             }}
         >
+            {/* 커스텀 웹폰트 로드 */}
+            <style>{`
+                @font-face {
+                    font-family: 'ONE Mobile POP';
+                    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/ONEMobilePOP.woff2') format('woff2'),
+                         url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/ONEMobilePOP.woff') format('woff');
+                    font-weight: normal;
+                    font-style: normal;
+                    font-display: swap;
+                }
+                @font-face {
+                    font-family: 'Cafe24 Ohsquare OTF';
+                    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.1/Cafe24Ohsquare.woff2') format('woff2'),
+                         url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.1/Cafe24Ohsquare.woff') format('woff');
+                    font-weight: normal;
+                    font-style: normal;
+                    font-display: swap;
+                }
+            `}</style>
+
             {/* 타이틀 */}
             <motion.div
                 variants={fadeUp}
