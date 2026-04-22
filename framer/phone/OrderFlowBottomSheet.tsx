@@ -175,132 +175,161 @@ export default function OrderFlowBottomSheet(props) {
             position: "fixed", bottom: 0, left: 0, right: 0, margin: "0 auto",
             width: "100%", maxWidth: 440,
             zIndex: 120,
-            backgroundColor: "#FFFFFF",
-            borderRadius: "20px 20px 0 0",
-            boxShadow: "0 -2px 12px rgba(0,0,0,0.10)",
             fontFamily: FONT,
         }}>
-            {/* 월 예상 금액 + 신청하기 버튼 */}
-            <div style={{
-                display: "flex", alignItems: "center",
-                padding: "14px 16px",
-                paddingBottom: "calc(14px + env(safe-area-inset-bottom, 10px))",
-                gap: 12,
-            }}>
-                {/* 왼쪽: 가격 정보 */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                        <span style={{
-                            fontSize: 13, fontWeight: 500,
-                            color: "#868E96",
-                            letterSpacing: -0.2, lineHeight: 1.4,
-                            fontFamily: FONT,
-                        }}>
-                            월 예상 금액
-                        </span>
-                    </div>
-                    <motion.span
-                        style={{
-                            fontSize: 22, fontWeight: 800, lineHeight: 1.2,
-                            letterSpacing: -0.5,
-                            color: direction === "up" ? "#EF4444" : direction === "down" ? "#3B82F6" : "#24292E",
-                            transition: "color 0.4s ease",
-                            fontVariantNumeric: "tabular-nums",
-                            fontFamily: FONT,
-                        }}
-                    >
-                        {animatedPayment.toLocaleString()}원
-                    </motion.span>
-                    <span style={{
-                        fontSize: 8, fontWeight: 400,
-                        color: "#ADB5BD",
-                        letterSpacing: -0.1, lineHeight: 1.3,
+            {/* 말풍선 — 바 바깥 위에 배치 (clipping 방지) */}
+            {mounted && secondsLeft !== null && !isSoldOut && (
+                <motion.div
+                    key={secondsLeft > 0 ? "timer" : "default"}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{
+                        opacity: 1,
+                        y: [0, -6, 0],
+                    }}
+                    transition={{
+                        opacity: { duration: 0.3 },
+                        y: {
+                            duration: 1.8,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                        },
+                    }}
+                    onClick={handleFormLink}
+                    style={{
+                        cursor: "pointer",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        alignSelf: "center",
+                        margin: "0 auto -12px",
+                        width: "fit-content",
+                        maxWidth: "90%",
+                        position: "relative",
+                        zIndex: 121,
+                    }}
+                >
+                    <div style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 2,
+                        padding: "10px 20px",
+                        borderRadius: 16,
+                        backgroundColor: "#4F7FFF",
+                        boxShadow: "0 4px 16px rgba(79,127,255,0.35)",
                         fontFamily: FONT,
                     }}>
-                        부가세 포함 {installment > 0 ? (showInterest ? "/ 할부이자 포함" : "/ 할부이자 미포함") : ""}
-                    </span>
-                </div>
+                        {secondsLeft > 0 ? (
+                            <>
+                                <span style={{
+                                    fontSize: 18, fontWeight: 800,
+                                    color: "#FFEB3B",
+                                    fontVariantNumeric: "tabular-nums",
+                                    letterSpacing: -0.3,
+                                    lineHeight: 1.3,
+                                    fontFamily: FONT,
+                                }}>
+                                    {formatTime(secondsLeft)}
+                                </span>
+                                <span style={{
+                                    fontSize: 13, fontWeight: 600,
+                                    color: "#FFFFFF",
+                                    letterSpacing: -0.2,
+                                    lineHeight: 1.3,
+                                    fontFamily: FONT,
+                                }}>
+                                    시간 내 신청 시 악세사리 3종 추가 증정
+                                </span>
+                            </>
+                        ) : (
+                            <span style={{
+                                fontSize: 13, fontWeight: 700,
+                                color: "#FFFFFF",
+                                letterSpacing: -0.2,
+                                lineHeight: 1.4,
+                                fontFamily: FONT,
+                                textAlign: "center",
+                            }}>
+                                지금 주문하면 악세사리 3종 추가 증정!
+                            </span>
+                        )}
+                    </div>
+                    {/* 말풍선 꼬리 */}
+                    <div style={{
+                        width: 0,
+                        height: 0,
+                        borderLeft: "8px solid transparent",
+                        borderRight: "8px solid transparent",
+                        borderTop: "8px solid #4F7FFF",
+                    }} />
+                </motion.div>
+            )}
 
-                {/* 오른쪽: 신청하기 버튼 + 긴급 배지 */}
-                <div style={{ flex: 1, flexShrink: 0, position: "relative" }}>
-                    {/* 긴급 배지 — 버튼 상단 중앙에 겹침 */}
-                    {mounted && secondsLeft !== null && !isSoldOut && (
-                        <motion.div
-                            key={secondsLeft > 0 ? "timer" : "default"}
-                            initial={{ opacity: 0, y: 4 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.25 }}
-                            onClick={handleFormLink}
+            {/* 하단 바 */}
+            <div style={{
+                backgroundColor: "#FFFFFF",
+                borderRadius: "20px 20px 0 0",
+                boxShadow: "0 -2px 12px rgba(0,0,0,0.10)",
+            }}>
+                <div style={{
+                    display: "flex", alignItems: "center",
+                    padding: "14px 16px",
+                    paddingBottom: "calc(14px + env(safe-area-inset-bottom, 10px))",
+                    gap: 12,
+                }}>
+                    {/* 왼쪽: 가격 정보 */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                            <span style={{
+                                fontSize: 13, fontWeight: 500,
+                                color: "#868E96",
+                                letterSpacing: -0.2, lineHeight: 1.4,
+                                fontFamily: FONT,
+                            }}>
+                                월 예상 금액
+                            </span>
+                        </div>
+                        <motion.span
                             style={{
-                                cursor: "pointer",
-                                position: "absolute",
-                                top: -14,
-                                left: 0,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 4,
-                                paddingLeft: 12,
-                                paddingRight: 12,
-                                paddingTop: 5,
-                                paddingBottom: 5,
-                                borderRadius: 100,
-                                /* 그라디언트 테두리: padding-box는 흰 배경, border-box는 그라디언트 */
-                                background: "linear-gradient(white, white) padding-box, linear-gradient(90deg, #4F7FFF 0%, #4F7FFF 100%) border-box",
-                                border: "1.5px solid transparent",
-                                whiteSpace: "nowrap",
-                                minWidth: secondsLeft > 0 ? 220 : "unset",
-                                justifyContent: "center",
-                                zIndex: 1,
+                                fontSize: 22, fontWeight: 800, lineHeight: 1.2,
+                                letterSpacing: -0.5,
+                                color: direction === "up" ? "#EF4444" : direction === "down" ? "#3B82F6" : "#24292E",
+                                transition: "color 0.4s ease",
+                                fontVariantNumeric: "tabular-nums",
                                 fontFamily: FONT,
                             }}
                         >
-                            {secondsLeft > 0 ? (
-                                <>
-                                    <span style={{
-                                        fontSize: 12, fontWeight: 800,
-                                        color: "#EF4444",
-                                        fontVariantNumeric: "tabular-nums",
-                                        letterSpacing: -0.3,
-                                        fontFamily: FONT,
-                                    }}>
-                                        {formatTime(secondsLeft)}
-                                    </span>
-                                    <span style={{
-                                        fontSize: 12, fontWeight: 700,
-                                        color: "#4F7FFF",
-                                        letterSpacing: -0.3,
-                                        fontFamily: FONT,
-                                    }}>
-                                        시간 내 신청 시 악세사리 3종 추가 증정
-                                    </span>
-                                </>
-                            ) : (
-                                <span style={{
-                                    fontSize: 12, fontWeight: 700,
-                                    color: "#4F7FFF",
-                                    letterSpacing: -0.3,
-                                    fontFamily: FONT,
-                                }}>
-                                    지금 주문하면 악세사리 3종 추가 증정!
-                                </span>
-                            )}
-                        </motion.div>
-                    )}
-                    <button
-                        onClick={isSoldOut ? handleRestockClick : handleFormLink}
-                        style={{
-                            width: "100%", height: 54, borderRadius: 14,
-                            border: "none",
-                            backgroundColor: isSoldOut ? "#3F4750" : "#EF4444",
-                            color: "#FFFFFF",
-                            fontSize: 17, fontWeight: 700,
-                            letterSpacing: -0.3, lineHeight: 1,
-                            cursor: "pointer", fontFamily: FONT,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                        }}
-                    >
-                        {isSoldOut ? "입고 알림" : "신청하기"}
-                    </button>
+                            {animatedPayment.toLocaleString()}원
+                        </motion.span>
+                        <span style={{
+                            fontSize: 8, fontWeight: 400,
+                            color: "#ADB5BD",
+                            letterSpacing: -0.1, lineHeight: 1.3,
+                            fontFamily: FONT,
+                        }}>
+                            부가세 포함 {installment > 0 ? (showInterest ? "/ 할부이자 포함" : "/ 할부이자 미포함") : ""}
+                        </span>
+                    </div>
+
+                    {/* 오른쪽: 신청하기 버튼 */}
+                    <div style={{ flex: 1, flexShrink: 0 }}>
+                        <button
+                            onClick={isSoldOut ? handleRestockClick : handleFormLink}
+                            style={{
+                                width: "100%", height: 54, borderRadius: 14,
+                                border: "none",
+                                backgroundColor: isSoldOut ? "#3F4750" : "#EF4444",
+                                color: "#FFFFFF",
+                                fontSize: 17, fontWeight: 700,
+                                letterSpacing: -0.3, lineHeight: 1,
+                                cursor: "pointer", fontFamily: FONT,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                            }}
+                        >
+                            {isSoldOut ? "입고 알림" : "신청하기"}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
