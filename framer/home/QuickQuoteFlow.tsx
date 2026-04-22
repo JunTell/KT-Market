@@ -324,7 +324,17 @@ export default function QuickQuoteFlow({
               }}>
                 {STEP_TITLES[step] || '빠른 견적'}
               </div>
-              <div style={{ width: '40px' }} />
+              <div style={{
+                width: '40px',
+                textAlign: 'right',
+                fontSize: '12px',
+                color: C.textTertiary,
+                letterSpacing: -0.2,
+                paddingRight: '4px',
+                fontVariantNumeric: 'tabular-nums',
+              }}>
+                {step}/4
+              </div>
             </div>
             {/* 프로그레스 */}
             <div style={{ height: '2px', backgroundColor: C.borderLight }}>
