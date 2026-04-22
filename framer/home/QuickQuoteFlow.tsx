@@ -1,172 +1,168 @@
 // framer/home/QuickQuoteFlow.tsx
-// moyoplan.com/phone-deal-alert 디자인 참조
+// B approach: Samsung/Apple 탭 + PhoneCompare 이미지 패턴 + 단계별 자동 진행 + Framer 통신사 이미지
 import { addPropertyControls, ControlType } from 'framer'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { createClient } from "@supabase/supabase-js"
 
 const FONT = '"Pretendard Variable", "Pretendard", -apple-system, sans-serif'
+const S3   = 'https://juntell.s3.ap-northeast-2.amazonaws.com/phone'
 
-// moyoplan 톤 기반 색상 시스템
+const supabase = createClient(
+  'https://crooiozzbjwdaghqddnu.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNyb29pb3p6Ymp3ZGFnaHFkZG51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk3NzIzNjMsImV4cCI6MjAyNTM0ODM2M30.A51d6iu60yiGWL4cka8j9-r6QLQ2skXAHiqBGaTIEcM'
+)
+
 const C = {
-  white: '#FFFFFF',
-  bg: '#FAFAFA',
-  surface: '#F5F5F7',
-  surfaceHover: '#EDEDF0',
-  border: '#E8E8EC',
-  borderLight: '#F0F0F3',
-  textPrimary: '#1A1A1A',
-  textSecondary: '#505056',
-  textTertiary: '#8E8E93',
-  textDisabled: '#AEAEB2',
-  // 브랜드 블루
-  blue: '#3182F6',
-  blueBg: '#EBF4FF',
-  blueBorder: '#3182F6',
-  blueHover: '#1B6AE8',
-  // 시맨틱
-  red: '#F04452',
-  green: '#00B386',
-  greenBg: '#E8FAF5',
+  white: '#FFFFFF', bg: '#FAFAFA', surface: '#F5F5F7',
+  border: '#E8E8EC', borderLight: '#F0F0F3',
+  textPrimary: '#1A1A1A', textSecondary: '#505056',
+  textTertiary: '#8E8E93', textDisabled: '#AEAEB2',
+  blue: '#3182F6', blueBg: '#EBF4FF',
+  red: '#F04452', green: '#00B386', greenBg: '#E8FAF5',
 } as const
 
-// ─── 모요 기준 기종 데이터 ───
+// ─── PhoneCompare 동일 이미지 URL 추출 ───────────────────────────────────────
+function resolveImageUrl(d: {
+  category?: string | null
+  colors_en?: string[] | null
+  images?: Record<string, string[]> | null
+  thumbnail?: string | null
+}): string | null {
+  const enColors = d.colors_en ?? []
+  const imgs     = d.images ?? {}
+  if (d.category && enColors.length > 0) {
+    for (const color of enColors) {
+      const keys = imgs[color] ?? []
+      if (keys.length > 0) return `${S3}/${d.category}/${color}/${keys[0]}.png`
+    }
+  }
+  return d.thumbnail ?? null
+}
 
+// ─── 기종 데이터 ──────────────────────────────────────────────────────────────
 interface PhoneModel {
-  id: string
+  modelCode: string
   name: string
-  image?: string
   isLegacy?: boolean
 }
+interface Series { key: string; label: string; models: PhoneModel[] }
 
-interface Series {
-  key: string
-  label: string
-  models: PhoneModel[]
-}
-
-const PHONE_SERIES: Series[] = [
+const SAMSUNG_SERIES: Series[] = [
   {
-    key: 'galaxy-s',
-    label: 'Galaxy S 시리즈',
+    key: 'galaxy-s', label: 'Galaxy S',
     models: [
-      { id: 'galaxy-s26', name: 'Galaxy S26' },
-      { id: 'galaxy-s25', name: 'Galaxy S25' },
-      { id: 'galaxy-s24', name: 'Galaxy S24 이하', isLegacy: true },
+      { modelCode: 'sm-s948nk', name: 'Galaxy S26 Ultra' },
+      { modelCode: 'sm-s947nk', name: 'Galaxy S26+' },
+      { modelCode: 'sm-s942nk', name: 'Galaxy S26' },
     ],
   },
   {
-    key: 'galaxy-z-flip',
-    label: 'Galaxy Z Flip 시리즈',
+    key: 'galaxy-z', label: 'Galaxy Z',
     models: [
-      { id: 'z-flip7', name: 'Z Flip7' },
-      { id: 'z-flip6', name: 'Z Flip6' },
-      { id: 'z-flip5', name: 'Z Flip5 이하', isLegacy: true },
+      { modelCode: 'sm-f741nk', name: 'Z Flip7' },
+      { modelCode: 'sm-f761nk', name: 'Z Fold7' },
     ],
   },
   {
-    key: 'galaxy-z-fold',
-    label: 'Galaxy Z Fold 시리즈',
-    models: [
-      { id: 'z-fold7', name: 'Z Fold7' },
-      { id: 'z-fold6', name: 'Z Fold6' },
-      { id: 'z-fold5', name: 'Z Fold5 이하', isLegacy: true },
-    ],
+    key: 'galaxy-a', label: 'Galaxy A',
+    models: [{ modelCode: 'sm-a165nk', name: 'Galaxy A', isLegacy: true }],
   },
   {
-    key: 'galaxy-a',
-    label: 'Galaxy A 시리즈',
-    models: [
-      { id: 'galaxy-a', name: 'Galaxy A' },
-    ],
-  },
-  {
-    key: 'iphone',
-    label: 'iPhone 시리즈',
-    models: [
-      { id: 'iphone-17', name: 'iPhone 17' },
-      { id: 'iphone-air', name: 'iPhone Air' },
-      { id: 'iphone-16', name: 'iPhone 16 이하', isLegacy: true },
-    ],
+    key: 'galaxy-legacy', label: '이전 모델',
+    models: [{ modelCode: 'sm-s928nk', name: 'Galaxy S25 이하', isLegacy: true }],
   },
 ]
 
-// SVG icons for timeline options — consistent rendering across all OS/browser
+const APPLE_SERIES: Series[] = [
+  {
+    key: 'iphone-17', label: 'iPhone 17',
+    models: [
+      { modelCode: 'aip17e-256',  name: 'iPhone 17e' },
+      { modelCode: 'aip17-256',   name: 'iPhone 17' },
+      { modelCode: 'aip17p-256',  name: 'iPhone 17 Pro' },
+      { modelCode: 'aip17pm-256', name: 'iPhone 17 Pro Max' },
+      { modelCode: 'aipa-256',    name: 'iPhone 17 Air' },
+    ],
+  },
+  {
+    key: 'iphone-legacy', label: '이전 모델',
+    models: [{ modelCode: 'aip16-256', name: 'iPhone 16 이하', isLegacy: true }],
+  },
+]
+
+const ALL_MODEL_CODES = [
+  ...SAMSUNG_SERIES.flatMap(s => s.models.map(m => m.modelCode)),
+  ...APPLE_SERIES.flatMap(s  => s.models.map(m => m.modelCode)),
+]
+
+// ─── 변경 시기 ────────────────────────────────────────────────────────────────
 const TIMELINE_ICONS: Record<string, React.ReactNode> = {
   '1month': (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <circle cx="9" cy="9" r="7.5" stroke="#F04452" strokeWidth="1.5" />
-      <path d="M9 5v4l2.5 2.5" stroke="#F04452" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="9" cy="9" r="7.5" stroke="#F04452" strokeWidth="1.5"/>
+      <path d="M9 5v4l2.5 2.5" stroke="#F04452" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
   '2-3month': (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <rect x="2.25" y="3.75" width="13.5" height="12" rx="1.5" stroke="#505056" strokeWidth="1.5" />
-      <path d="M2.25 7.5h13.5M6 2.25v3M12 2.25v3" stroke="#505056" strokeWidth="1.5" strokeLinecap="round" />
+      <rect x="2.25" y="3.75" width="13.5" height="12" rx="1.5" stroke="#505056" strokeWidth="1.5"/>
+      <path d="M2.25 7.5h13.5M6 2.25v3M12 2.25v3" stroke="#505056" strokeWidth="1.5" strokeLinecap="round"/>
     </svg>
   ),
   '6month': (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <rect x="2.25" y="3.75" width="13.5" height="12" rx="1.5" stroke="#505056" strokeWidth="1.5" />
-      <path d="M2.25 7.5h13.5M6 2.25v3M12 2.25v3" stroke="#505056" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="9" cy="12" r="1.5" fill="#505056" />
+      <rect x="2.25" y="3.75" width="13.5" height="12" rx="1.5" stroke="#505056" strokeWidth="1.5"/>
+      <path d="M2.25 7.5h13.5M6 2.25v3M12 2.25v3" stroke="#505056" strokeWidth="1.5" strokeLinecap="round"/>
+      <circle cx="9" cy="12" r="1.5" fill="#505056"/>
     </svg>
   ),
   'after6month': (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <path d="M9 2.25v13.5M2.25 9h13.5" stroke="#8E8E93" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="9" cy="9" r="2" fill="#8E8E93" />
+      <path d="M9 2.25v13.5M2.25 9h13.5" stroke="#8E8E93" strokeWidth="1.5" strokeLinecap="round"/>
+      <circle cx="9" cy="9" r="2" fill="#8E8E93"/>
     </svg>
   ),
   'after1year': (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <path d="M9 15.75A6.75 6.75 0 1 0 9 2.25a6.75 6.75 0 0 0 0 13.5Z" stroke="#8E8E93" strokeWidth="1.5" />
-      <path d="M9 5.25V9l3 1.5" stroke="#8E8E93" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 15.75A6.75 6.75 0 1 0 9 2.25a6.75 6.75 0 0 0 0 13.5Z" stroke="#8E8E93" strokeWidth="1.5"/>
+      <path d="M9 5.25V9l3 1.5" stroke="#8E8E93" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
   'not-yet': (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <circle cx="9" cy="9" r="7.5" stroke="#8E8E93" strokeWidth="1.5" />
-      <path d="M6.75 6.75a2.25 2.25 0 1 1 2.25 2.25V10.5" stroke="#8E8E93" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="9" cy="12.75" r="0.75" fill="#8E8E93" />
+      <circle cx="9" cy="9" r="7.5" stroke="#8E8E93" strokeWidth="1.5"/>
+      <path d="M6.75 6.75a2.25 2.25 0 1 1 2.25 2.25V10.5" stroke="#8E8E93" strokeWidth="1.5" strokeLinecap="round"/>
+      <circle cx="9" cy="12.75" r="0.75" fill="#8E8E93"/>
     </svg>
   ),
 }
 
 const TIMELINE_OPTIONS = [
-  { key: '1month', label: '당장 1개월 안에' },
-  { key: '2-3month', label: '2~3개월 안에' },
-  { key: '6month', label: '6개월 안에' },
+  { key: '1month',     label: '당장 1개월 안에' },
+  { key: '2-3month',  label: '2~3개월 안에' },
+  { key: '6month',    label: '6개월 안에' },
   { key: 'after6month', label: '6개월 이후' },
-  { key: 'after1year', label: '1년 이후' },
-  { key: 'not-yet', label: '아직 생각 없어요' },
+  { key: 'after1year',  label: '1년 이후' },
+  { key: 'not-yet',   label: '아직 생각 없어요' },
 ] as const
 
-const CARRIER_OPTIONS = [
-  { key: 'SKT', label: 'SKT', color: '#E4002B' },
-  { key: 'KT', label: 'KT', color: '#ED1C24' },
-  { key: 'LGU+', label: 'LGU+', color: '#E6007E' },
-  { key: 'budget', label: '알뜰폰', color: '#8E8E93' },
-] as const
-
-// ─── 유틸 ───
-
+// ─── 유틸 ────────────────────────────────────────────────────────────────────
 function formatPhone(digits: string): string {
   const n = digits.replace(/\D/g, '').slice(0, 11)
   if (n.length < 4) return n
   if (n.length < 8) return `${n.slice(0, 3)}-${n.slice(3)}`
   return `${n.slice(0, 3)}-${n.slice(3, 7)}-${n.slice(7)}`
 }
-
 function sanitizeDigits(v: string, max: number): string {
   return v.replace(/\D/g, '').slice(0, max)
 }
 
-// ─── 타입 ───
-
+// ─── 타입 ────────────────────────────────────────────────────────────────────
 type Step = 1 | 2 | 3 | 4 | 5
 
 interface FormData {
-  selectedPhone: string
-  selectedPhoneName: string
+  selectedPhone: string      // 실제 model code
+  selectedPhoneName: string  // 표시명
   timeline: string
   carrier: string
   name: string
@@ -176,22 +172,21 @@ interface FormData {
 }
 
 const INITIAL_FORM: FormData = {
-  selectedPhone: '',
-  selectedPhoneName: '',
-  timeline: '',
-  carrier: '',
-  name: '',
-  phone: '',
-  birthday: '',
+  selectedPhone: '', selectedPhoneName: '',
+  timeline: '', carrier: '',
+  name: '', phone: '', birthday: '',
   agree: true,
 }
-
-// ─── 메인 ───
 
 interface Props {
   apiUrl?: string
   primaryColor?: string
+  sktLogo?: string   // Framer에서 이미지 직접 등록
+  ktLogo?: string
+  lguLogo?: string
 }
+
+// ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
 
 /**
  * @framerSupportedLayoutWidth any
@@ -200,13 +195,35 @@ interface Props {
 export default function QuickQuoteFlow({
   apiUrl = 'https://kt-market-puce.vercel.app',
   primaryColor,
+  sktLogo,
+  ktLogo,
+  lguLogo,
 }: Props) {
   const accent = primaryColor || C.blue
 
-  const [step, setStep] = useState<Step>(1)
-  const [form, setForm] = useState<FormData>(INITIAL_FORM)
+  const [step, setStep]           = useState<Step>(1)
+  const [form, setForm]           = useState<FormData>(INITIAL_FORM)
+  const [images, setImages]       = useState<Record<string, string>>({})
+  const [activeTab, setActiveTab] = useState<'samsung' | 'apple'>('samsung')
   const [submitting, setSubmitting] = useState(false)
-  const [toast, setToast] = useState<string | null>(null)
+  const [toast, setToast]         = useState<string | null>(null)
+
+  // PhoneCompare 동일 패턴 — 기종 이미지 일괄 조회
+  useEffect(() => {
+    supabase
+      .from('devices')
+      .select('model, category, colors_en, images, thumbnail')
+      .in('model', ALL_MODEL_CODES)
+      .then(({ data }) => {
+        if (!data) return
+        const map: Record<string, string> = {}
+        data.forEach(d => {
+          const url = resolveImageUrl(d)
+          if (url) map[d.model] = url
+        })
+        setImages(map)
+      })
+  }, [])
 
   useEffect(() => {
     if (!toast) return
@@ -215,24 +232,31 @@ export default function QuickQuoteFlow({
   }, [toast])
 
   const goBack = useCallback(() => {
-    if (step === 1) {
-      if (typeof window !== 'undefined') window.history.back()
-    } else {
-      setStep((s) => (s - 1) as Step)
-    }
+    if (step === 1) { if (typeof window !== 'undefined') window.history.back() }
+    else setStep(s => (s - 1) as Step)
   }, [step])
 
-  const canNext = useMemo(() => {
-    if (step === 1) return !!form.selectedPhone
-    if (step === 2) return !!form.timeline
-    if (step === 3) return !!form.carrier
-    if (step === 4) {
-      const phoneOk = /^01[016789]\d{7,8}$/.test(form.phone)
-      const birthOk = /^\d{6}$/.test(form.birthday)
-      return form.name.trim().length >= 2 && phoneOk && birthOk && form.agree && !submitting
-    }
-    return false
-  }, [step, form, submitting])
+  // 각 단계 선택 즉시 자동 진행 (200ms 시각적 피드백 후)
+  const selectPhone = useCallback((m: PhoneModel) => {
+    setForm(f => ({ ...f, selectedPhone: m.modelCode, selectedPhoneName: m.name }))
+    setTimeout(() => setStep(2), 200)
+  }, [])
+
+  const selectTimeline = useCallback((key: string) => {
+    setForm(f => ({ ...f, timeline: key }))
+    setTimeout(() => setStep(3), 200)
+  }, [])
+
+  const selectCarrier = useCallback((key: string) => {
+    setForm(f => ({ ...f, carrier: key }))
+    setTimeout(() => setStep(4), 200)
+  }, [])
+
+  const canSubmit = useMemo(() => {
+    const phoneOk = /^01[016789]\d{7,8}$/.test(form.phone)
+    const birthOk = /^\d{6}$/.test(form.birthday)
+    return form.name.trim().length >= 2 && phoneOk && birthOk && form.agree && !submitting
+  }, [form, submitting])
 
   const handleSubmit = useCallback(async () => {
     setSubmitting(true)
@@ -270,154 +294,69 @@ export default function QuickQuoteFlow({
     }
   }, [apiUrl, form])
 
-  const goNext = useCallback(() => {
-    if (!canNext) return
-    if (step === 4) void handleSubmit()
-    else setStep((s) => (s + 1) as Step)
-  }, [step, canNext, handleSubmit])
-
   const pct = step >= 5 ? 100 : step * 25
-
   const STEP_TITLES = ['', '기종 선택', '변경 시기', '통신사', '정보 입력']
 
+  const logoMap: Record<string, string | undefined> = { SKT: sktLogo, KT: ktLogo, 'LGU+': lguLogo }
+
   return (
-    <div style={{
-      minHeight: '100svh',
-      width: '100%',
-      backgroundColor: C.bg,
-      display: 'flex',
-      justifyContent: 'center',
-      fontFamily: FONT,
-      WebkitFontSmoothing: 'antialiased',
-    }}>
-      <div style={{
-        width: '100%',
-        maxWidth: '440px',
-        minWidth: '320px',
-        backgroundColor: C.white,
-        minHeight: '100svh',
-        display: 'flex',
-        flexDirection: 'column',
-        boxShadow: '0 0 0 1px rgba(0,0,0,0.04)',
-      }}>
-        {/* ── 헤더 ── */}
+    <div style={{ minHeight: '100svh', width: '100%', backgroundColor: C.bg, display: 'flex', justifyContent: 'center', fontFamily: FONT, WebkitFontSmoothing: 'antialiased' }}>
+      <div style={{ width: '100%', maxWidth: '440px', minWidth: '320px', backgroundColor: C.white, minHeight: '100svh', display: 'flex', flexDirection: 'column', boxShadow: '0 0 0 1px rgba(0,0,0,0.04)' }}>
+
+        {/* 헤더 */}
         {step < 5 && (
           <div style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: C.white }}>
-            <div style={{
-              height: '48px',
-              display: 'flex',
-              alignItems: 'center',
-              padding: '0 4px',
-            }}>
+            <div style={{ height: '48px', display: 'flex', alignItems: 'center', padding: '0 4px' }}>
               <button onClick={goBack} style={iconBtn} aria-label="뒤로가기">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                   <path d="M15 19l-7-7 7-7" stroke={C.textPrimary} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
-              <div style={{
-                flex: 1,
-                textAlign: 'center',
-                fontSize: '15px',
-                fontWeight: 600,
-                color: C.textPrimary,
-                letterSpacing: -0.3,
-              }}>
+              <div style={{ flex: 1, textAlign: 'center', fontSize: '15px', fontWeight: 600, color: C.textPrimary, letterSpacing: -0.3 }}>
                 {STEP_TITLES[step] || '빠른 견적'}
               </div>
-              <div style={{
-                width: '40px',
-                textAlign: 'right',
-                fontSize: '12px',
-                color: C.textTertiary,
-                letterSpacing: -0.2,
-                paddingRight: '4px',
-                fontVariantNumeric: 'tabular-nums',
-              }}>
+              <div style={{ width: '40px', textAlign: 'right', fontSize: '12px', color: C.textTertiary, letterSpacing: -0.2, paddingRight: '4px', fontVariantNumeric: 'tabular-nums' }}>
                 {step}/4
               </div>
             </div>
-            {/* 프로그레스 */}
             <div style={{ height: '2px', backgroundColor: C.borderLight }}>
-              <div style={{
-                height: '100%',
-                width: `${pct}%`,
-                backgroundColor: accent,
-                transition: 'width 300ms cubic-bezier(0.4, 0, 0.2, 1)',
-              }} />
+              <div style={{ height: '100%', width: `${pct}%`, backgroundColor: accent, transition: 'width 300ms cubic-bezier(0.4,0,0.2,1)' }} />
             </div>
           </div>
         )}
 
-        {/* ── 바디 ── */}
-        <div style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: step === 5 ? '0' : '28px 20px 100px',
-        }}>
-          {step === 1 && <StepPhone form={form} setForm={setForm} accent={accent} />}
-          {step === 2 && <StepTimeline form={form} setForm={setForm} accent={accent} />}
-          {step === 3 && <StepCarrier form={form} setForm={setForm} accent={accent} />}
+        {/* 바디 */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: step === 5 ? '0' : '28px 20px 100px' }}>
+          {step === 1 && <StepPhone form={form} accent={accent} images={images} onSelect={selectPhone} activeTab={activeTab} setActiveTab={setActiveTab} />}
+          {step === 2 && <StepTimeline form={form} accent={accent} onSelect={selectTimeline} />}
+          {step === 3 && <StepCarrier form={form} accent={accent} onSelect={selectCarrier} logoMap={logoMap} />}
           {step === 4 && <StepInfo form={form} setForm={setForm} accent={accent} />}
           {step === 5 && <StepDone accent={accent} />}
         </div>
 
-        {/* ── 토스트 ── */}
+        {/* 토스트 */}
         {toast && (
-          <div style={{
-            position: 'fixed',
-            bottom: '100px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: C.textPrimary,
-            color: C.white,
-            padding: '12px 24px',
-            borderRadius: '12px',
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: FONT,
-            zIndex: 100,
-            letterSpacing: -0.2,
-            boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
-            maxWidth: '340px',
-            textAlign: 'center',
-          }}>
+          <div style={{ position: 'fixed', bottom: '100px', left: '50%', transform: 'translateX(-50%)', backgroundColor: C.textPrimary, color: C.white, padding: '12px 24px', borderRadius: '12px', fontSize: '14px', fontWeight: 500, fontFamily: FONT, zIndex: 100, letterSpacing: -0.2, boxShadow: '0 4px 24px rgba(0,0,0,0.15)', maxWidth: '340px', textAlign: 'center' }}>
             {toast}
           </div>
         )}
 
-        {/* ── 하단 CTA ── */}
+        {/* 하단 — steps 1~3: 안내 문구 / step 4: 제출 버튼 */}
         {step < 5 && (
-          <div style={{
-            position: 'sticky',
-            bottom: 0,
-            padding: '12px 20px',
-            paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
-            backgroundColor: C.white,
-            borderTop: `1px solid ${C.borderLight}`,
-          }}>
-            <button
-              onClick={goNext}
-              disabled={!canNext}
-              style={{
-                width: '100%',
-                height: '54px',
-                borderRadius: '16px',
-                border: 'none',
-                backgroundColor: canNext ? accent : C.surface,
-                color: canNext ? C.white : C.textDisabled,
-                fontFamily: FONT,
-                fontSize: '16px',
-                fontWeight: 700,
-                letterSpacing: -0.2,
-                cursor: canNext ? 'pointer' : 'default',
-                transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-              }}
-            >
-              {step === 4
-                ? (submitting ? '전송 중...' : '상담 신청하기')
-                : '선택 완료'
-              }
-            </button>
+          <div style={{ position: 'sticky', bottom: 0, backgroundColor: C.white, borderTop: `1px solid ${C.borderLight}`, padding: '12px 20px', paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
+            {step < 4 ? (
+              <div style={{ textAlign: 'center', fontSize: '13px', color: C.textTertiary, letterSpacing: -0.2 }}>
+                선택하면 자동으로 다음 단계로 이동해요
+              </div>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={!canSubmit}
+                style={{ width: '100%', height: '54px', borderRadius: '16px', border: 'none', backgroundColor: canSubmit ? accent : C.surface, color: canSubmit ? C.white : C.textDisabled, fontFamily: FONT, fontSize: '16px', fontWeight: 700, letterSpacing: -0.2, cursor: canSubmit ? 'pointer' : 'default', transition: 'all 200ms cubic-bezier(0.4,0,0.2,1)' }}
+              >
+                {submitting ? '전송 중...' : '상담 신청하기'}
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -425,234 +364,103 @@ export default function QuickQuoteFlow({
   )
 }
 
-const iconBtn: React.CSSProperties = {
-  background: 'none',
-  border: 'none',
-  cursor: 'pointer',
-  padding: '8px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  borderRadius: '8px',
-}
-
-// ─── Step 1: 기종 선택 ───
+// ─── Step 1: 기종 선택 ────────────────────────────────────────────────────────
 
 function StepPhone({
-  form, setForm, accent,
+  form, accent, images, onSelect, activeTab, setActiveTab,
 }: {
   form: FormData
-  setForm: React.Dispatch<React.SetStateAction<FormData>>
   accent: string
+  images: Record<string, string>
+  onSelect: (m: PhoneModel) => void
+  activeTab: 'samsung' | 'apple'
+  setActiveTab: (t: 'samsung' | 'apple') => void
 }) {
-  const [openSeries, setOpenSeries] = useState<Set<string>>(new Set(['galaxy-s']))
-
-  const toggle = useCallback((key: string) => {
-    setOpenSeries((prev) => {
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
-  }, [])
-
-  const select = useCallback((m: PhoneModel) => {
-    setForm((f) => ({ ...f, selectedPhone: m.id, selectedPhoneName: m.name }))
-  }, [setForm])
+  const series = activeTab === 'samsung' ? SAMSUNG_SERIES : APPLE_SERIES
 
   return (
     <div>
-      <h2 style={h2Style}>관심있는 휴대폰을{'\n'}골라주세요</h2>
-      <p style={descStyle}>상담받고 싶은 기종을 선택해주세요</p>
+      <h2 style={h2Style}>어떤 기종이{'\n'}궁금하세요?</h2>
+      <p style={descStyle}>탭하면 바로 다음으로 이동해요</p>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {PHONE_SERIES.map((series) => {
-          const isOpen = openSeries.has(series.key)
-          const hasSelected = series.models.some((m) => m.id === form.selectedPhone)
+      {/* 브랜드 탭 */}
+      <div style={{ display: 'flex', gap: 0, marginBottom: '20px', borderRadius: '12px', backgroundColor: C.surface, padding: '3px' }}>
+        {(['samsung', 'apple'] as const).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{ flex: 1, height: '34px', borderRadius: '10px', border: 'none', backgroundColor: activeTab === tab ? C.white : 'transparent', color: activeTab === tab ? C.textPrimary : C.textTertiary, fontFamily: FONT, fontSize: '14px', fontWeight: activeTab === tab ? 700 : 500, cursor: 'pointer', boxShadow: activeTab === tab ? '0 1px 4px rgba(0,0,0,0.10)' : 'none', transition: 'all 200ms ease', letterSpacing: -0.2 }}
+          >
+            {tab === 'samsung' ? 'Samsung' : 'Apple'}
+          </button>
+        ))}
+      </div>
 
-          return (
-            <div
-              key={series.key}
-              style={{
-                borderRadius: '16px',
-                border: `1.5px solid ${hasSelected ? accent : C.border}`,
-                backgroundColor: C.white,
-                overflow: 'hidden',
-                transition: 'border-color 200ms ease',
-              }}
-            >
-              {/* 시리즈 헤더 */}
-              <button
-                onClick={() => toggle(series.key)}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '16px 18px',
-                  backgroundColor: hasSelected ? C.blueBg : C.white,
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontFamily: FONT,
-                  transition: 'background-color 200ms ease',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {hasSelected && (
-                    <CheckCircle size={18} color={accent} />
-                  )}
-                  <span style={{
-                    fontSize: '15px',
-                    fontWeight: 600,
-                    color: C.textPrimary,
-                    letterSpacing: -0.3,
-                  }}>
-                    {series.label}
-                  </span>
-                </div>
-                <svg
-                  width="18" height="18" viewBox="0 0 18 18" fill="none"
-                  style={{
-                    transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                    transition: 'transform 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-                    flexShrink: 0,
-                  }}
-                >
-                  <path d="M4.5 6.75L9 11.25L13.5 6.75" stroke={C.textTertiary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-
-              {/* 모델 카드 */}
-              {isOpen && (
-                <div style={{
-                  padding: '4px 14px 16px',
-                  display: 'flex',
-                  gap: '8px',
-                  overflowX: 'auto',
-                  WebkitOverflowScrolling: 'touch',
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                }}>
-                  {series.models.map((model) => {
-                    const sel = form.selectedPhone === model.id
-                    return (
-                      <button
-                        key={model.id}
-                        onClick={() => select(model)}
-                        style={{
-                          flexShrink: 0,
-                          width: '108px',
-                          padding: '14px 8px 12px',
-                          borderRadius: '14px',
-                          border: sel ? `2px solid ${accent}` : `1.5px solid ${C.border}`,
-                          backgroundColor: sel ? C.blueBg : C.white,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          gap: '10px',
-                          transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-                          position: 'relative',
-                          fontFamily: FONT,
-                          outline: 'none',
-                        }}
-                      >
-                        {/* 체크마크 */}
-                        {sel && (
-                          <div style={{
-                            position: 'absolute', top: '7px', right: '7px',
-                          }}>
-                            <CheckCircle size={20} color={accent} />
-                          </div>
-                        )}
-
-                        {/* 기종 이미지 영역 */}
-                        <div style={{
-                          width: '64px',
-                          height: '64px',
-                          borderRadius: '14px',
-                          backgroundColor: C.surface,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}>
-                          {model.image ? (
-                            <img
-                              src={model.image}
-                              alt={model.name}
-                              style={{ width: '48px', height: '48px', objectFit: 'contain' }}
-                            />
-                          ) : (
-                            <PhoneIcon legacy={model.isLegacy} />
-                          )}
-                        </div>
-
-                        {/* 이름 */}
-                        <span style={{
-                          fontSize: '13px',
-                          fontWeight: sel ? 700 : 500,
-                          color: sel ? accent : C.textSecondary,
-                          letterSpacing: -0.2,
-                          textAlign: 'center',
-                          lineHeight: 1.3,
-                          wordBreak: 'keep-all',
-                          transition: 'color 150ms ease',
-                        }}>
-                          {model.name}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
+      {/* 시리즈 + 모델 그리드 */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {series.map(s => (
+          <div key={s.key}>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: C.textTertiary, letterSpacing: 0.3, textTransform: 'uppercase', marginBottom: '10px', fontFamily: FONT }}>
+              {s.label}
             </div>
-          )
-        })}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(88px, 1fr))', gap: '8px' }}>
+              {s.models.map(m => {
+                const sel = form.selectedPhone === m.modelCode
+                const imgUrl = images[m.modelCode]
+                return (
+                  <button
+                    key={m.modelCode}
+                    onClick={() => onSelect(m)}
+                    style={{ padding: '12px 6px 10px', borderRadius: '14px', border: sel ? `2px solid ${accent}` : `1.5px solid ${C.border}`, backgroundColor: sel ? C.blueBg : C.white, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', position: 'relative', fontFamily: FONT, outline: 'none', opacity: m.isLegacy ? 0.55 : 1, transition: 'all 180ms cubic-bezier(0.4,0,0.2,1)' }}
+                  >
+                    {sel && (
+                      <div style={{ position: 'absolute', top: '6px', right: '6px' }}>
+                        <CheckCircle size={16} color={accent} />
+                      </div>
+                    )}
+                    <div style={{ width: '60px', height: '60px', borderRadius: '12px', backgroundColor: C.surface, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+                      {imgUrl ? (
+                        <img src={imgUrl} alt={m.name} style={{ width: '48px', height: '48px', objectFit: 'contain' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                      ) : (
+                        <PhoneIcon legacy={m.isLegacy} />
+                      )}
+                    </div>
+                    <span style={{ fontSize: '11px', fontWeight: sel ? 700 : 500, color: sel ? accent : C.textSecondary, letterSpacing: -0.1, textAlign: 'center', lineHeight: 1.3, wordBreak: 'keep-all', transition: 'color 150ms ease' }}>
+                      {m.name}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
 }
 
-// ─── Step 2: 변경 시기 ───
+// ─── Step 2: 변경 시기 ────────────────────────────────────────────────────────
 
 function StepTimeline({
-  form, setForm, accent,
+  form, accent, onSelect,
 }: {
   form: FormData
-  setForm: React.Dispatch<React.SetStateAction<FormData>>
   accent: string
+  onSelect: (key: string) => void
 }) {
   return (
     <div>
-      <h2 style={h2Style}>휴대폰을 언제{'\n'}바꾸실 예정이신가요?</h2>
+      <h2 style={h2Style}>휴대폰을 언제{'\n'}바꾸실 예정인가요?</h2>
       <p style={descStyle}>상담 시기를 맞춰드릴게요</p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {TIMELINE_OPTIONS.map((opt) => {
+        {TIMELINE_OPTIONS.map(opt => {
           const active = form.timeline === opt.key
           return (
             <button
               key={opt.key}
-              onClick={() => setForm((f) => ({ ...f, timeline: opt.key }))}
-              style={{
-                height: '56px',
-                borderRadius: '14px',
-                border: active ? `2px solid ${accent}` : `1.5px solid ${C.border}`,
-                backgroundColor: active ? C.blueBg : C.white,
-                fontFamily: FONT,
-                fontSize: '15px',
-                fontWeight: active ? 600 : 400,
-                color: C.textPrimary,
-                letterSpacing: -0.3,
-                textAlign: 'left',
-                padding: '0 18px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-                outline: 'none',
-              }}
+              onClick={() => onSelect(opt.key)}
+              style={{ height: '56px', borderRadius: '14px', border: active ? `2px solid ${accent}` : `1.5px solid ${C.border}`, backgroundColor: active ? C.blueBg : C.white, fontFamily: FONT, fontSize: '15px', fontWeight: active ? 600 : 400, color: C.textPrimary, letterSpacing: -0.3, textAlign: 'left', padding: '0 18px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 200ms cubic-bezier(0.4,0,0.2,1)', outline: 'none' }}
             >
               <Radio checked={active} accent={accent} />
               <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
@@ -667,14 +475,17 @@ function StepTimeline({
   )
 }
 
-// ─── Step 3: 통신사 ───
+// ─── Step 3: 통신사 ───────────────────────────────────────────────────────────
+
+const CARRIER_KEYS = ['SKT', 'KT', 'LGU+', '알뜰폰'] as const
 
 function StepCarrier({
-  form, setForm, accent,
+  form, accent, onSelect, logoMap,
 }: {
   form: FormData
-  setForm: React.Dispatch<React.SetStateAction<FormData>>
   accent: string
+  onSelect: (key: string) => void
+  logoMap: Record<string, string | undefined>
 }) {
   return (
     <div>
@@ -682,60 +493,32 @@ function StepCarrier({
       <p style={descStyle}>맞춤 혜택을 안내해드릴게요</p>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-        {CARRIER_OPTIONS.map((opt) => {
-          const active = form.carrier === opt.key
+        {CARRIER_KEYS.map(key => {
+          const active  = form.carrier === key
+          const logoSrc = logoMap[key]
           return (
             <button
-              key={opt.key}
-              onClick={() => setForm((f) => ({ ...f, carrier: opt.key }))}
-              style={{
-                height: '88px',
-                borderRadius: '16px',
-                border: active ? `2px solid ${accent}` : `1.5px solid ${C.border}`,
-                backgroundColor: active ? C.blueBg : C.white,
-                fontFamily: FONT,
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '10px',
-                transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-                outline: 'none',
-                position: 'relative',
-              }}
+              key={key}
+              onClick={() => onSelect(key)}
+              style={{ height: '96px', borderRadius: '16px', border: active ? `2px solid ${accent}` : `1.5px solid ${C.border}`, backgroundColor: active ? C.blueBg : C.white, fontFamily: FONT, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', transition: 'all 200ms cubic-bezier(0.4,0,0.2,1)', outline: 'none', position: 'relative' }}
             >
               {active && (
                 <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
-                  <CheckCircle size={18} color={accent} />
+                  <CheckCircle size={16} color={accent} />
                 </div>
               )}
-              {/* 통신사 로고 원 */}
-              <div style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                backgroundColor: active ? accent : C.surface,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '12px',
-                fontWeight: 800,
-                color: active ? C.white : C.textTertiary,
-                fontFamily: FONT,
-                letterSpacing: -0.5,
-                transition: 'all 200ms ease',
-              }}>
-                {opt.key === 'budget' ? '알뜰' : opt.key.replace('+', '')}
-              </div>
-              <span style={{
-                fontSize: '15px',
-                fontWeight: active ? 700 : 500,
-                color: active ? accent : C.textPrimary,
-                letterSpacing: -0.3,
-                transition: 'color 150ms ease',
-              }}>
-                {opt.label}
+
+              {/* Framer에서 등록한 이미지 or 텍스트 fallback */}
+              {logoSrc ? (
+                <img src={logoSrc} alt={key} style={{ width: '44px', height: '44px', objectFit: 'contain' }} />
+              ) : (
+                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: active ? accent : C.surface, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: key === '알뜰폰' ? '10px' : '12px', fontWeight: 800, color: active ? C.white : C.textTertiary, fontFamily: FONT, letterSpacing: -0.5, transition: 'all 200ms ease' }}>
+                  {key === '알뜰폰' ? '알뜰' : key.replace('+', '')}
+                </div>
+              )}
+
+              <span style={{ fontSize: '15px', fontWeight: active ? 700 : 500, color: active ? accent : C.textPrimary, letterSpacing: -0.3, transition: 'color 150ms ease' }}>
+                {key}
               </span>
             </button>
           )
@@ -745,7 +528,7 @@ function StepCarrier({
   )
 }
 
-// ─── Step 4: 정보 입력 ───
+// ─── Step 4: 정보 입력 ────────────────────────────────────────────────────────
 
 function StepInfo({
   form, setForm, accent,
@@ -759,24 +542,9 @@ function StepInfo({
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '32px' }}>
-        <h2 style={{ ...h2Style, marginBottom: 0 }}>
-          상담을 위해{'\n'}정보를 작성해주세요
-        </h2>
-        <div style={{
-          backgroundColor: C.greenBg,
-          color: C.green,
-          padding: '6px 12px',
-          borderRadius: '20px',
-          fontSize: '12px',
-          fontWeight: 600,
-          fontFamily: FONT,
-          letterSpacing: -0.16,
-          whiteSpace: 'nowrap',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px',
-        }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px' }}>
+        <h2 style={{ ...h2Style, marginBottom: 0 }}>마지막으로{'\n'}정보를 입력해주세요</h2>
+        <div style={{ backgroundColor: C.greenBg, color: C.green, padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, fontFamily: FONT, letterSpacing: -0.16, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
             <path d="M9 4.5V3.75A2.25 2.25 0 006.75 1.5h-1.5A2.25 2.25 0 003 3.75V4.5m-.75 0h7.5a.75.75 0 01.75.75v4.5a.75.75 0 01-.75.75h-7.5a.75.75 0 01-.75-.75v-4.5a.75.75 0 01.75-.75z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -784,110 +552,53 @@ function StepInfo({
         </div>
       </div>
 
+      {/* 이전 단계 선택 요약 칩 */}
+      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '24px' }}>
+        {form.selectedPhoneName && (
+          <div style={summaryChip}>{form.selectedPhoneName}</div>
+        )}
+        {form.timeline && (
+          <div style={summaryChip}>{TIMELINE_OPTIONS.find(t => t.key === form.timeline)?.label ?? form.timeline}</div>
+        )}
+        {form.carrier && (
+          <div style={summaryChip}>{form.carrier}</div>
+        )}
+      </div>
+
       {/* 이름 */}
       <div style={{ marginBottom: '24px' }}>
         <label style={labelStyle}>이름</label>
-        <input
-          type="text"
-          placeholder="홍길동"
-          value={form.name}
-          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value.slice(0, 20) }))}
-          onFocus={() => setFocusField('name')}
-          onBlur={() => setFocusField(null)}
-          style={{
-            ...fieldStyle,
-            borderBottomColor: focusField === 'name' ? accent : C.border,
-          }}
-        />
+        <input type="text" placeholder="홍길동" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value.slice(0, 20) }))} onFocus={() => setFocusField('name')} onBlur={() => setFocusField(null)} style={{ ...fieldStyle, borderBottomColor: focusField === 'name' ? accent : C.border }} />
       </div>
 
       {/* 전화번호 */}
       <div style={{ marginBottom: '24px' }}>
         <label style={labelStyle}>전화번호</label>
-        <input
-          type="tel"
-          inputMode="numeric"
-          placeholder="010-0000-0000"
-          value={formatPhone(form.phone)}
-          onChange={(e) => setForm((f) => ({ ...f, phone: sanitizeDigits(e.target.value, 11) }))}
-          onFocus={() => setFocusField('phone')}
-          onBlur={() => setFocusField(null)}
-          style={{
-            ...fieldStyle,
-            borderBottomColor: focusField === 'phone' ? accent : C.border,
-          }}
-        />
+        <input type="tel" inputMode="numeric" placeholder="010-0000-0000" value={formatPhone(form.phone)} onChange={e => setForm(f => ({ ...f, phone: sanitizeDigits(e.target.value, 11) }))} onFocus={() => setFocusField('phone')} onBlur={() => setFocusField(null)} style={{ ...fieldStyle, borderBottomColor: focusField === 'phone' ? accent : C.border }} />
       </div>
 
       {/* 생년월일 */}
       <div style={{ marginBottom: '24px' }}>
         <label style={labelStyle}>생년월일</label>
-        <input
-          type="text"
-          inputMode="numeric"
-          placeholder="YYMMDD (6자리)"
-          value={form.birthday}
-          onChange={(e) => setForm((f) => ({ ...f, birthday: sanitizeDigits(e.target.value, 6) }))}
-          onFocus={() => setFocusField('birthday')}
-          onBlur={() => setFocusField(null)}
-          style={{
-            ...fieldStyle,
-            borderBottomColor: focusField === 'birthday' ? accent : C.border,
-          }}
-        />
+        <input type="text" inputMode="numeric" placeholder="YYMMDD (6자리)" value={form.birthday} onChange={e => setForm(f => ({ ...f, birthday: sanitizeDigits(e.target.value, 6) }))} onFocus={() => setFocusField('birthday')} onBlur={() => setFocusField(null)} style={{ ...fieldStyle, borderBottomColor: focusField === 'birthday' ? accent : C.border }} />
       </div>
 
       {/* 개인정보 동의 */}
-      <div style={{
-        padding: '16px',
-        backgroundColor: C.surface,
-        borderRadius: '14px',
-      }}>
-        <div
-          onClick={() => setForm((f) => ({ ...f, agree: !f.agree }))}
-          style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
-          role="checkbox"
-          aria-checked={form.agree}
-        >
+      <div style={{ padding: '16px', backgroundColor: C.surface, borderRadius: '14px' }}>
+        <div onClick={() => setForm(f => ({ ...f, agree: !f.agree }))} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }} role="checkbox" aria-checked={form.agree}>
           <Checkbox checked={form.agree} accent={accent} />
-          <span style={{
-            flex: 1,
-            fontFamily: FONT,
-            fontSize: '14px',
-            color: C.textPrimary,
-            letterSpacing: -0.24,
-          }}>
+          <span style={{ flex: 1, fontFamily: FONT, fontSize: '14px', color: C.textPrimary, letterSpacing: -0.24 }}>
             개인정보 수집·이용 동의
             <span style={{ color: C.red, fontWeight: 600, marginLeft: '4px' }}>(필수)</span>
           </span>
-          <button
-            onClick={(e) => { e.stopPropagation(); setAgreeOpen((v) => !v) }}
-            style={{ ...iconBtn, padding: '4px' }}
-            aria-label={agreeOpen ? '접기' : '펼치기'}
-          >
-            <svg
-              width="16" height="16" viewBox="0 0 16 16" fill="none"
-              style={{
-                transform: agreeOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 200ms ease',
-              }}
-            >
+          <button onClick={e => { e.stopPropagation(); setAgreeOpen(v => !v) }} style={{ ...iconBtn, padding: '4px' }} aria-label={agreeOpen ? '접기' : '펼치기'}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ transform: agreeOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 200ms ease' }}>
               <path d="M4 6L8 10L12 6" stroke={C.textTertiary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
         </div>
         {agreeOpen && (
-          <div style={{
-            marginTop: '12px',
-            padding: '14px',
-            backgroundColor: C.white,
-            borderRadius: '10px',
-            fontFamily: FONT,
-            fontSize: '12px',
-            color: C.textSecondary,
-            letterSpacing: -0.16,
-            lineHeight: 1.7,
-          }}>
+          <div style={{ marginTop: '12px', padding: '14px', backgroundColor: C.white, borderRadius: '10px', fontFamily: FONT, fontSize: '12px', color: C.textSecondary, letterSpacing: -0.16, lineHeight: 1.7 }}>
             <div style={{ fontWeight: 600, marginBottom: '4px', color: C.textPrimary }}>수집 항목</div>
             <div>이름, 전화번호, 생년월일</div>
             <div style={{ fontWeight: 600, marginTop: '10px', marginBottom: '4px', color: C.textPrimary }}>수집 목적</div>
@@ -901,7 +612,7 @@ function StepInfo({
   )
 }
 
-// ─── Step 5: 완료 ───
+// ─── Step 5: 완료 ─────────────────────────────────────────────────────────────
 
 function StepDone({ accent }: { accent: string }) {
   const goHome = useCallback(() => {
@@ -909,77 +620,26 @@ function StepDone({ accent }: { accent: string }) {
   }, [])
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '85vh',
-      textAlign: 'center',
-      padding: '0 24px',
-    }}>
-      {/* 성공 아이콘 */}
-      <div style={{
-        width: '80px',
-        height: '80px',
-        borderRadius: '50%',
-        backgroundColor: C.blueBg,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: '24px',
-      }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '85vh', textAlign: 'center', padding: '0 24px' }}>
+      <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: C.blueBg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
         <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
           <path d="M10 20L17 27L30 14" stroke={accent} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </div>
-
-      <h2 style={{
-        fontFamily: FONT,
-        fontSize: '24px',
-        fontWeight: 700,
-        color: C.textPrimary,
-        letterSpacing: -0.5,
-        margin: 0,
-        marginBottom: '8px',
-      }}>
+      <h2 style={{ fontFamily: FONT, fontSize: '24px', fontWeight: 700, color: C.textPrimary, letterSpacing: -0.5, margin: '0 0 8px' }}>
         상담 신청이 접수됐어요
       </h2>
-      <p style={{
-        fontFamily: FONT,
-        fontSize: '15px',
-        color: C.textSecondary,
-        letterSpacing: -0.3,
-        lineHeight: 1.6,
-        margin: 0,
-        marginBottom: '40px',
-        maxWidth: '260px',
-      }}>
+      <p style={{ fontFamily: FONT, fontSize: '15px', color: C.textSecondary, letterSpacing: -0.3, lineHeight: 1.6, margin: '0 0 40px', maxWidth: '260px' }}>
         영업일 기준 1일 이내에{'\n'}전화로 연락드릴게요
       </p>
-
-      <button
-        onClick={goHome}
-        style={{
-          width: '100%',
-          maxWidth: '280px',
-          height: '54px',
-          borderRadius: '16px',
-          border: 'none',
-          backgroundColor: accent,
-          color: C.white,
-          fontFamily: FONT,
-          fontSize: '16px',
-          fontWeight: 700,
-          letterSpacing: -0.2,
-          cursor: 'pointer',
-        }}
-      >홈으로 돌아가기</button>
+      <button onClick={goHome} style={{ width: '100%', maxWidth: '280px', height: '54px', borderRadius: '16px', border: 'none', backgroundColor: accent, color: C.white, fontFamily: FONT, fontSize: '16px', fontWeight: 700, letterSpacing: -0.2, cursor: 'pointer' }}>
+        홈으로 돌아가기
+      </button>
     </div>
   )
 }
 
-// ─── UI 컴포넌트 ───
+// ─── UI 컴포넌트 ──────────────────────────────────────────────────────────────
 
 function CheckCircle({ size, color }: { size: number; color: string }) {
   return (
@@ -992,43 +652,15 @@ function CheckCircle({ size, color }: { size: number; color: string }) {
 
 function Radio({ checked, accent }: { checked: boolean; accent: string }) {
   return (
-    <div style={{
-      width: '20px',
-      height: '20px',
-      borderRadius: '50%',
-      border: `2px solid ${checked ? accent : C.border}`,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-      transition: 'border-color 200ms ease',
-    }}>
-      {checked && (
-        <div style={{
-          width: '10px',
-          height: '10px',
-          borderRadius: '50%',
-          backgroundColor: accent,
-        }} />
-      )}
+    <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: `2px solid ${checked ? accent : C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'border-color 200ms ease' }}>
+      {checked && <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: accent }} />}
     </div>
   )
 }
 
 function Checkbox({ checked, accent }: { checked: boolean; accent: string }) {
   return (
-    <div style={{
-      width: '22px',
-      height: '22px',
-      borderRadius: '6px',
-      border: checked ? 'none' : `2px solid ${C.border}`,
-      backgroundColor: checked ? accent : C.white,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-      transition: 'all 200ms ease',
-    }}>
+    <div style={{ width: '22px', height: '22px', borderRadius: '6px', border: checked ? 'none' : `2px solid ${C.border}`, backgroundColor: checked ? accent : C.white, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 200ms ease' }}>
       {checked && (
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M3 7L6 10L11 4.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1048,58 +680,26 @@ function PhoneIcon({ legacy }: { legacy?: boolean }) {
   )
 }
 
-// ─── 공통 스타일 ───
+// ─── 스타일 ───────────────────────────────────────────────────────────────────
 
-const h2Style: React.CSSProperties = {
-  fontFamily: FONT,
-  fontSize: '24px',
-  fontWeight: 700,
-  color: C.textPrimary,
-  letterSpacing: -0.5,
-  margin: 0,
-  marginBottom: '8px',
-  lineHeight: 1.35,
-  wordBreak: 'keep-all',
-  whiteSpace: 'pre-line',
-}
+const iconBtn: React.CSSProperties = { background: 'none', border: 'none', cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }
 
-const descStyle: React.CSSProperties = {
-  fontFamily: FONT,
-  fontSize: '15px',
-  color: C.textTertiary,
-  letterSpacing: -0.3,
-  margin: 0,
-  marginBottom: '28px',
-  lineHeight: 1.5,
-}
+const h2Style: React.CSSProperties = { fontFamily: FONT, fontSize: '24px', fontWeight: 700, color: C.textPrimary, letterSpacing: -0.5, margin: 0, marginBottom: '8px', lineHeight: 1.35, wordBreak: 'keep-all', whiteSpace: 'pre-line' }
 
-const labelStyle: React.CSSProperties = {
-  display: 'block',
-  fontFamily: FONT,
-  fontSize: '13px',
-  fontWeight: 500,
-  color: C.textTertiary,
-  letterSpacing: -0.2,
-  marginBottom: '8px',
-}
+const descStyle: React.CSSProperties = { fontFamily: FONT, fontSize: '15px', color: C.textTertiary, letterSpacing: -0.3, margin: 0, marginBottom: '24px', lineHeight: 1.5 }
 
-const fieldStyle: React.CSSProperties = {
-  width: '100%',
-  height: '48px',
-  border: 'none',
-  borderBottom: `2px solid ${C.border}`,
-  backgroundColor: 'transparent',
-  fontFamily: FONT,
-  fontSize: '17px',
-  fontWeight: 500,
-  color: C.textPrimary,
-  letterSpacing: -0.34,
-  outline: 'none',
-  padding: '0 2px',
-  transition: 'border-color 200ms ease',
-}
+const labelStyle: React.CSSProperties = { display: 'block', fontFamily: FONT, fontSize: '13px', fontWeight: 500, color: C.textTertiary, letterSpacing: -0.2, marginBottom: '8px' }
+
+const fieldStyle: React.CSSProperties = { width: '100%', height: '48px', border: 'none', borderBottom: `2px solid ${C.border}`, backgroundColor: 'transparent', fontFamily: FONT, fontSize: '17px', fontWeight: 500, color: C.textPrimary, letterSpacing: -0.34, outline: 'none', padding: '0 2px', transition: 'border-color 200ms ease' }
+
+const summaryChip: React.CSSProperties = { backgroundColor: C.blueBg, color: C.blue, padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, fontFamily: FONT, letterSpacing: -0.16, whiteSpace: 'nowrap' }
+
+// ─── Property Controls ────────────────────────────────────────────────────────
 
 addPropertyControls(QuickQuoteFlow, {
-  apiUrl: { type: ControlType.String, title: 'API URL', defaultValue: 'https://kt-market-puce.vercel.app' },
-  primaryColor: { type: ControlType.Color, title: 'Primary Color', defaultValue: '#3182F6' },
+  apiUrl:       { type: ControlType.String, title: 'API URL',       defaultValue: 'https://kt-market-puce.vercel.app' },
+  primaryColor: { type: ControlType.Color,  title: 'Primary Color', defaultValue: '#3182F6' },
+  sktLogo:      { type: ControlType.Image,  title: 'SKT 로고 이미지' },
+  ktLogo:       { type: ControlType.Image,  title: 'KT 로고 이미지' },
+  lguLogo:      { type: ControlType.Image,  title: 'LGU+ 로고 이미지' },
 })

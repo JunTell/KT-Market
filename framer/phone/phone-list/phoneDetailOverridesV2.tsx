@@ -1705,14 +1705,18 @@ export function withPhoneDetail(Component): ComponentType {
                 const chgEffective = chgRes.data ? (chgRes.data.price ?? 0) : null
 
                 let bestRegister = store.register
-                if (mnpEffective !== null && chgEffective !== null) {
-                    bestRegister = mnpEffective <= chgEffective ? "번호이동" : "기기변경"
-                } else if (mnpEffective !== null) {
-                    bestRegister = "번호이동"
-                } else if (chgEffective !== null) {
-                    bestRegister = "기기변경"
+                // store.carrier가 없을 때(최초 진입)만 가격 비교로 자동 설정
+                // 이미 통신사를 선택한 경우 덮어쓰지 않음
+                if (!store.carrier) {
+                    if (mnpEffective !== null && chgEffective !== null) {
+                        bestRegister = mnpEffective <= chgEffective ? "번호이동" : "기기변경"
+                    } else if (mnpEffective !== null) {
+                        bestRegister = "번호이동"
+                    } else if (chgEffective !== null) {
+                        bestRegister = "기기변경"
+                    }
                 }
-                // numberPortingModels는 가격 비교 결과와 무관하게 항상 번호이동 기준
+                // numberPortingModels는 통신사 선택과 무관하게 항상 번호이동 기준
                 if (NUMBER_PORTING_MODELS.includes(modelId)) {
                     bestRegister = "번호이동"
                 }

@@ -177,95 +177,6 @@ export default function OrderFlowBottomSheet(props) {
             zIndex: 120,
             fontFamily: FONT,
         }}>
-            {/* 말풍선 — 바 바깥 위에 배치 (clipping 방지) */}
-            {mounted && secondsLeft !== null && !isSoldOut && (
-                <motion.div
-                    key={secondsLeft > 0 ? "timer" : "default"}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{
-                        opacity: 1,
-                        y: [0, -6, 0],
-                    }}
-                    transition={{
-                        opacity: { duration: 0.3 },
-                        y: {
-                            duration: 1.8,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                        },
-                    }}
-                    onClick={handleFormLink}
-                    style={{
-                        cursor: "pointer",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        alignSelf: "center",
-                        margin: "0 auto -12px",
-                        width: "fit-content",
-                        maxWidth: "90%",
-                        position: "relative",
-                        zIndex: 121,
-                    }}
-                >
-                    <div style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: 2,
-                        padding: "10px 20px",
-                        borderRadius: 16,
-                        backgroundColor: "#4F7FFF",
-                        boxShadow: "0 4px 16px rgba(79,127,255,0.35)",
-                        fontFamily: FONT,
-                    }}>
-                        {secondsLeft > 0 ? (
-                            <>
-                                <span style={{
-                                    fontSize: 18, fontWeight: 800,
-                                    color: "#FFEB3B",
-                                    fontVariantNumeric: "tabular-nums",
-                                    letterSpacing: -0.3,
-                                    lineHeight: 1.3,
-                                    fontFamily: FONT,
-                                }}>
-                                    {formatTime(secondsLeft)}
-                                </span>
-                                <span style={{
-                                    fontSize: 13, fontWeight: 600,
-                                    color: "#FFFFFF",
-                                    letterSpacing: -0.2,
-                                    lineHeight: 1.3,
-                                    fontFamily: FONT,
-                                }}>
-                                    시간 내 신청 시 악세사리 3종 추가 증정
-                                </span>
-                            </>
-                        ) : (
-                            <span style={{
-                                fontSize: 13, fontWeight: 700,
-                                color: "#FFFFFF",
-                                letterSpacing: -0.2,
-                                lineHeight: 1.4,
-                                fontFamily: FONT,
-                                textAlign: "center",
-                            }}>
-                                지금 주문하면 악세사리 3종 추가 증정!
-                            </span>
-                        )}
-                    </div>
-                    {/* 말풍선 꼬리 */}
-                    <div style={{
-                        width: 0,
-                        height: 0,
-                        borderLeft: "8px solid transparent",
-                        borderRight: "8px solid transparent",
-                        borderTop: "8px solid #4F7FFF",
-                    }} />
-                </motion.div>
-            )}
-
             {/* 하단 바 */}
             <div style={{
                 backgroundColor: "#FFFFFF",
@@ -313,7 +224,105 @@ export default function OrderFlowBottomSheet(props) {
                     </div>
 
                     {/* 오른쪽: 신청하기 버튼 */}
-                    <div style={{ flex: 1, flexShrink: 0 }}>
+                    <div style={{ flex: 1, flexShrink: 0, position: "relative" }}>
+                        {/* 말풍선 — 카카오톡 스타일, 신청하기 버튼 중앙 위 */}
+                        {mounted && secondsLeft !== null && !isSoldOut && (() => {
+                            const urgent = secondsLeft > 0
+                            const bubbleBg = urgent ? "#EF4444" : "#4F7FFF"
+                            const shadow = urgent
+                                ? "drop-shadow(0 4px 14px rgba(239,68,68,0.28))"
+                                : "drop-shadow(0 4px 12px rgba(79,127,255,0.25))"
+                            return (
+                                <motion.div
+                                    key={urgent ? "timer" : "default"}
+                                    initial={{ opacity: 0, y: 4 }}
+                                    animate={{
+                                        opacity: 1,
+                                        y: [0, -4, 0],
+                                    }}
+                                    transition={{
+                                        opacity: { duration: 0.3 },
+                                        y: {
+                                            duration: 1.8,
+                                            repeat: Infinity,
+                                            ease: "easeInOut",
+                                        },
+                                    }}
+                                    onClick={handleFormLink}
+                                    style={{
+                                        cursor: "pointer",
+                                        position: "absolute",
+                                        left: 0,
+                                        right: 0,
+                                        bottom: "calc(100% + 8px)",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        zIndex: 121,
+                                        filter: shadow,
+                                    }}
+                                >
+                                    <div style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 6,
+                                        padding: "8px 12px",
+                                        borderRadius: 14,
+                                        backgroundColor: bubbleBg,
+                                        fontFamily: FONT,
+                                        whiteSpace: "nowrap",
+                                    }}>
+                                        <span style={{ fontSize: 12, lineHeight: 1 }} aria-hidden>🎁</span>
+                                        {urgent ? (
+                                            <>
+                                                <span style={{
+                                                    fontSize: 11, fontWeight: 600,
+                                                    color: "#FFFFFF",
+                                                    letterSpacing: -0.1,
+                                                    lineHeight: 1.2,
+                                                    fontFamily: FONT,
+                                                }}>
+                                                    악세사리 3종 증정
+                                                </span>
+                                                <span style={{
+                                                    fontSize: 11, fontWeight: 800,
+                                                    color: "#FFEB3B",
+                                                    fontVariantNumeric: "tabular-nums",
+                                                    letterSpacing: 0,
+                                                    lineHeight: 1.2,
+                                                    fontFamily: FONT,
+                                                    marginLeft: 2,
+                                                }}>
+                                                    {formatTime(secondsLeft)}
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <span style={{
+                                                fontSize: 11, fontWeight: 600,
+                                                color: "#FFFFFF",
+                                                letterSpacing: -0.1,
+                                                lineHeight: 1.2,
+                                                fontFamily: FONT,
+                                            }}>
+                                                지금 주문 시 악세사리 3종 증정
+                                            </span>
+                                        )}
+                                    </div>
+                                    {/* 카카오톡 스타일 꼬리 — SVG 곡선 */}
+                                    <svg
+                                        width="14" height="8"
+                                        viewBox="0 0 14 8"
+                                        style={{ marginTop: -1, display: "block" }}
+                                        aria-hidden
+                                    >
+                                        <path
+                                            d="M0 0 C 4 0, 5 8, 7 8 C 9 8, 10 0, 14 0 Z"
+                                            fill={bubbleBg}
+                                        />
+                                    </svg>
+                                </motion.div>
+                            )
+                        })()}
                         <button
                             onClick={isSoldOut ? handleRestockClick : handleFormLink}
                             style={{
