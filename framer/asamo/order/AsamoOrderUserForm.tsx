@@ -333,22 +333,6 @@ export default function OrderUserForm(props: Props) {
                                     : undefined
                             }
                         />
-                        <InputGroup
-                            label="아사모 ID"
-                            value={formData.asamoId}
-                            onChange={(e: any) =>
-                                handleChange("asamoId", e.target.value)
-                            }
-                            placeholder="아사모 아이디 입력"
-                        />
-                        <InputGroup
-                            label="요청사항 (선택)"
-                            placeholder="예: 기존 유심 그대로 사용하고 싶어요"
-                            value={formData.requirements}
-                            onChange={(e: any) =>
-                                handleChange("requirements", e.target.value)
-                            }
-                        />
                         <button
                             style={{
                                 ...smallButtonStyle,
@@ -398,13 +382,6 @@ export default function OrderUserForm(props: Props) {
                             label="휴대폰 번호"
                             value={formData.userPhone}
                         />
-                        <InfoRow label="아사모 ID" value={formData.asamoId} />
-                        {formData.requirements && (
-                            <InfoRow
-                                label="요청사항"
-                                value={formData.requirements}
-                            />
-                        )}
                     </div>
                 )}
             </div>

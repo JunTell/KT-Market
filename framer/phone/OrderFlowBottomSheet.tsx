@@ -175,132 +175,170 @@ export default function OrderFlowBottomSheet(props) {
             position: "fixed", bottom: 0, left: 0, right: 0, margin: "0 auto",
             width: "100%", maxWidth: 440,
             zIndex: 120,
-            backgroundColor: "#FFFFFF",
-            borderRadius: "20px 20px 0 0",
-            boxShadow: "0 -2px 12px rgba(0,0,0,0.10)",
             fontFamily: FONT,
         }}>
-            {/* 월 예상 금액 + 신청하기 버튼 */}
+            {/* 하단 바 */}
             <div style={{
-                display: "flex", alignItems: "center",
-                padding: "14px 16px",
-                paddingBottom: "calc(14px + env(safe-area-inset-bottom, 10px))",
-                gap: 12,
+                backgroundColor: "#FFFFFF",
+                borderRadius: "20px 20px 0 0",
+                boxShadow: "0 -2px 12px rgba(0,0,0,0.10)",
             }}>
-                {/* 왼쪽: 가격 정보 */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                        <span style={{
-                            fontSize: 13, fontWeight: 500,
-                            color: "#868E96",
-                            letterSpacing: -0.2, lineHeight: 1.4,
-                            fontFamily: FONT,
-                        }}>
-                            월 예상 금액
-                        </span>
-                    </div>
-                    <motion.span
-                        style={{
-                            fontSize: 22, fontWeight: 800, lineHeight: 1.2,
-                            letterSpacing: -0.5,
-                            color: direction === "up" ? "#EF4444" : direction === "down" ? "#3B82F6" : "#24292E",
-                            transition: "color 0.4s ease",
-                            fontVariantNumeric: "tabular-nums",
-                            fontFamily: FONT,
-                        }}
-                    >
-                        {animatedPayment.toLocaleString()}원
-                    </motion.span>
-                    <span style={{
-                        fontSize: 8, fontWeight: 400,
-                        color: "#ADB5BD",
-                        letterSpacing: -0.1, lineHeight: 1.3,
-                        fontFamily: FONT,
-                    }}>
-                        부가세 포함 {installment > 0 ? (showInterest ? "/ 할부이자 포함" : "/ 할부이자 미포함") : ""}
-                    </span>
-                </div>
-
-                {/* 오른쪽: 신청하기 버튼 + 긴급 배지 */}
-                <div style={{ flex: 1, flexShrink: 0, position: "relative" }}>
-                    {/* 긴급 배지 — 버튼 상단 중앙에 겹침 */}
-                    {mounted && secondsLeft !== null && !isSoldOut && (
-                        <motion.div
-                            key={secondsLeft > 0 ? "timer" : "default"}
-                            initial={{ opacity: 0, y: 4 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.25 }}
-                            onClick={handleFormLink}
+                <div style={{
+                    display: "flex", alignItems: "center",
+                    padding: "14px 16px",
+                    paddingBottom: "calc(14px + env(safe-area-inset-bottom, 10px))",
+                    gap: 12,
+                }}>
+                    {/* 왼쪽: 가격 정보 */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                            <span style={{
+                                fontSize: 13, fontWeight: 500,
+                                color: "#868E96",
+                                letterSpacing: -0.2, lineHeight: 1.4,
+                                fontFamily: FONT,
+                            }}>
+                                월 예상 금액
+                            </span>
+                        </div>
+                        <motion.span
                             style={{
-                                cursor: "pointer",
-                                position: "absolute",
-                                top: -14,
-                                left: 0,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 4,
-                                paddingLeft: 12,
-                                paddingRight: 12,
-                                paddingTop: 5,
-                                paddingBottom: 5,
-                                borderRadius: 100,
-                                /* 그라디언트 테두리: padding-box는 흰 배경, border-box는 그라디언트 */
-                                background: "linear-gradient(white, white) padding-box, linear-gradient(90deg, #4F7FFF 0%, #4F7FFF 100%) border-box",
-                                border: "1.5px solid transparent",
-                                whiteSpace: "nowrap",
-                                minWidth: secondsLeft > 0 ? 220 : "unset",
-                                justifyContent: "center",
-                                zIndex: 1,
+                                fontSize: 22, fontWeight: 800, lineHeight: 1.2,
+                                letterSpacing: -0.5,
+                                color: direction === "up" ? "#EF4444" : direction === "down" ? "#3B82F6" : "#24292E",
+                                transition: "color 0.4s ease",
+                                fontVariantNumeric: "tabular-nums",
                                 fontFamily: FONT,
                             }}
                         >
-                            {secondsLeft > 0 ? (
-                                <>
-                                    <span style={{
-                                        fontSize: 12, fontWeight: 800,
-                                        color: "#EF4444",
-                                        fontVariantNumeric: "tabular-nums",
-                                        letterSpacing: -0.3,
+                            {animatedPayment.toLocaleString()}원
+                        </motion.span>
+                        <span style={{
+                            fontSize: 8, fontWeight: 400,
+                            color: "#ADB5BD",
+                            letterSpacing: -0.1, lineHeight: 1.3,
+                            fontFamily: FONT,
+                        }}>
+                            부가세 포함 {installment > 0 ? (showInterest ? "/ 할부이자 포함" : "/ 할부이자 미포함") : ""}
+                        </span>
+                    </div>
+
+                    {/* 오른쪽: 신청하기 버튼 */}
+                    <div style={{ flex: 1, flexShrink: 0, position: "relative" }}>
+                        {/* 말풍선 — 카카오톡 스타일, 신청하기 버튼 중앙 위 */}
+                        {mounted && secondsLeft !== null && !isSoldOut && (() => {
+                            const urgent = secondsLeft > 0
+                            const bubbleBg = urgent ? "#EF4444" : "#4F7FFF"
+                            const shadow = urgent
+                                ? "drop-shadow(0 4px 14px rgba(239,68,68,0.28))"
+                                : "drop-shadow(0 4px 12px rgba(79,127,255,0.25))"
+                            return (
+                                <motion.div
+                                    key={urgent ? "timer" : "default"}
+                                    initial={{ opacity: 0, y: 4 }}
+                                    animate={{
+                                        opacity: 1,
+                                        y: [0, -4, 0],
+                                    }}
+                                    transition={{
+                                        opacity: { duration: 0.3 },
+                                        y: {
+                                            duration: 1.8,
+                                            repeat: Infinity,
+                                            ease: "easeInOut",
+                                        },
+                                    }}
+                                    onClick={handleFormLink}
+                                    style={{
+                                        cursor: "pointer",
+                                        position: "absolute",
+                                        left: 0,
+                                        right: 0,
+                                        bottom: "calc(100% + 8px)",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        zIndex: 121,
+                                        filter: shadow,
+                                    }}
+                                >
+                                    <div style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 6,
+                                        padding: "8px 12px",
+                                        borderRadius: 14,
+                                        backgroundColor: bubbleBg,
                                         fontFamily: FONT,
+                                        whiteSpace: "nowrap",
                                     }}>
-                                        {formatTime(secondsLeft)}
-                                    </span>
-                                    <span style={{
-                                        fontSize: 12, fontWeight: 700,
-                                        color: "#4F7FFF",
-                                        letterSpacing: -0.3,
-                                        fontFamily: FONT,
-                                    }}>
-                                        시간 내 신청 시 악세사리 3종 추가 증정
-                                    </span>
-                                </>
-                            ) : (
-                                <span style={{
-                                    fontSize: 12, fontWeight: 700,
-                                    color: "#4F7FFF",
-                                    letterSpacing: -0.3,
-                                    fontFamily: FONT,
-                                }}>
-                                    지금 주문하면 악세사리 3종 추가 증정!
-                                </span>
-                            )}
-                        </motion.div>
-                    )}
-                    <button
-                        onClick={isSoldOut ? handleRestockClick : handleFormLink}
-                        style={{
-                            width: "100%", height: 54, borderRadius: 14,
-                            border: "none",
-                            backgroundColor: isSoldOut ? "#3F4750" : "#EF4444",
-                            color: "#FFFFFF",
-                            fontSize: 17, fontWeight: 700,
-                            letterSpacing: -0.3, lineHeight: 1,
-                            cursor: "pointer", fontFamily: FONT,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                        }}
-                    >
-                        {isSoldOut ? "입고 알림" : "신청하기"}
-                    </button>
+                                        <span style={{ fontSize: 12, lineHeight: 1 }} aria-hidden>🎁</span>
+                                        {urgent ? (
+                                            <>
+                                                <span style={{
+                                                    fontSize: 11, fontWeight: 600,
+                                                    color: "#FFFFFF",
+                                                    letterSpacing: -0.1,
+                                                    lineHeight: 1.2,
+                                                    fontFamily: FONT,
+                                                }}>
+                                                    악세사리 3종 증정
+                                                </span>
+                                                <span style={{
+                                                    fontSize: 11, fontWeight: 800,
+                                                    color: "#FFEB3B",
+                                                    fontVariantNumeric: "tabular-nums",
+                                                    letterSpacing: 0,
+                                                    lineHeight: 1.2,
+                                                    fontFamily: FONT,
+                                                    marginLeft: 2,
+                                                }}>
+                                                    {formatTime(secondsLeft)}
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <span style={{
+                                                fontSize: 11, fontWeight: 600,
+                                                color: "#FFFFFF",
+                                                letterSpacing: -0.1,
+                                                lineHeight: 1.2,
+                                                fontFamily: FONT,
+                                            }}>
+                                                지금 주문 시 악세사리 3종 증정
+                                            </span>
+                                        )}
+                                    </div>
+                                    {/* 카카오톡 스타일 꼬리 — SVG 곡선 */}
+                                    <svg
+                                        width="14" height="8"
+                                        viewBox="0 0 14 8"
+                                        style={{ marginTop: -1, display: "block" }}
+                                        aria-hidden
+                                    >
+                                        <path
+                                            d="M0 0 C 4 0, 5 8, 7 8 C 9 8, 10 0, 14 0 Z"
+                                            fill={bubbleBg}
+                                        />
+                                    </svg>
+                                </motion.div>
+                            )
+                        })()}
+                        <button
+                            onClick={isSoldOut ? handleRestockClick : handleFormLink}
+                            style={{
+                                width: "100%", height: 54, borderRadius: 14,
+                                border: "none",
+                                backgroundColor: isSoldOut ? "#3F4750" : "#EF4444",
+                                color: "#FFFFFF",
+                                fontSize: 17, fontWeight: 700,
+                                letterSpacing: -0.3, lineHeight: 1,
+                                cursor: "pointer", fontFamily: FONT,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                            }}
+                        >
+                            {isSoldOut ? "입고 알림" : "신청하기"}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

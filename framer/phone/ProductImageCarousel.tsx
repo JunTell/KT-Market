@@ -313,7 +313,7 @@ export default function ProductImageCarousel(props) {
                                 cursor: "pointer",
                                 transition: "all 0.25s ease",
                                 border: "none",
-                                padding: "9px 0",
+                                padding: "19px 6px",
                                 background: "none",
                             }}
                         >

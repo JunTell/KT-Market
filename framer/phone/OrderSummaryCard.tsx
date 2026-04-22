@@ -890,6 +890,7 @@ export default function OrderSummaryCard(props) {
         isWished = false,
         kakaoTalkLink = "http://pf.kakao.com/_HfItxj/chat",
         kakaoIcon,
+        phoneIcon,
         onSaveOrderSession,
     } = props
 
@@ -1258,7 +1259,7 @@ export default function OrderSummaryCard(props) {
                                 background: "none",
                                 border: "none",
                                 cursor: "pointer",
-                                padding: "4px 0 4px 8px",
+                                padding: "12px 0 12px 8px",
                                 color: "#868E96",
                                 fontSize: "15px",
                                 fontWeight: 500,
@@ -1354,47 +1355,34 @@ export default function OrderSummaryCard(props) {
                         style={{
                             width: 50,
                             height: 50,
-                            borderRadius: 12,
+                            borderRadius: 14,
                             border: "none",
-                            backgroundColor: "#EDEDED",
+                            backgroundColor: "transparent",
                             cursor: "pointer",
                             display: "flex",
-                            flexDirection: "column",
                             alignItems: "center",
                             justifyContent: "center",
-                            gap: 2,
                             flexShrink: 0,
                             padding: 0,
-                            fontFamily: FONT,
+                            overflow: "hidden",
                         }}
                     >
-                        <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#24292E"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            aria-hidden="true"
-                        >
-                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.74a16 16 0 0 0 6.35 6.35l.97-.97a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
-                        </svg>
-                        <span
-                            style={{
-                                fontSize: 10,
-                                fontWeight: 500,
-                                color: "#24292E",
-                                lineHeight: 1,
-                                letterSpacing: -0.1,
-                            }}
-                        >
-                            전화
-                        </span>
+                        {phoneIcon ? (
+                            <img src={phoneIcon} width={50} height={50} style={{ objectFit: "cover", borderRadius: 14 }} aria-hidden="true" />
+                        ) : (
+                            <div style={{
+                                width: 50, height: 50, borderRadius: 14,
+                                border: "1px solid #E5E8EB", backgroundColor: "#FFFFFF",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                            }}>
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1.02l-2.2 2.2z" fill="#3B82F6" />
+                                </svg>
+                            </div>
+                        )}
                     </button>
 
-                    {/* 문의 버튼 */}
+                    {/* 카톡 버튼 */}
                     <button
                         type="button"
                         onClick={() => {
@@ -1408,34 +1396,34 @@ export default function OrderSummaryCard(props) {
                         style={{
                             width: 50,
                             height: 50,
-                            borderRadius: 12,
+                            borderRadius: 14,
                             border: "none",
-                            backgroundColor: "#FEE500",
+                            backgroundColor: "transparent",
                             cursor: "pointer",
                             display: "flex",
-                            flexDirection: "column",
                             alignItems: "center",
                             justifyContent: "center",
-                            gap: 2,
                             flexShrink: 0,
                             padding: 0,
-                            fontFamily: FONT,
+                            overflow: "hidden",
                         }}
                     >
-                        {kakaoIcon && (
-                            <img src={kakaoIcon} width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} aria-hidden="true" />
+                        {kakaoIcon ? (
+                            <img src={kakaoIcon} width={50} height={50} style={{ objectFit: "cover", borderRadius: 14 }} aria-hidden="true" />
+                        ) : (
+                            <div style={{
+                                width: 50, height: 50, borderRadius: 14,
+                                backgroundColor: "#FEE500",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                            }}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M12 3C6.48 3 2 6.58 2 10.94c0 2.8 1.87 5.27 4.67 6.67-.15.53-.54 1.93-.62 2.23-.1.37.13.37.28.27.12-.08 1.87-1.27 2.64-1.79.67.1 1.35.15 2.03.15 5.52 0 10-3.58 10-7.53C21 6.58 17.52 3 12 3z" fill="#3A1D1D" />
+                                    <circle cx="8.5" cy="11" r="1.2" fill="#FEE500" />
+                                    <circle cx="12" cy="11" r="1.2" fill="#FEE500" />
+                                    <circle cx="15.5" cy="11" r="1.2" fill="#FEE500" />
+                                </svg>
+                            </div>
                         )}
-                        <span
-                            style={{
-                                fontSize: 10,
-                                fontWeight: 500,
-                                color: "#160300",
-                                lineHeight: 1,
-                                letterSpacing: -0.1,
-                            }}
-                        >
-                            카톡
-                        </span>
                     </button>
 
                     {/* 신청하기 / 입고알림 버튼 */}
@@ -1672,6 +1660,10 @@ addPropertyControls(OrderSummaryCard, {
         type: ControlType.Number,
         title: "월 예상 금액",
         defaultValue: 0,
+    },
+    phoneIcon: {
+        type: ControlType.Image,
+        title: "전화 아이콘",
     },
     kakaoIcon: {
         type: ControlType.Image,
