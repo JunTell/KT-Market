@@ -89,13 +89,55 @@ const PHONE_SERIES: Series[] = [
   },
 ]
 
+// SVG icons for timeline options — consistent rendering across all OS/browser
+const TIMELINE_ICONS: Record<string, React.ReactNode> = {
+  '1month': (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <circle cx="9" cy="9" r="7.5" stroke="#F04452" strokeWidth="1.5" />
+      <path d="M9 5v4l2.5 2.5" stroke="#F04452" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  '2-3month': (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <rect x="2.25" y="3.75" width="13.5" height="12" rx="1.5" stroke="#505056" strokeWidth="1.5" />
+      <path d="M2.25 7.5h13.5M6 2.25v3M12 2.25v3" stroke="#505056" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  ),
+  '6month': (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <rect x="2.25" y="3.75" width="13.5" height="12" rx="1.5" stroke="#505056" strokeWidth="1.5" />
+      <path d="M2.25 7.5h13.5M6 2.25v3M12 2.25v3" stroke="#505056" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="9" cy="12" r="1.5" fill="#505056" />
+    </svg>
+  ),
+  'after6month': (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path d="M9 2.25v13.5M2.25 9h13.5" stroke="#8E8E93" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="9" cy="9" r="2" fill="#8E8E93" />
+    </svg>
+  ),
+  'after1year': (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path d="M9 15.75A6.75 6.75 0 1 0 9 2.25a6.75 6.75 0 0 0 0 13.5Z" stroke="#8E8E93" strokeWidth="1.5" />
+      <path d="M9 5.25V9l3 1.5" stroke="#8E8E93" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  'not-yet': (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <circle cx="9" cy="9" r="7.5" stroke="#8E8E93" strokeWidth="1.5" />
+      <path d="M6.75 6.75a2.25 2.25 0 1 1 2.25 2.25V10.5" stroke="#8E8E93" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="9" cy="12.75" r="0.75" fill="#8E8E93" />
+    </svg>
+  ),
+}
+
 const TIMELINE_OPTIONS = [
-  { key: '1month', label: '당장 1개월 안에', emoji: '🔥' },
-  { key: '2-3month', label: '2~3개월 안에', emoji: '📅' },
-  { key: '6month', label: '6개월 안에', emoji: '🗓' },
-  { key: 'after6month', label: '6개월 이후', emoji: '⏳' },
-  { key: 'after1year', label: '1년 이후', emoji: '📆' },
-  { key: 'not-yet', label: '아직 생각 없어요', emoji: '🤔' },
+  { key: '1month', label: '당장 1개월 안에' },
+  { key: '2-3month', label: '2~3개월 안에' },
+  { key: '6month', label: '6개월 안에' },
+  { key: 'after6month', label: '6개월 이후' },
+  { key: 'after1year', label: '1년 이후' },
+  { key: 'not-yet', label: '아직 생각 없어요' },
 ] as const
 
 const CARRIER_OPTIONS = [
@@ -603,7 +645,9 @@ function StepTimeline({
               }}
             >
               <Radio checked={active} accent={accent} />
-              <span style={{ fontSize: '17px', lineHeight: 1 }}>{opt.emoji}</span>
+              <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                {TIMELINE_ICONS[opt.key]}
+              </span>
               {opt.label}
             </button>
           )
