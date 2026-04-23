@@ -142,7 +142,7 @@ const slideVariants = {
  */
 export default function PreorderForm(props) {
     const {
-        resultPage = "/event",
+        resultPage = "/preorder-result",
         eventId = "preorder_alarm_2026",
         style,
     } = props
@@ -152,9 +152,6 @@ export default function PreorderForm(props) {
     const [dir, setDir] = useState(1)
     const [loading, setLoading] = useState(false)
     const [showTerms, setShowTerms] = useState(false)
-
-    const [submitted, setSubmitted] = useState(false)
-    const [countdown, setCountdown] = useState(5)
 
     const [model, setModel] = useState("")
     const [name, setName] = useState("")
@@ -173,17 +170,6 @@ export default function PreorderForm(props) {
         if (src.includes("zum")) setFunnel("줌마렐라")
         else if (src.includes("asa")) setFunnel("아사모")
     }, [])
-
-    // 제출 완료 시 5초 카운트다운 후 홈 이동
-    useEffect(() => {
-        if (!submitted) return
-        if (countdown <= 0) {
-            if (typeof window !== "undefined") window.location.href = resultPage
-            return
-        }
-        const timer = setTimeout(() => setCountdown((c) => c - 1), 1000)
-        return () => clearTimeout(timer)
-    }, [submitted, countdown, resultPage])
 
     // 스텝 변경 시 스크롤 리셋
     useEffect(() => {
@@ -249,100 +235,26 @@ export default function PreorderForm(props) {
             if (error) {
                 console.error("Supabase Error:", error)
                 alert("제출 중 오류가 발생했습니다. 다시 시도해주세요.")
-            } else {
-                setSubmitted(true)
+                setLoading(false)
+                return
+            }
+
+            // 제출 성공 → 결과 페이지로 이동 (픽셀 트래킹용 별도 페이지)
+            if (typeof window !== "undefined") {
+                const params = new URLSearchParams({
+                    model,
+                    name,
+                    phone,
+                    carrier,
+                })
+                const sep = resultPage.includes("?") ? "&" : "?"
+                window.location.href = `${resultPage}${sep}${params.toString()}`
             }
         } catch (err) {
             console.error(err)
             alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.")
-        } finally {
             setLoading(false)
         }
-    }
-
-    // ── 결과 화면 ──
-    if (submitted) {
-        return (
-            <div style={{ ...styles.container, ...style }}>
-                <div style={styles.resultWrap}>
-                    {/* 체크 원 애니메이션 */}
-                    <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
-                        style={styles.resultCircle}
-                    >
-                        <motion.svg
-                            width="48" height="48" viewBox="0 0 48 48" fill="none"
-                            initial={{ pathLength: 0 }}
-                            animate={{ pathLength: 1 }}
-                        >
-                            <motion.path
-                                d="M14 25L21 32L34 18"
-                                stroke="#FFF"
-                                strokeWidth="4"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                initial={{ pathLength: 0 }}
-                                animate={{ pathLength: 1 }}
-                                transition={{ duration: 0.5, delay: 0.4, ease: "easeOut" }}
-                            />
-                        </motion.svg>
-                    </motion.div>
-
-                    {/* 텍스트 */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.45, delay: 0.5 }}
-                        style={styles.resultTextWrap}
-                    >
-                        <h2 style={styles.resultTitle}>신청이 완료되었습니다</h2>
-                        <p style={styles.resultDesc}>
-                            <strong>{model}</strong> 출시 알림을{"\n"}
-                            <strong>{phone}</strong>으로 보내드릴게요.
-                        </p>
-                    </motion.div>
-
-                    {/* 안내 */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.9 }}
-                        style={styles.resultNotice}
-                    >
-                        <span>출시 확정 시 전화 또는 문자로 안내드립니다.</span>
-                    </motion.div>
-
-                    {/* 카운트다운 */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 1.2 }}
-                        style={styles.resultCountdown}
-                    >
-                        <span>{countdown}초 후 홈으로 이동합니다</span>
-                        <motion.div
-                            style={styles.countdownBar}
-                            initial={{ scaleX: 1 }}
-                            animate={{ scaleX: 0 }}
-                            transition={{ duration: 5, ease: "linear" }}
-                        />
-                    </motion.div>
-
-                    {/* 즉시 이동 버튼 */}
-                    <motion.button
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1.0 }}
-                        onClick={() => { if (typeof window !== "undefined") window.location.href = resultPage }}
-                        style={styles.resultBtn}
-                    >
-                        홈으로 바로가기
-                    </motion.button>
-                </div>
-            </div>
-        )
     }
 
     return (
@@ -973,84 +885,6 @@ const styles: Record<string, React.CSSProperties> = {
         letterSpacing: "-0.2px",
         WebkitTapHighlightColor: "transparent",
     },
-
-    // ── 결과 화면 ──
-    resultWrap: {
-        flex: 1,
-        display: "flex",
-        flexDirection: "column" as const,
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "40px 24px",
-        gap: 28,
-        textAlign: "center" as const,
-    },
-    resultCircle: {
-        width: 88,
-        height: 88,
-        borderRadius: "50%",
-        backgroundColor: C.primary,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        boxShadow: "0 8px 32px rgba(0,102,255,0.3)",
-    },
-    resultTextWrap: {
-        display: "flex",
-        flexDirection: "column" as const,
-        alignItems: "center",
-        gap: 10,
-    },
-    resultTitle: {
-        margin: 0,
-        fontSize: 26,
-        fontWeight: 800,
-        color: C.text,
-        letterSpacing: "-0.5px",
-    },
-    resultDesc: {
-        margin: 0,
-        fontSize: 16,
-        color: C.textSub,
-        lineHeight: 1.6,
-        whiteSpace: "pre-line" as const,
-    },
-    resultNotice: {
-        padding: "12px 20px",
-        borderRadius: 12,
-        backgroundColor: C.bgAlt,
-        fontSize: 14,
-        color: C.textSub,
-        fontWeight: 500,
-    },
-    resultCountdown: {
-        display: "flex",
-        flexDirection: "column" as const,
-        alignItems: "center",
-        gap: 8,
-        fontSize: 13,
-        color: C.textSub,
-        width: "60%",
-    },
-    countdownBar: {
-        width: "100%",
-        height: 3,
-        borderRadius: 2,
-        backgroundColor: C.primary,
-        transformOrigin: "left",
-    },
-    resultBtn: {
-        padding: "14px 32px",
-        borderRadius: 12,
-        backgroundColor: C.text,
-        color: "#FFF",
-        fontSize: 16,
-        fontWeight: 700,
-        border: "none",
-        cursor: "pointer",
-        fontFamily: FONT,
-        WebkitTapHighlightColor: "transparent",
-    },
 }
 
 // ─── Framer 프롭 컨트롤 ───────────────────────────────────────────────
@@ -1058,7 +892,7 @@ addPropertyControls(PreorderForm, {
     resultPage: {
         type: ControlType.String,
         title: "완료 후 이동 경로",
-        defaultValue: "/event",
+        defaultValue: "/preorder-result",
     },
     eventId: {
         type: ControlType.String,

@@ -17,40 +17,45 @@ const supabaseAnonKey =
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // ─── 가정의 달 대상 기종 ──────────────────────────────────
-// 아이폰 17e / 아이폰 17 / 갤럭시 S26 (기본·플러스·울트라) / 갤럭시 점프4 / 갤럭시 A17
+// 아이폰 17e / 아이폰 17 / 갤럭시 S26 (기본·플러스·울트라) / Z Fold7 / Z Flip7 / S25 FE / 점프4 / A17
 const TARGET_PREFIXES = [
-    "aip17e",   // iPhone 17e
-    "aip17-",   // iPhone 17
-    "sm-s942",  // Galaxy S26
-    "sm-s947",  // Galaxy S26+
-    "sm-s948",  // Galaxy S26 Ultra
-    "sm-m366",  // Galaxy Jump4
-    "sm-a175",  // Galaxy A17
+    "aip17e",     // iPhone 17e
+    "aip17-",     // iPhone 17
+    "sm-s942",    // Galaxy S26
+    "sm-s947",    // Galaxy S26+
+    "sm-s948",    // Galaxy S26 Ultra
+    "sm-f966nk",  // Galaxy Z Fold7
+    "sm-f766nk",  // Galaxy Z Flip7
+    "sm-s731nk",  // Galaxy S25 FE
+    "sm-m366",    // Galaxy Jump4
+    "sm-a175",    // Galaxy A17
 ]
 
-const isTargetModel = (model: string) =>
-    TARGET_PREFIXES.some((p) => model.startsWith(p))
+// 노출 제외 모델 (특정 변형 단일 제외)
+const EXCLUDED_MODELS = new Set<string>([
+    "sm-a175nk-kp", // 폼폼푸린 에디션 제외
+])
 
-const getModelPriority = (model: string): number => {
-    if (model.startsWith("aip17e")) return 1
-    if (model.startsWith("aip17-")) return 2
-    if (model.startsWith("sm-s942")) return 3
-    if (model.startsWith("sm-s947")) return 4
-    if (model.startsWith("sm-s948")) return 5
-    if (model.startsWith("sm-m366")) return 6
-    if (model.startsWith("sm-a175")) return 7
-    return 99
-}
+const isTargetModel = (model: string) =>
+    !EXCLUDED_MODELS.has(model) && TARGET_PREFIXES.some((p) => model.startsWith(p))
 
 // 모델별 추천 배지 설정
 type RecommendBadge = { label: string; bg: string; color: string }
 const RECOMMEND_BADGES: { prefix: string; badge: RecommendBadge }[] = [
     {
-        prefix: "sm-m366", // Jump4 → 어린이 추천
-        badge: { label: "어린이 추천", bg: "#60A5FA", color: "#FFFFFF" },
+        prefix: "aip17-", // iPhone 17 → 학생 추천
+        badge: { label: "학생 추천", bg: "#60A5FA", color: "#FFFFFF" },
     },
     {
         prefix: "sm-a175", // A17 → 부모님 추천
+        badge: { label: "부모님 추천", bg: "#EB408A", color: "#FFFFFF" },
+    },
+    {
+        prefix: "sm-m366", // Jump4 → 부모님 추천
+        badge: { label: "부모님 추천", bg: "#EB408A", color: "#FFFFFF" },
+    },
+    {
+        prefix: "sm-s731nk", // S25 FE → 부모님 추천
         badge: { label: "부모님 추천", bg: "#EB408A", color: "#FFFFFF" },
     },
 ]
@@ -100,20 +105,18 @@ const staggerWrap = {
     hidden: {},
     visible: { transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
 }
-const cardMotion = {
-    hidden: { opacity: 0, y: 16 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
-}
 
 // ─── 상품 카드 ────────────────────────────────────────────
 function ProductCard({
     product,
     subsidies,
     recommendBadge,
+    index,
 }: {
     product: any
     subsidies: any
     recommendBadge: RecommendBadge | null
+    index: number
 }) {
     const ktSub = calcKTmarketSubsidy(product, subsidies)
     const disclosure = product.device_plans_chg?.[0]?.disclosure_subsidy ?? 0
@@ -131,7 +134,13 @@ function ProductCard({
 
     return (
         <motion.div
-            variants={cardMotion}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+                duration: 0.4,
+                delay: Math.min(index, 6) * 0.06,
+                ease: [0.22, 1, 0.36, 1],
+            }}
             style={{
                 position: "relative",
                 display: "flex",
@@ -237,50 +246,67 @@ function ProductCard({
 
             <div
                 style={{
+                    position: "relative",
                     flexShrink: 0,
-                    padding: "9px clamp(10px, 3vw, 16px)",
-                    borderRadius: 12,
-                    backgroundColor: "#EFF6FF",
-                    color: "#3B82F6",
-                    fontSize: "clamp(12px, 3.2vw, 14px)",
-                    fontFamily: FONT,
-                    fontWeight: 600,
-                    textAlign: "center",
-                    whiteSpace: "nowrap",
-                    letterSpacing: -0.24,
-                    lineHeight: 1.4,
+                    alignSelf: "stretch",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
                 }}
             >
-                보러가기
-            </div>
-
-            {recommendBadge && (
-                <motion.div
-                    animate={{ y: [0, -4, 0] }}
-                    transition={{
-                        duration: 1.6,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                    }}
+                {recommendBadge && (
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: 10,
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            zIndex: 1,
+                            pointerEvents: "none",
+                        }}
+                    >
+                        <motion.div
+                            animate={{ y: [0, -4, 0] }}
+                            transition={{
+                                duration: 1.6,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                            }}
+                            style={{
+                                backgroundColor: recommendBadge.bg,
+                                color: recommendBadge.color,
+                                fontSize: 10,
+                                fontWeight: 700,
+                                fontFamily: FONT,
+                                letterSpacing: 0.2,
+                                padding: "3px 8px",
+                                borderRadius: 99,
+                                whiteSpace: "nowrap",
+                                boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
+                            }}
+                        >
+                            {recommendBadge.label}
+                        </motion.div>
+                    </div>
+                )}
+                <div
                     style={{
-                        position: "absolute",
-                        top: 8,
-                        right: 12,
-                        backgroundColor: recommendBadge.bg,
-                        color: recommendBadge.color,
-                        fontSize: 10,
-                        fontWeight: 700,
+                        padding: "9px clamp(10px, 3vw, 16px)",
+                        borderRadius: 12,
+                        backgroundColor: "#EFF6FF",
+                        color: "#3B82F6",
+                        fontSize: "clamp(12px, 3.2vw, 14px)",
                         fontFamily: FONT,
-                        letterSpacing: 0.2,
-                        padding: "3px 8px",
-                        borderRadius: 99,
+                        fontWeight: 600,
+                        textAlign: "center",
                         whiteSpace: "nowrap",
-                        boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
+                        letterSpacing: -0.24,
+                        lineHeight: 1.4,
                     }}
                 >
-                    {recommendBadge.label}
-                </motion.div>
-            )}
+                    보러가기
+                </div>
+            </div>
         </motion.div>
     )
 }
@@ -338,6 +364,31 @@ export default function FamilyMonthBuyNowSection(props) {
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
+        if (typeof document === "undefined") return
+        const id = "kt-fm-buynow-fonts"
+        if (document.getElementById(id)) return
+        const tag = document.createElement("style")
+        tag.id = id
+        tag.textContent = `
+            @font-face {
+                font-family: 'ONE Mobile POP';
+                src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-POP.woff') format('woff');
+                font-weight: normal;
+                font-style: normal;
+                font-display: swap;
+            }
+            @font-face {
+                font-family: 'Cafe24 Ohsquare OTF';
+                src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/Cafe24Ohsquare.woff') format('woff');
+                font-weight: normal;
+                font-style: normal;
+                font-display: swap;
+            }
+        `
+        document.head.appendChild(tag)
+    }, [])
+
+    useEffect(() => {
         const fetchData = async () => {
             try {
                 const { data: devices } = await supabase
@@ -358,14 +409,17 @@ export default function FamilyMonthBuyNowSection(props) {
                     }
                 })
 
-                // 대상 모델 + 최소 용량만
-                const filtered = devices
-                    .filter((d) => isTargetModel(d.model) && d.capacities?.[0] === d.capacity)
-                    .sort((a, b) => getModelPriority(a.model) - getModelPriority(b.model))
+                // 대상 모델 + 최소 용량 + 표시 가능한 데이터만
+                const filtered = devices.filter(
+                    (d) =>
+                        isTargetModel(d.model) &&
+                        d.capacities?.[0] === d.capacity &&
+                        typeof d.pet_name === "string" &&
+                        d.pet_name.trim().length > 0 &&
+                        Number(d.price) > 0
+                )
 
-                setProducts(filtered)
-
-                // KT마켓 지원금
+                // KT마켓 지원금 먼저 로드 (가격순 정렬에 사용)
                 const models = filtered.map((d) => d.model)
                 const { data: subs } = await supabase
                     .from("ktmarket_subsidy")
@@ -375,7 +429,22 @@ export default function FamilyMonthBuyNowSection(props) {
                 subs?.forEach((s) => {
                     map[s.model] = s
                 })
+
+                // 최종 표시 가격 기준 오름차순 정렬 (저렴한 순 위→아래)
+                const sorted = filtered.slice().sort((a, b) => {
+                    const aFinal = Math.max(
+                        a.price - (a.device_plans_chg?.[0]?.disclosure_subsidy ?? 0) - calcKTmarketSubsidy(a, map[a.model]),
+                        0
+                    )
+                    const bFinal = Math.max(
+                        b.price - (b.device_plans_chg?.[0]?.disclosure_subsidy ?? 0) - calcKTmarketSubsidy(b, map[b.model]),
+                        0
+                    )
+                    return aFinal - bFinal
+                })
+
                 setSubsidyMap(map)
+                setProducts(sorted)
             } catch (err) {
                 console.error(err)
             } finally {
@@ -411,16 +480,14 @@ export default function FamilyMonthBuyNowSection(props) {
             <style>{`
                 @font-face {
                     font-family: 'ONE Mobile POP';
-                    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/ONEMobilePOP.woff2') format('woff2'),
-                         url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/ONEMobilePOP.woff') format('woff');
+                    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-POP.woff') format('woff');
                     font-weight: normal;
                     font-style: normal;
                     font-display: swap;
                 }
                 @font-face {
                     font-family: 'Cafe24 Ohsquare OTF';
-                    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.1/Cafe24Ohsquare.woff2') format('woff2'),
-                         url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.1/Cafe24Ohsquare.woff') format('woff');
+                    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/Cafe24Ohsquare.woff') format('woff');
                     font-weight: normal;
                     font-style: normal;
                     font-display: swap;
@@ -433,6 +500,7 @@ export default function FamilyMonthBuyNowSection(props) {
                 style={{
                     textAlign: "center",
                     letterSpacing: "0.68px",
+                    marginTop: 20,
                 }}
             >
                 <p
@@ -472,18 +540,19 @@ export default function FamilyMonthBuyNowSection(props) {
                     boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
                 }}
             >
-                <motion.div variants={staggerWrap}>
+                <div>
                     {isLoading
                         ? Array.from({ length: 7 }).map((_, i) => <SkeletonCard key={i} />)
-                        : products.map((product) => (
-                              <ProductCard
-                                  key={product.model}
-                                  product={product}
-                                  subsidies={subsidyMap[product.model]}
-                                  recommendBadge={getRecommendBadge(product.model)}
-                              />
-                          ))}
-                </motion.div>
+                        : products.map((product, i) => (
+                            <ProductCard
+                                key={product.model}
+                                index={i}
+                                product={product}
+                                subsidies={subsidyMap[product.model]}
+                                recommendBadge={getRecommendBadge(product.model)}
+                            />
+                        ))}
+                </div>
             </motion.div>
         </motion.div>
     )

@@ -30,7 +30,7 @@ export default function FamilyMonthEventPage(props) {
         deliveryImage,
         whyKTImage,
         kakaoLink = "https://pf.kakao.com/",
-        applyLink = "",
+        applyLink = "#family-month-buy-now",
         showHero = true,
         showBuyNow = true,
         showDelivery = true,
@@ -55,7 +55,11 @@ export default function FamilyMonthEventPage(props) {
             }}
         >
             {showHero && <FamilyMonthHeroSection heroImage={heroImage} />}
-            {showBuyNow && <FamilyMonthBuyNowSection />}
+            {showBuyNow && (
+                <div id="family-month-buy-now" style={{ scrollMarginTop: 0 }}>
+                    <FamilyMonthBuyNowSection />
+                </div>
+            )}
             {showDelivery && <FamilyMonthDeliverySection image={deliveryImage} />}
             {showWhyKT && <FamilyMonthWhyKTMarketSection image={whyKTImage} />}
             {showReview && <FamilyMonthReviewSection />}
@@ -90,7 +94,7 @@ addPropertyControls(FamilyMonthEventPage, {
     applyLink: {
         type: ControlType.String,
         title: "신청 링크",
-        defaultValue: "",
+        defaultValue: "#family-month-buy-now",
     },
     showHero: { type: ControlType.Boolean, title: "Hero 노출", defaultValue: true },
     showBuyNow: { type: ControlType.Boolean, title: "특가 핸드폰", defaultValue: true },

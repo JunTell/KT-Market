@@ -3,10 +3,12 @@
 // 별점 + 닉네임 + 후기 카드 (가로 무한 스크롤)
 
 import { addPropertyControls, ControlType } from "framer"
-import React from "react"
+import React, { useEffect } from "react"
 import { motion } from "framer-motion"
 
 const FONT = '"Pretendard", "Inter", sans-serif'
+const FONT_TITLE_KO = '"Cafe24 Ohsquare OTF", "Pretendard", sans-serif'
+const FONT_TITLE_POP = '"ONE Mobile POP", "Pretendard", sans-serif'
 
 const fadeUp = {
     hidden: { opacity: 0, y: 24 },
@@ -137,6 +139,31 @@ export default function FamilyMonthReviewSection(props) {
     const doubled = [...reviews, ...reviews]
     const trackWidth = reviews.length * (240 + 12)
 
+    useEffect(() => {
+        if (typeof document === "undefined") return
+        const id = "kt-fm-review-fonts"
+        if (document.getElementById(id)) return
+        const tag = document.createElement("style")
+        tag.id = id
+        tag.textContent = `
+            @font-face {
+                font-family: 'ONE Mobile POP';
+                src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-POP.woff') format('woff');
+                font-weight: normal;
+                font-style: normal;
+                font-display: swap;
+            }
+            @font-face {
+                font-family: 'Cafe24 Ohsquare OTF';
+                src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/Cafe24Ohsquare.woff') format('woff');
+                font-weight: normal;
+                font-style: normal;
+                font-display: swap;
+            }
+        `
+        document.head.appendChild(tag)
+    }, [])
+
     return (
         <motion.div
             initial="hidden"
@@ -164,31 +191,31 @@ export default function FamilyMonthReviewSection(props) {
             }}
         >
             {/* 타이틀 */}
-            <motion.div variants={fadeUp} style={{ textAlign: "center", padding: "0 16px" }}>
-                <div
+            <motion.div variants={fadeUp} style={{ textAlign: "center", padding: "0 16px", letterSpacing: "0.68px", marginTop: 20 }}>
+                <p
                     style={{
-                        fontSize: 26,
-                        fontWeight: 800,
+                        margin: 0,
+                        fontSize: 30,
+                        lineHeight: 1.25,
                         color: "#161616",
-                        lineHeight: 1.3,
-                        letterSpacing: -0.5,
-                        fontFamily: FONT,
+                        fontFamily: FONT_TITLE_KO,
+                        fontWeight: 400,
                     }}
                 >
                     {titleLine1}
-                </div>
-                <div
+                </p>
+                <p
                     style={{
-                        fontSize: 26,
-                        fontWeight: 800,
+                        margin: 0,
+                        fontSize: 32,
+                        lineHeight: 1.25,
                         color: "#EB408A",
-                        lineHeight: 1.3,
-                        letterSpacing: -0.5,
-                        fontFamily: FONT,
+                        fontFamily: FONT_TITLE_POP,
+                        fontWeight: 400,
                     }}
                 >
                     {titleLine2}
-                </div>
+                </p>
             </motion.div>
 
             {/* 가로 무한 슬라이드 */}

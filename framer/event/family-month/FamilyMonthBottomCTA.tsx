@@ -33,7 +33,6 @@ export default function FamilyMonthBottomCTA(props) {
         kakaoColor = "#4E0B00",
         applyBg = "#C42A5D",
         applyColor = "#FFFFFF",
-        sticky = true,
         style,
     } = props
 
@@ -44,9 +43,16 @@ export default function FamilyMonthBottomCTA(props) {
     }
 
     const handleApply = () => {
-        if (applyLink && typeof window !== "undefined") {
-            window.location.href = applyLink
+        if (!applyLink || typeof window === "undefined") return
+        if (applyLink.startsWith("#")) {
+            const target = document.querySelector(applyLink) as HTMLElement | null
+            if (target) {
+                const top = target.getBoundingClientRect().top + window.scrollY
+                window.scrollTo({ top, behavior: "smooth" })
+                return
+            }
         }
+        window.location.href = applyLink
     }
 
     return (
@@ -68,10 +74,12 @@ export default function FamilyMonthBottomCTA(props) {
                 gap: 11,
                 padding: "18px 16px calc(18px + env(safe-area-inset-bottom))",
                 fontFamily: FONT,
-                position: sticky ? "sticky" : "relative",
-                bottom: sticky ? 0 : undefined,
+                position: "fixed",
+                bottom: 0,
                 left: 0,
                 right: 0,
+                marginLeft: "auto",
+                marginRight: "auto",
                 zIndex: 50,
                 ...style,
             }}
@@ -192,10 +200,5 @@ addPropertyControls(FamilyMonthBottomCTA, {
         type: ControlType.Color,
         title: "신청 텍스트",
         defaultValue: "#FFFFFF",
-    },
-    sticky: {
-        type: ControlType.Boolean,
-        title: "하단 고정",
-        defaultValue: true,
     },
 })
